@@ -1,7 +1,7 @@
-// Catalogo semilla de ejercicios. Autoria propia (no viene de ningun dataset externo:
-// el unico dataset con gifs que evaluamos tiene la media con licencia de terceros -
-// Gym visual - que no podemos redistribuir; el texto lo escribimos directo en nuestro
-// formato de 16 grupos musculares en vez de adaptar el de otro dataset).
+// Catalogo semilla de ejercicios. Texto (nombres, descripciones, pesos musculares)
+// de autoria propia, en nuestro formato de 16 grupos musculares. La media (gifs) se
+// mapea aparte en scripts/seed/media-map.mjs, desde hasaneyldrm/exercises-dataset —
+// esa media es (c) Gym visual, no de dominio publico; ver el header de ese archivo.
 //
 // muscleWeights: claves de MUSCLE_GROUPS, los valores de cada ejercicio suman 1.0.
 // El musculo primario es la clave con mayor peso (validado en seedExercises.mjs).

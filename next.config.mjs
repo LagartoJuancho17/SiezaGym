@@ -9,7 +9,7 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "raw.githubusercontent.com",
-        pathname: "/yuhonas/free-exercise-db/**",
+        pathname: "/hasaneyldrm/exercises-dataset/**",
       },
     ],
   },

@@ -81,7 +81,7 @@ async function main() {
       descriptionEs: e.descriptionEs,
       descriptionEn: e.descriptionEn,
       mediaUrl: MEDIA_MAP[e.nameEs] || null,
-      mediaAttribution: MEDIA_MAP[e.nameEs] ? "yuhonas/free-exercise-db (Unlicense)" : null,
+      mediaAttribution: MEDIA_MAP[e.nameEs] ? "© Gym visual — https://gymvisual.com/" : null,
       searchTextEs: normalizeSearchText(e.nameEs),
       searchTextEn: normalizeSearchText(e.nameEn),
       source: "seed",

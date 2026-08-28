@@ -10,6 +10,7 @@ import {
 } from "@/lib/exercises/constants";
 import { filterExercises, primaryMuscle } from "@/lib/exercises/filters";
 import CustomExerciseForm from "@/components/routines/CustomExerciseForm";
+import MediaAttribution from "@/components/routines/MediaAttribution";
 
 export default function ExercisePicker({ exercises, customExercises, onConfirm, onClose }) {
   const [query, setQuery] = useState("");
@@ -183,7 +184,7 @@ export default function ExercisePicker({ exercises, customExercises, onConfirm, 
               </button>
             </div>
 
-            <div className="border-t border-hair px-5 py-4">
+            <div className="flex flex-col gap-2 border-t border-hair px-5 py-4">
               <button
                 type="button"
                 onClick={handleConfirm}
@@ -192,6 +193,7 @@ export default function ExercisePicker({ exercises, customExercises, onConfirm, 
               >
                 Agregar {selectedIds.size > 0 ? `(${selectedIds.size})` : ""}
               </button>
+              <MediaAttribution />
             </div>
           </>
         )}

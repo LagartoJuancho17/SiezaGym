@@ -3,10 +3,12 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { MUSCLE_GROUP_LABELS, EQUIPMENT_LABELS, REGISTRATION_TYPE_LABELS } from "@/lib/exercises/constants";
 import { totalSets, estimatedDurationMinutes, muscleDistribution } from "@/lib/routines/summary";
 import { deleteRoutine, duplicateRoutine } from "@/app/(app)/rutinas/actions";
 import RoutineBuilder from "@/components/routines/RoutineBuilder";
+import MediaAttribution from "@/components/routines/MediaAttribution";
 
 function MuscleRing({ pct }) {
   const percent = Math.round(pct * 100);
@@ -193,28 +195,61 @@ export default function RoutineDetail({ routine, catalogExercises, customExercis
             {routine.exercises.map((item) => {
               const exercise = exerciseLookup.get(item.exerciseId);
               return (
-                <div key={item.exerciseId} className="rounded-2xl border border-hair bg-glass p-3.5">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="min-w-0 truncate text-sm font-semibold text-text">
+                <div
+                  key={item.exerciseId}
+                  className="flex items-center gap-3 rounded-2xl border border-hair bg-glass p-3"
+                >
+                  {exercise?.mediaUrl ? (
+                    <Image
+                      src={exercise.mediaUrl}
+                      alt=""
+                      width={56}
+                      height={56}
+                      className="h-14 w-14 shrink-0 rounded-xl object-cover"
+                      unoptimized
+                    />
+                  ) : (
+                    <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-glass2 text-faint">
+                      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+                        <circle cx="12" cy="8.5" r="3.2" />
+                        <path d="M5 20a7 7 0 0 1 14 0" />
+                      </svg>
+                    </span>
+                  )}
+
+                  <div className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-semibold text-text">
                       {exercise?.nameEs || "Ejercicio"}
                     </span>
-                    <span className="font-mono-digit shrink-0 text-xs text-faint">
-                      {item.targetSets} × {item.targetRepRangeLow}-{item.targetRepRangeHigh}
-                      {item.targetRIR != null ? ` @RIR${item.targetRIR}` : ""}
+                    <span className="block truncate text-xs text-faint">
+                      {item.targetSets} series × {item.targetRepRangeLow}-{item.targetRepRangeHigh} reps
+                      {item.targetRIR != null ? ` · RIR ${item.targetRIR}` : ""}
+                    </span>
+                    <span className="mt-0.5 block truncate text-[11px] text-faint">
+                      {exercise ? EQUIPMENT_LABELS[exercise.equipment] : ""}
+                      {exercise ? ` · ${REGISTRATION_TYPE_LABELS[exercise.registrationType]}` : ""}
+                      {" · "}Descanso {item.restSeconds}s
+                      {item.techniqueNote ? ` · ${item.techniqueNote}` : ""}
                     </span>
                   </div>
-                  <p className="mt-1 text-xs text-faint">
-                    {exercise ? EQUIPMENT_LABELS[exercise.equipment] : ""}
-                    {exercise ? ` · ${REGISTRATION_TYPE_LABELS[exercise.registrationType]}` : ""}
-                    {" · "}Descanso {item.restSeconds}s
-                  </p>
-                  {item.techniqueNote ? (
-                    <p className="mt-1 text-xs text-muted">{item.techniqueNote}</p>
-                  ) : null}
+
+                  <span
+                    aria-hidden
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-hair text-faint"
+                  >
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                      <path d="M6 4.5v15l13-7.5z" />
+                    </svg>
+                  </span>
                 </div>
               );
             })}
           </div>
+          {routine.exercises.some((item) => exerciseLookup.get(item.exerciseId)?.mediaUrl) ? (
+            <div className="mt-2">
+              <MediaAttribution />
+            </div>
+          ) : null}
         </section>
 
       <button
