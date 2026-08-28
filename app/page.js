@@ -42,24 +42,11 @@ export default async function Home() {
               {greeting}
             </h1>
           </div>
-          <button
-            type="button"
-            aria-label="Ver perfil"
-            className="flex h-[46px] w-[46px] shrink-0 items-center justify-center overflow-hidden rounded-full border border-hair bg-glass text-[13.5px] font-semibold text-muted transition hover:border-teal2 hover:text-text"
-          >
-            {profile?.photoURL ? (
-              <Image
-                src={profile.photoURL}
-                alt=""
-                width={46}
-                height={46}
-                className="h-full w-full object-cover"
-                referrerPolicy="no-referrer"
-              />
-            ) : (
-              initial
-            )}
-          </button>
+          <AccountMenu
+            initial={initial}
+            photoURL={profile?.photoURL || null}
+            email={user.email || null}
+          />
         </header>
 
         <OfflineBanner />
