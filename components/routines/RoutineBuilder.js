@@ -18,16 +18,15 @@ import {
 import ExercisePicker from "@/components/routines/ExercisePicker";
 import ExerciseConfigRow from "@/components/routines/ExerciseConfigRow";
 import { createRoutine, updateRoutine } from "@/app/(app)/rutinas/actions";
+import { isTimeBasedRegistration } from "@/lib/exercises/constants";
 
 function defaultItemFor(exercise) {
   return {
     exerciseId: exercise.id,
     exerciseSource: exercise.source === "custom" ? "custom" : "catalog",
     targetSets: 3,
-    targetRepRangeLow: 8,
-    targetRepRangeHigh: 12,
+    targetReps: isTimeBasedRegistration(exercise.registrationType) ? 30 : 10,
     targetRIR: null,
-    restSeconds: 90,
     techniqueNote: "",
   };
 }

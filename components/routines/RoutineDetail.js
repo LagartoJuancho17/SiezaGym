@@ -4,11 +4,17 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { MUSCLE_GROUP_LABELS, EQUIPMENT_LABELS, REGISTRATION_TYPE_LABELS } from "@/lib/exercises/constants";
+import {
+  MUSCLE_GROUP_LABELS,
+  EQUIPMENT_LABELS,
+  REGISTRATION_TYPE_LABELS,
+  isTimeBasedRegistration,
+} from "@/lib/exercises/constants";
 import { totalSets, estimatedDurationMinutes, muscleDistribution } from "@/lib/routines/summary";
 import { deleteRoutine, duplicateRoutine } from "@/app/(app)/rutinas/actions";
 import RoutineBuilder from "@/components/routines/RoutineBuilder";
 import MediaAttribution from "@/components/routines/MediaAttribution";
+import ExerciseDetailSheet from "@/components/routines/ExerciseDetailSheet";
 
 function MuscleRing({ pct }) {
   const percent = Math.round(pct * 100);
@@ -32,6 +38,7 @@ export default function RoutineDetail({ routine, catalogExercises, customExercis
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [detailExercise, setDetailExercise] = useState(null);
 
   const exerciseLookup = useMemo(
     () => new Map([...catalogExercises, ...customExercises].map((e) => [e.id, e])),
@@ -161,7 +168,7 @@ export default function RoutineDetail({ routine, catalogExercises, customExercis
         <div>
           <h1 className="font-display text-[28px] uppercase leading-none">{routine.name}</h1>
           <p className="mt-2 text-sm text-faint">
-            {routine.exercises.length} ejercicios, ~{estimatedDurationMinutes(routine)} min
+            {routine.exercises.length} ejercicios, ~{estimatedDurationMinutes(routine, exerciseLookup)} min
           </p>
           {routine.note ? <p className="mt-2 text-sm text-muted">{routine.note}</p> : null}
         </div>
@@ -194,10 +201,19 @@ export default function RoutineDetail({ routine, catalogExercises, customExercis
           <div className="flex flex-col gap-2">
             {routine.exercises.map((item) => {
               const exercise = exerciseLookup.get(item.exerciseId);
+              const timeBased = isTimeBasedRegistration(exercise?.registrationType);
+              const metaParts = [
+                exercise ? EQUIPMENT_LABELS[exercise.equipment] : null,
+                exercise ? REGISTRATION_TYPE_LABELS[exercise.registrationType] : null,
+                item.techniqueNote || null,
+              ].filter(Boolean);
               return (
-                <div
+                <button
+                  type="button"
                   key={item.exerciseId}
-                  className="flex items-center gap-3 rounded-2xl border border-hair bg-glass p-3"
+                  onClick={() => exercise && setDetailExercise(exercise)}
+                  disabled={!exercise}
+                  className="flex items-center gap-3 rounded-2xl border border-hair bg-glass p-3 text-left transition hover:border-teal2 disabled:cursor-default disabled:hover:border-hair"
                 >
                   {exercise?.mediaUrl ? (
                     <Image
@@ -222,26 +238,27 @@ export default function RoutineDetail({ routine, catalogExercises, customExercis
                       {exercise?.nameEs || "Ejercicio"}
                     </span>
                     <span className="block truncate text-xs text-faint">
-                      {item.targetSets} series × {item.targetRepRangeLow}-{item.targetRepRangeHigh} reps
+                      {item.targetSets} series × {item.targetReps} {timeBased ? "seg" : "reps"}
                       {item.targetRIR != null ? ` · RIR ${item.targetRIR}` : ""}
                     </span>
-                    <span className="mt-0.5 block truncate text-[11px] text-faint">
-                      {exercise ? EQUIPMENT_LABELS[exercise.equipment] : ""}
-                      {exercise ? ` · ${REGISTRATION_TYPE_LABELS[exercise.registrationType]}` : ""}
-                      {" · "}Descanso {item.restSeconds}s
-                      {item.techniqueNote ? ` · ${item.techniqueNote}` : ""}
-                    </span>
+                    {metaParts.length ? (
+                      <span className="mt-0.5 block truncate text-[11px] text-faint">
+                        {metaParts.join(" · ")}
+                      </span>
+                    ) : null}
                   </div>
 
-                  <span
-                    aria-hidden
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-hair text-faint"
-                  >
-                    <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
-                      <path d="M6 4.5v15l13-7.5z" />
-                    </svg>
-                  </span>
-                </div>
+                  {exercise ? (
+                    <span
+                      aria-hidden
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-hair text-faint"
+                    >
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M9 6l6 6-6 6" />
+                      </svg>
+                    </span>
+                  ) : null}
+                </button>
               );
             })}
           </div>
@@ -260,6 +277,10 @@ export default function RoutineDetail({ routine, catalogExercises, customExercis
       >
         ▶ Empezar entrenamiento
       </button>
+
+      {detailExercise ? (
+        <ExerciseDetailSheet exercise={detailExercise} onClose={() => setDetailExercise(null)} />
+      ) : null}
     </div>
   );
 }

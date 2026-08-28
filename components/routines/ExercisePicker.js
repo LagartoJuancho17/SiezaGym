@@ -11,6 +11,7 @@ import {
 import { filterExercises, primaryMuscle } from "@/lib/exercises/filters";
 import CustomExerciseForm from "@/components/routines/CustomExerciseForm";
 import MediaAttribution from "@/components/routines/MediaAttribution";
+import ExerciseDetailSheet from "@/components/routines/ExerciseDetailSheet";
 
 export default function ExercisePicker({ exercises, customExercises, onConfirm, onClose }) {
   const [query, setQuery] = useState("");
@@ -18,6 +19,7 @@ export default function ExercisePicker({ exercises, customExercises, onConfirm, 
   const [equipment, setEquipment] = useState("");
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [showCustomForm, setShowCustomForm] = useState(false);
+  const [detailExercise, setDetailExercise] = useState(null);
   const [localCustom, setLocalCustom] = useState(customExercises);
 
   const allExercises = useMemo(
@@ -123,52 +125,68 @@ export default function ExercisePicker({ exercises, customExercises, onConfirm, 
                     const muscle = primaryMuscle(exercise.muscleWeights);
                     return (
                       <li key={exercise.id}>
-                        <button
-                          type="button"
-                          onClick={() => toggle(exercise.id)}
-                          className={`flex w-full items-center gap-3 rounded-2xl border px-3 py-2.5 text-left transition ${
+                        <div
+                          className={`flex items-center gap-1 rounded-2xl border transition ${
                             checked ? "border-teal2 bg-glass2" : "border-transparent hover:bg-glass"
                           }`}
                         >
-                          <span
-                            className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border ${
-                              checked ? "border-teal2 bg-teal2 text-onlight" : "border-hair"
-                            }`}
+                          <button
+                            type="button"
+                            onClick={() => toggle(exercise.id)}
+                            className="flex min-w-0 flex-1 items-center gap-3 py-2.5 pl-3 text-left"
                           >
-                            {checked ? "✓" : ""}
-                          </span>
-                          {exercise.mediaUrl ? (
-                            <Image
-                              src={exercise.mediaUrl}
-                              alt=""
-                              width={40}
-                              height={40}
-                              className="h-10 w-10 shrink-0 rounded-lg object-cover"
-                              unoptimized
-                            />
-                          ) : (
-                            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-glass2 text-faint">
-                              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
-                                <circle cx="12" cy="8.5" r="3.2" />
-                                <path d="M5 20a7 7 0 0 1 14 0" />
-                              </svg>
+                            <span
+                              className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border ${
+                                checked ? "border-teal2 bg-teal2 text-onlight" : "border-hair"
+                              }`}
+                            >
+                              {checked ? "✓" : ""}
                             </span>
-                          )}
-                          <span className="min-w-0 flex-1">
-                            <span className="block truncate text-sm font-medium text-text">
-                              {exercise.nameEs}
-                              {exercise.source === "custom" ? (
-                                <span className="ml-1.5 rounded-full bg-glass2 px-1.5 py-0.5 text-[9px] uppercase tracking-wide text-teal2">
-                                  Tuyo
-                                </span>
-                              ) : null}
+                            {exercise.mediaUrl ? (
+                              <Image
+                                src={exercise.mediaUrl}
+                                alt=""
+                                width={40}
+                                height={40}
+                                className="h-10 w-10 shrink-0 rounded-lg object-cover"
+                                unoptimized
+                              />
+                            ) : (
+                              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-glass2 text-faint">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+                                  <circle cx="12" cy="8.5" r="3.2" />
+                                  <path d="M5 20a7 7 0 0 1 14 0" />
+                                </svg>
+                              </span>
+                            )}
+                            <span className="min-w-0 flex-1">
+                              <span className="block truncate text-sm font-medium text-text">
+                                {exercise.nameEs}
+                                {exercise.source === "custom" ? (
+                                  <span className="ml-1.5 rounded-full bg-glass2 px-1.5 py-0.5 text-[9px] uppercase tracking-wide text-teal2">
+                                    Tuyo
+                                  </span>
+                                ) : null}
+                              </span>
+                              <span className="block text-xs text-faint">
+                                {EQUIPMENT_LABELS[exercise.equipment]}
+                                {muscle ? ` · ${MUSCLE_GROUP_LABELS[muscle]}` : ""}
+                              </span>
                             </span>
-                            <span className="block text-xs text-faint">
-                              {EQUIPMENT_LABELS[exercise.equipment]}
-                              {muscle ? ` · ${MUSCLE_GROUP_LABELS[muscle]}` : ""}
-                            </span>
-                          </span>
-                        </button>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setDetailExercise(exercise)}
+                            aria-label={`Ver detalle de ${exercise.nameEs}`}
+                            className="mr-2 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-faint transition hover:text-teal2"
+                          >
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+                              <circle cx="12" cy="12" r="9" />
+                              <line x1="12" y1="10.5" x2="12" y2="16" />
+                              <circle cx="12" cy="7.5" r="1" fill="currentColor" stroke="none" />
+                            </svg>
+                          </button>
+                        </div>
                       </li>
                     );
                   })}
@@ -198,6 +216,10 @@ export default function ExercisePicker({ exercises, customExercises, onConfirm, 
           </>
         )}
       </div>
+
+      {detailExercise ? (
+        <ExerciseDetailSheet exercise={detailExercise} onClose={() => setDetailExercise(null)} />
+      ) : null}
     </div>
   );
 }

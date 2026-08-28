@@ -1,13 +1,17 @@
 "use client";
 
+import { useState } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { EQUIPMENT_LABELS } from "@/lib/exercises/constants";
+import { EQUIPMENT_LABELS, isTimeBasedRegistration } from "@/lib/exercises/constants";
+import ExerciseDetailSheet from "@/components/routines/ExerciseDetailSheet";
 
 export default function ExerciseConfigRow({ item, exercise, onChange, onRemove }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: item.exerciseId,
   });
+  const [showDetail, setShowDetail] = useState(false);
+  const repsLabel = isTimeBasedRegistration(exercise?.registrationType) ? "Tiempo (seg)" : "Reps";
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -45,12 +49,17 @@ export default function ExerciseConfigRow({ item, exercise, onChange, onRemove }
 
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
-            <span className="min-w-0 truncate text-sm font-semibold text-text">
+            <button
+              type="button"
+              onClick={() => exercise && setShowDetail(true)}
+              disabled={!exercise}
+              className="min-w-0 truncate text-left text-sm font-semibold text-text underline decoration-hair decoration-dotted underline-offset-4 transition hover:decoration-teal2 disabled:no-underline"
+            >
               {exercise?.nameEs || "Ejercicio"}
               {exercise?.unilateral ? (
                 <span className="ml-1.5 text-[10px] font-normal text-faint">(unilateral)</span>
               ) : null}
-            </span>
+            </button>
             <button
               type="button"
               onClick={onRemove}
@@ -64,7 +73,7 @@ export default function ExerciseConfigRow({ item, exercise, onChange, onRemove }
             <span className="text-xs text-faint">{EQUIPMENT_LABELS[exercise.equipment]}</span>
           ) : null}
 
-          <div className="mt-3 grid grid-cols-4 gap-1.5">
+          <div className="mt-3 grid grid-cols-3 gap-1.5">
             <label className="grid min-w-0 gap-1 text-[10px] uppercase tracking-wide text-faint">
               Series
               <input
@@ -76,22 +85,12 @@ export default function ExerciseConfigRow({ item, exercise, onChange, onRemove }
               />
             </label>
             <label className="grid min-w-0 gap-1 text-[10px] uppercase tracking-wide text-faint">
-              Reps min
+              {repsLabel}
               <input
                 type="number"
                 min="1"
-                value={item.targetRepRangeLow}
-                onChange={(e) => update("targetRepRangeLow", e.target.value)}
-                className="font-mono-digit h-9 w-full min-w-0 rounded-lg border border-hair bg-glass2 px-1 text-center text-sm text-text outline-none focus:border-teal2"
-              />
-            </label>
-            <label className="grid min-w-0 gap-1 text-[10px] uppercase tracking-wide text-faint">
-              Reps max
-              <input
-                type="number"
-                min="1"
-                value={item.targetRepRangeHigh}
-                onChange={(e) => update("targetRepRangeHigh", e.target.value)}
+                value={item.targetReps}
+                onChange={(e) => update("targetReps", e.target.value)}
                 className="font-mono-digit h-9 w-full min-w-0 rounded-lg border border-hair bg-glass2 px-1 text-center text-sm text-text outline-none focus:border-teal2"
               />
             </label>
@@ -109,18 +108,7 @@ export default function ExerciseConfigRow({ item, exercise, onChange, onRemove }
             </label>
           </div>
 
-          <div className="mt-2 grid grid-cols-2 gap-1.5">
-            <label className="grid min-w-0 gap-1 text-[10px] uppercase tracking-wide text-faint">
-              Descanso (seg)
-              <input
-                type="number"
-                min="0"
-                step="15"
-                value={item.restSeconds}
-                onChange={(e) => update("restSeconds", e.target.value)}
-                className="font-mono-digit h-9 w-full min-w-0 rounded-lg border border-hair bg-glass2 px-2 text-center text-sm text-text outline-none focus:border-teal2"
-              />
-            </label>
+          <div className="mt-2">
             <label className="grid min-w-0 gap-1 text-[10px] uppercase tracking-wide text-faint">
               Nota técnica
               <input
@@ -134,6 +122,10 @@ export default function ExerciseConfigRow({ item, exercise, onChange, onRemove }
           </div>
         </div>
       </div>
+
+      {showDetail ? (
+        <ExerciseDetailSheet exercise={exercise} onClose={() => setShowDetail(false)} />
+      ) : null}
     </div>
   );
 }

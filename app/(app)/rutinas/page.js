@@ -62,7 +62,7 @@ export default async function RutinasPage() {
                 key={routine.id}
                 routine={routine}
                 sets={totalSets(routine)}
-                minutes={estimatedDurationMinutes(routine)}
+                minutes={estimatedDurationMinutes(routine, exerciseLookup)}
                 muscleLabels={muscles}
               />
             );
