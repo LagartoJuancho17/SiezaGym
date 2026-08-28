@@ -1,0 +1,101 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-sans), Archivo, Arial, Helvetica, sans-serif;
+  --font-display: var(--font-display), Anton, sans-serif;
+  --font-mono-digit: var(--font-mono-digit), Silkscreen, ui-monospace, monospace;
+
+  /* Indirection on purpose: @theme fixes values at build time, but these
+     need to change at runtime for the light/dark toggle. Each utility
+     (bg-bg, text-teal, ...) resolves the raw --token below, which
+     :root / [data-theme="light"] redefine. */
+  --color-bg: var(--bg);
+  --color-deep: var(--deep);
+  --color-glass: var(--glass);
+  --color-glass2: var(--glass2);
+  --color-hair: var(--hair);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-teal: var(--teal);
+  --color-teal2: var(--teal2);
+  --color-onlight: var(--onlight);
+  --color-pill: var(--pill);
+  --color-nav: var(--nav-bg);
+  --color-destructive: var(--destructive);
+}
+
+:root {
+  --bg: #050c0e;
+  --deep: #08171a;
+  --glass: rgba(255, 255, 255, 0.06);
+  --glass2: rgba(255, 255, 255, 0.1);
+  --hair: rgba(255, 255, 255, 0.12);
+  --text: #ffffff;
+  --muted: rgba(255, 255, 255, 0.66);
+  --faint: rgba(255, 255, 255, 0.5);
+  --teal: #3fa9bc;
+  --teal2: #67d2de;
+  --onlight: #06171a;
+  --pill: #ffffff;
+  --nav-bg: rgba(10, 22, 25, 0.72);
+  --destructive: #f87171;
+}
+
+[data-theme="light"] {
+  --bg: #edf3f4;
+  --deep: #dde9eb;
+  --glass: rgba(6, 23, 26, 0.05);
+  --glass2: rgba(6, 23, 26, 0.08);
+  --hair: rgba(6, 23, 26, 0.12);
+  --text: #06171a;
+  --muted: rgba(6, 23, 26, 0.66);
+  --faint: rgba(6, 23, 26, 0.5);
+  --teal: #2e93a6;
+  --teal2: #57c0ce;
+  --onlight: #ffffff;
+  --pill: #06171a;
+  --nav-bg: rgba(255, 255, 255, 0.78);
+}
+
+@layer base {
+  html {
+    height: 100%;
+    color-scheme: dark;
+  }
+
+  html[data-theme="light"] {
+    color-scheme: light;
+  }
+
+  body {
+    min-height: 100%;
+    overflow-x: hidden;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+    opacity: 0.58;
+  }
+}
+
+@keyframes pulse-dot {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  70% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
