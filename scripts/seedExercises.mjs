@@ -9,6 +9,7 @@ import {
   PATTERNS,
   REGISTRATION_TYPES,
 } from "./seed/exercises-data.mjs";
+import { MEDIA_MAP } from "./seed/media-map.mjs";
 import { slugify, normalizeSearchText } from "../lib/text/normalize.js";
 
 function validate(exercises) {
@@ -79,7 +80,8 @@ async function main() {
       unilateral: e.unilateral,
       descriptionEs: e.descriptionEs,
       descriptionEn: e.descriptionEn,
-      mediaUrl: null,
+      mediaUrl: MEDIA_MAP[e.nameEs] || null,
+      mediaAttribution: MEDIA_MAP[e.nameEs] ? "yuhonas/free-exercise-db (Unlicense)" : null,
       searchTextEs: normalizeSearchText(e.nameEs),
       searchTextEn: normalizeSearchText(e.nameEn),
       source: "seed",

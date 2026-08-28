@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { MUSCLE_GROUP_LABELS, EQUIPMENT_LABELS, REGISTRATION_TYPE_LABELS } from "@/lib/exercises/constants";
 import { totalSets, estimatedDurationMinutes, muscleDistribution } from "@/lib/routines/summary";
-import { deleteRoutine, duplicateRoutine } from "@/app/rutinas/actions";
+import { deleteRoutine, duplicateRoutine } from "@/app/(app)/rutinas/actions";
 import RoutineBuilder from "@/components/routines/RoutineBuilder";
 
 function MuscleRing({ pct }) {
@@ -43,33 +43,31 @@ export default function RoutineDetail({ routine, catalogExercises, customExercis
 
   if (mode === "edit") {
     return (
-      <main className="min-h-screen bg-bg px-[18px] py-7 text-text">
-        <div className="mx-auto flex w-full max-w-md flex-col gap-5">
-          <header className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-teal2">
-                Editar
-              </p>
-              <h1 className="font-display mt-1 text-[26px] uppercase leading-none">
-                {routine.name}
-              </h1>
-            </div>
-            <button
-              type="button"
-              onClick={() => setMode("view")}
-              className="text-sm font-medium text-faint transition hover:text-text"
-            >
-              Cancelar
-            </button>
-          </header>
-          <RoutineBuilder
-            mode="edit"
-            routine={routine}
-            catalogExercises={catalogExercises}
-            customExercises={customExercises}
-          />
-        </div>
-      </main>
+      <div className="flex flex-col gap-5 px-[18px] pb-[100px]">
+        <header className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-teal2">
+              Editar
+            </p>
+            <h1 className="font-display mt-1 text-[26px] uppercase leading-none">
+              {routine.name}
+            </h1>
+          </div>
+          <button
+            type="button"
+            onClick={() => setMode("view")}
+            className="text-sm font-medium text-faint transition hover:text-text"
+          >
+            Cancelar
+          </button>
+        </header>
+        <RoutineBuilder
+          mode="edit"
+          routine={routine}
+          catalogExercises={catalogExercises}
+          customExercises={customExercises}
+        />
+      </div>
     );
   }
 
@@ -86,9 +84,8 @@ export default function RoutineDetail({ routine, catalogExercises, customExercis
   }
 
   return (
-    <main className="min-h-screen bg-bg px-[18px] py-7 text-text">
-      <div className="mx-auto flex w-full max-w-md flex-col gap-5">
-        <header className="flex items-start justify-between gap-3">
+    <div className="flex flex-col gap-5 px-[18px] pb-[100px]">
+      <header className="flex items-start justify-between gap-3">
           <Link href="/rutinas" aria-label="Volver" className="mt-1 text-faint transition hover:text-text">
             ←
           </Link>
@@ -220,15 +217,14 @@ export default function RoutineDetail({ routine, catalogExercises, customExercis
           </div>
         </section>
 
-        <button
-          type="button"
-          disabled
-          title="La sesión en vivo todavía no está construida"
-          className="flex h-[52px] w-full items-center justify-center gap-2 rounded-full bg-white text-[15px] font-semibold text-onlight"
-        >
-          ▶ Empezar entrenamiento
-        </button>
-      </div>
-    </main>
+      <button
+        type="button"
+        disabled
+        title="La sesión en vivo todavía no está construida"
+        className="flex h-[52px] w-full items-center justify-center gap-2 rounded-full bg-white text-[15px] font-semibold text-onlight"
+      >
+        ▶ Empezar entrenamiento
+      </button>
+    </div>
   );
 }

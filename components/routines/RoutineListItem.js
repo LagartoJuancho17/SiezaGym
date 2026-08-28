@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import { deleteRoutine, duplicateRoutine } from "@/app/rutinas/actions";
+import { deleteRoutine, duplicateRoutine } from "@/app/(app)/rutinas/actions";
 
 export default function RoutineListItem({ routine, sets, minutes, muscleLabels }) {
   const [confirmingDelete, setConfirmingDelete] = useState(false);

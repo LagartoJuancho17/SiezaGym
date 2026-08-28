@@ -12,7 +12,7 @@ import {
   REGISTRATION_TYPE_LABELS,
   muscleWeightsSum,
 } from "@/lib/exercises/constants";
-import { createCustomExercise } from "@/app/rutinas/actions";
+import { createCustomExercise } from "@/app/(app)/rutinas/actions";
 
 const WEIGHT_EPSILON = 0.01;
 

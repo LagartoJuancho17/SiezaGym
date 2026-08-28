@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import {
   MUSCLE_GROUPS,
   MUSCLE_GROUP_LABELS,
@@ -135,6 +136,23 @@ export default function ExercisePicker({ exercises, customExercises, onConfirm, 
                           >
                             {checked ? "✓" : ""}
                           </span>
+                          {exercise.mediaUrl ? (
+                            <Image
+                              src={exercise.mediaUrl}
+                              alt=""
+                              width={40}
+                              height={40}
+                              className="h-10 w-10 shrink-0 rounded-lg object-cover"
+                              unoptimized
+                            />
+                          ) : (
+                            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-glass2 text-faint">
+                              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+                                <circle cx="12" cy="8.5" r="3.2" />
+                                <path d="M5 20a7 7 0 0 1 14 0" />
+                              </svg>
+                            </span>
+                          )}
                           <span className="min-w-0 flex-1">
                             <span className="block truncate text-sm font-medium text-text">
                               {exercise.nameEs}

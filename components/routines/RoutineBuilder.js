@@ -17,7 +17,7 @@ import {
 } from "@dnd-kit/sortable";
 import ExercisePicker from "@/components/routines/ExercisePicker";
 import ExerciseConfigRow from "@/components/routines/ExerciseConfigRow";
-import { createRoutine, updateRoutine } from "@/app/rutinas/actions";
+import { createRoutine, updateRoutine } from "@/app/(app)/rutinas/actions";
 
 function defaultItemFor(exercise) {
   return {
