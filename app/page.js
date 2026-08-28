@@ -1,6 +1,9 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/firebase/session";
 import { getUserProfile } from "@/lib/users/users";
+import { listUserRoutines } from "@/lib/routines/routines";
+import { totalSets, estimatedDurationMinutes } from "@/lib/routines/summary";
 import AccountMenu from "@/components/home/AccountMenu";
 import OfflineBanner from "@/components/home/OfflineBanner";
 import WeekStrip from "@/components/home/WeekStrip";
@@ -23,7 +26,10 @@ export default async function Home() {
     redirect("/login");
   }
 
-  const profile = await getUserProfile(user.uid);
+  const [profile, routines] = await Promise.all([
+    getUserProfile(user.uid),
+    listUserRoutines(user.uid),
+  ]);
   const firstName = profile?.displayName?.trim().split(/\s+/)[0] || null;
   const greeting = firstName ? `Hola, ${firstName}` : "Hola";
 
@@ -120,57 +126,97 @@ export default async function Home() {
             </section>
           </div>
 
-          <section
-            aria-label="Primer paso"
-            className="relative mb-3 overflow-hidden rounded-[30px] bg-deep px-[18px] py-[22px]"
-          >
-            <div
-              aria-hidden="true"
-              className="absolute inset-0"
-              style={{
-                background:
-                  "radial-gradient(90% 70% at 20% 0%, rgba(63,169,188,.32) 0%, transparent 70%)",
-              }}
-            />
-            <div className="relative">
-              <p className="text-[10.5px] font-medium uppercase tracking-[0.16em] text-white/62">
-                Primer paso
-              </p>
-              <h2 className="font-display mt-2.5 text-[40px] uppercase leading-[0.94] tracking-[0.005em] text-white">
-                Armá tu
-                <br />
-                primera rutina
-              </h2>
-              <p className="mt-2.5 text-[12.5px] leading-[1.5] text-white/70">
-                Elegí ejercicios y días. Si entrenás con alguien, cargá su
-                código y te asigna el plan.
-              </p>
-              <button
-                type="button"
-                className="mt-[18px] flex h-[54px] w-full items-center justify-center gap-2 rounded-full bg-white text-[16px] font-semibold text-onlight transition hover:opacity-90"
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  width="16"
-                  height="16"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
+          {routines.length === 0 ? (
+            <section
+              aria-label="Primer paso"
+              className="relative mb-3 overflow-hidden rounded-[30px] bg-deep px-[18px] py-[22px]"
+            >
+              <div
+                aria-hidden="true"
+                className="absolute inset-0"
+                style={{
+                  background:
+                    "radial-gradient(90% 70% at 20% 0%, rgba(63,169,188,.32) 0%, transparent 70%)",
+                }}
+              />
+              <div className="relative">
+                <p className="text-[10.5px] font-medium uppercase tracking-[0.16em] text-white/62">
+                  Primer paso
+                </p>
+                <h2 className="font-display mt-2.5 text-[40px] uppercase leading-[0.94] tracking-[0.005em] text-white">
+                  Armá tu
+                  <br />
+                  primera rutina
+                </h2>
+                <p className="mt-2.5 text-[12.5px] leading-[1.5] text-white/70">
+                  Elegí ejercicios y días. Si entrenás con alguien, cargá su
+                  código y te asigna el plan.
+                </p>
+                <Link
+                  href="/rutinas/nueva"
+                  className="mt-[18px] flex h-[54px] w-full items-center justify-center gap-2 rounded-full bg-white text-[16px] font-semibold text-onlight transition hover:opacity-90"
                 >
-                  <path d="M12 5v14" />
-                  <path d="M5 12h14" />
-                </svg>
-                Crear rutina
-              </button>
-              <button
-                type="button"
-                className="mt-2 h-12 w-full rounded-full border border-white/30 text-[14.5px] font-semibold text-white transition hover:bg-white/10"
-              >
-                Tengo un código de entrenador
-              </button>
-            </div>
-          </section>
+                  <svg
+                    viewBox="0 0 24 24"
+                    width="16"
+                    height="16"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  >
+                    <path d="M12 5v14" />
+                    <path d="M5 12h14" />
+                  </svg>
+                  Crear rutina
+                </Link>
+                <button
+                  type="button"
+                  className="mt-2 h-12 w-full rounded-full border border-white/30 text-[14.5px] font-semibold text-white transition hover:bg-white/10"
+                >
+                  Tengo un código de entrenador
+                </button>
+              </div>
+            </section>
+          ) : (
+            <section
+              aria-label="Tus rutinas"
+              className="relative mb-3 overflow-hidden rounded-[30px] bg-deep px-[18px] py-[22px]"
+            >
+              <div
+                aria-hidden="true"
+                className="absolute inset-0"
+                style={{
+                  background:
+                    "radial-gradient(90% 70% at 20% 0%, rgba(63,169,188,.32) 0%, transparent 70%)",
+                }}
+              />
+              <div className="relative">
+                <p className="text-[10.5px] font-medium uppercase tracking-[0.16em] text-white/62">
+                  {routines.length} {routines.length === 1 ? "rutina" : "rutinas"}
+                </p>
+                <h2 className="font-display mt-2.5 text-[34px] uppercase leading-[0.96] tracking-[0.005em] text-white">
+                  {routines[0].name}
+                </h2>
+                <p className="mt-2.5 text-[12.5px] leading-[1.5] text-white/70">
+                  {routines[0].exercises.length} ejercicios · {totalSets(routines[0])} series · ~
+                  {estimatedDurationMinutes(routines[0])} min
+                </p>
+                <Link
+                  href={`/rutinas/${routines[0].id}`}
+                  className="mt-[18px] flex h-[54px] w-full items-center justify-center gap-2 rounded-full bg-white text-[16px] font-semibold text-onlight transition hover:opacity-90"
+                >
+                  Ver rutina
+                </Link>
+                <Link
+                  href="/rutinas"
+                  className="mt-2 flex h-12 w-full items-center justify-center rounded-full border border-white/30 text-[14.5px] font-semibold text-white transition hover:bg-white/10"
+                >
+                  Ver todas
+                </Link>
+              </div>
+            </section>
+          )}
 
           <section
             aria-label="Vincular entrenador"
@@ -228,8 +274,8 @@ export default async function Home() {
                 <path d="M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z" />
               </svg>
             </button>
-            <button
-              type="button"
+            <Link
+              href="/rutinas"
               aria-label="Rutinas"
               className="flex h-[46px] w-[46px] items-center justify-center rounded-full text-faint transition hover:text-text"
             >
@@ -246,7 +292,7 @@ export default async function Home() {
                 <path d="M4 12h16" />
                 <path d="M4 18h10" />
               </svg>
-            </button>
+            </Link>
             <button
               type="button"
               aria-label="Progreso"

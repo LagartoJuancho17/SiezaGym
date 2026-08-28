@@ -1,0 +1,126 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isSelf(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function isLinkedCoachOf(studentUid) {
+      return isSignedIn()
+        && get(/databases/$(database)/documents/users/$(studentUid)).data.coachId == request.auth.uid;
+    }
+
+    // ---- users/{uid} ----
+    // Perfil visible por el propio usuario y por su entrenador vinculado
+    // (nombre, sexo, experiencia, peso actual). Los datos de contacto viven
+    // aparte en users/{uid}/private/contact, nunca legibles por el entrenador.
+    match /users/{uid} {
+      allow read: if isSelf(uid) || isLinkedCoachOf(uid);
+      allow create: if isSelf(uid);
+      allow update: if isSelf(uid)
+        && (resource.data.role == null || request.resource.data.role == resource.data.role);
+      allow delete: if false;
+
+      match /private/{document=**} {
+        allow read, write: if isSelf(uid);
+      }
+
+      match /bodyWeightHistory/{entryId} {
+        allow read: if isSelf(uid) || isLinkedCoachOf(uid);
+        allow create: if isSelf(uid);
+        allow update, delete: if false;
+      }
+
+      match /exerciseProgress/{exerciseId} {
+        allow read: if isSelf(uid) || isLinkedCoachOf(uid);
+        allow write: if false; // solo lo escribe la Cloud Function (Admin SDK)
+      }
+
+      match /muscleRanks/{muscleGroupId} {
+        allow read: if isSelf(uid) || isLinkedCoachOf(uid);
+        allow write: if false; // solo lo escribe la Cloud Function (Admin SDK)
+      }
+
+      // Ejercicios propios creados por el usuario cuando no encuentra uno en el catalogo
+      match /customExercises/{exerciseId} {
+        allow read: if isSelf(uid) || isLinkedCoachOf(uid);
+        allow create: if isSelf(uid)
+          && request.resource.data.ownerId == uid
+          && request.resource.data.keys().hasAll(['nameEs','equipment','pattern','muscleWeights','registrationType'])
+          && request.resource.data.muscleWeights.size() > 0;
+        allow update: if isSelf(uid) && resource.data.ownerId == uid;
+        allow delete: if isSelf(uid) && resource.data.ownerId == uid;
+      }
+    }
+
+    // ---- catalogo global de ejercicios ----
+    // Solo lectura para cualquier usuario logueado. Se siembra con
+    // scripts/seedExercises.mjs (Admin SDK, bypassea reglas) - nunca se escribe
+    // desde el cliente.
+    match /exercises/{exerciseId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    // ---- rutinas propias (alumno o entrenador entrenando el mismo) ----
+    match /routines/{routineId} {
+      allow read: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.ownerId == request.auth.uid;
+      allow update, delete: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+    }
+
+    // ---- plantillas del entrenador ----
+    match /templates/{templateId} {
+      allow read: if isSignedIn() && resource.data.coachId == request.auth.uid;
+      allow create: if isSignedIn() && request.resource.data.coachId == request.auth.uid;
+      allow update, delete: if isSignedIn() && resource.data.coachId == request.auth.uid;
+    }
+
+    // ---- asignaciones (copia congelada de una plantilla a un alumno) ----
+    match /assignments/{assignmentId} {
+      allow read: if isSignedIn()
+        && (resource.data.coachId == request.auth.uid || resource.data.studentId == request.auth.uid);
+      allow create, update: if isSignedIn()
+        && request.resource.data.coachId == request.auth.uid
+        && isLinkedCoachOf(request.resource.data.studentId);
+      allow delete: if false;
+    }
+
+    // ---- sesiones de entrenamiento: unica fuente de verdad ----
+    // Se escriben SOLO desde el cliente al finalizar (Modulo D) - el offline
+    // depende de que sea el SDK cliente, no un Server Action, el que escribe.
+    match /sessions/{sessionId} {
+      allow read: if isSignedIn()
+        && (resource.data.userId == request.auth.uid || isLinkedCoachOf(resource.data.userId));
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.exercises.size() <= 40;
+      allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow delete: if false; // borrar cuenta pasa por un flujo server-side, no un delete crudo
+    }
+
+    // ---- vinculo entrenador-alumno ----
+    match /coaches/{coachId}/students/{studentUid} {
+      allow read: if isSelf(coachId);
+      allow write: if false; // siempre via Server Action con transaccion (Admin SDK)
+    }
+
+    match /invites/{code} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.coachId == request.auth.uid;
+      allow update, delete: if false; // el canje es server-side
+    }
+
+    // ---- config de gamificacion (umbrales de rango, topes, multiplicadores) ----
+    match /config/{documentId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+  }
+}
