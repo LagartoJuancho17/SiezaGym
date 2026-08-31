@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/firebase/session";
 import { getUserProfile } from "@/lib/users/users";
 import AccountMenu from "@/components/home/AccountMenu";
 import OfflineBanner from "@/components/home/OfflineBanner";
+import LinkCoachSection from "@/components/home/LinkCoachSection";
 import WeekStrip from "@/components/home/WeekStrip";
 
 export const dynamic = "force-dynamic";
@@ -172,34 +173,53 @@ export default async function Home() {
             </div>
           </section>
 
-          <section
-            aria-label="Vincular entrenador"
-            className="mb-3 rounded-[22px] border border-dashed border-hair bg-glass p-[15px]"
-          >
-            <p className="text-[13px] font-semibold tracking-[-0.01em]">
-              ¿Entrenás con alguien?
-            </p>
-            <p className="mt-1 text-[11px] text-faint">
-              Ingresá su código de invitación.
-            </p>
-            <div className="mt-3 flex gap-2">
-              <input
-                aria-label="Código de invitación"
-                placeholder="ABC-123"
-                className="font-mono-digit h-[46px] min-w-0 flex-1 rounded-full border border-hair bg-glass2 px-[15px] text-xs tracking-[0.06em] text-text outline-none placeholder:text-faint focus:border-teal2"
-              />
-              <button
-                type="button"
-                className="h-[46px] shrink-0 rounded-full px-[18px] text-sm font-semibold text-white transition hover:opacity-90"
-                style={{
-                  background:
-                    "linear-gradient(135deg, var(--teal2) 0%, var(--teal) 100%)",
-                }}
+          <LinkCoachSection />
+
+          {profile?.isCoach && (
+            <a
+              href="/dashboard/coach"
+              className="mb-3 flex items-center gap-3 rounded-[16px] border border-hair bg-glass p-[15px] transition hover:bg-glass2"
+            >
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-teal/15 text-teal2">
+                <svg
+                  viewBox="0 0 24 24"
+                  width="18"
+                  height="18"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[13px] font-semibold tracking-[-0.01em]">
+                  Mis alumnos
+                </p>
+                <p className="mt-0.5 text-[11px] text-faint">
+                  Gestioná tus alumnos vinculados
+                </p>
+              </div>
+              <svg
+                viewBox="0 0 24 24"
+                width="16"
+                height="16"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="shrink-0 text-faint"
               >
-                Vincular
-              </button>
-            </div>
-          </section>
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </a>
+          )}
         </div>
 
         <div className="min-h-[30px] flex-1" />
