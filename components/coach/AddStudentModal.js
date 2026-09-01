@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { generateInvitationCode } from "@/app/dashboard/coach/actions";
+import {
+  generateInvitationCode,
+  revokeInvitationCode,
+} from "@/app/dashboard/coach/actions";
 
 export default function AddStudentModal({ open, onClose }) {
   const [code, setCode] = useState(null);
@@ -83,6 +86,23 @@ export default function AddStudentModal({ open, onClose }) {
       setTimeout(() => setCopied(false), 2000);
     } catch {
       setCopied(false);
+    }
+  }
+
+  async function handleRegenerate() {
+    if (loading) return;
+    setLoading(true);
+    setError(null);
+    setCopied(false);
+    try {
+      await revokeInvitationCode();
+      const result = await generateInvitationCode();
+      setCode(result.code);
+      setExpiresAt(new Date(result.expiresAt));
+    } catch (err) {
+      setError(err.message || "Error al regenerar el código.");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -192,6 +212,28 @@ export default function AddStudentModal({ open, onClose }) {
                     Copiar código
                   </>
                 )}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleRegenerate}
+                disabled={loading}
+                className="flex h-10 w-full items-center justify-center gap-2 rounded-full border border-hair text-xs font-medium text-faint transition hover:bg-glass2 hover:text-text"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  width="15"
+                  height="15"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M3 12a9 9 0 1 0 2.64-6.36L3 8" />
+                  <path d="M3 3v5h5" />
+                </svg>
+                Regenerar código
               </button>
             </>
           )}

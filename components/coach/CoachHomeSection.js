@@ -1,11 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import AddStudentModal from "@/components/coach/AddStudentModal";
 import StudentList from "@/components/coach/StudentList";
 
 export default function CoachHomeSection({ students, isAdmin }) {
   const [modalOpen, setModalOpen] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    const interval = setInterval(() => router.refresh(), 8000);
+    return () => clearInterval(interval);
+  }, [router]);
 
   return (
     <section aria-label="Panel del entrenador" className="mb-3">

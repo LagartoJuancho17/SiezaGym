@@ -193,7 +193,7 @@ export default async function Home() {
           <RoutinesCarousel routines={enrichedRoutines} />
         )}
 
-        <LinkCoachSection />
+        {!isCoach && <LinkCoachSection />}
       </div>
     </>
   );
