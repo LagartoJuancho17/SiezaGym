@@ -175,7 +175,7 @@ export default async function Home() {
 
           <LinkCoachSection />
 
-          {profile?.isCoach && (
+          {(profile?.isCoach || profile?.isAdmin) && (
             <a
               href="/dashboard/coach"
               className="mb-3 flex items-center gap-3 rounded-[16px] border border-hair bg-glass p-[15px] transition hover:bg-glass2"
@@ -199,10 +199,12 @@ export default async function Home() {
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-[13px] font-semibold tracking-[-0.01em]">
-                  Mis alumnos
+                  {profile?.isCoach ? "Mis alumnos" : "Panel de coach"}
                 </p>
                 <p className="mt-0.5 text-[11px] text-faint">
-                  Gestioná tus alumnos vinculados
+                  {profile?.isCoach
+                    ? "Gestioná tus alumnos vinculados"
+                    : "Vista de administrador"}
                 </p>
               </div>
               <svg

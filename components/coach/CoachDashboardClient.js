@@ -33,7 +33,7 @@ export default function CoachDashboardClient({ students, profile }) {
           </Link>
           <div className="min-w-0 flex-1">
             <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-faint">
-              Panel del entrenador
+              {profile?.isCoach ? "Panel del entrenador" : "Panel del entrenador · vista admin"}
             </p>
             <h1 className="font-display mt-1 text-[23px] uppercase leading-none tracking-[0.005em]">
               {firstName}

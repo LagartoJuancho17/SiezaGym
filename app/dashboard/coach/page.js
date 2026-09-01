@@ -15,7 +15,7 @@ export default async function CoachDashboardPage() {
 
   const profile = await getUserProfile(user.uid);
 
-  if (!profile?.isCoach) {
+  if (!profile?.isCoach && !profile?.isAdmin) {
     redirect("/");
   }
 
