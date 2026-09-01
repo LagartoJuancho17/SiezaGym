@@ -47,7 +47,7 @@ const TABS = [
 
 // Rutas de estas tabs que todavia no existen como pantalla real - se
 // muestran en el nav (matchea el diseño) pero no navegan a un 404.
-const NOT_BUILT_YET = new Set(["/progreso", "/perfil"]);
+const NOT_BUILT_YET = new Set(["/perfil"]);
 
 export default function BottomNav() {
   const pathname = usePathname();
