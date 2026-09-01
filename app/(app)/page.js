@@ -8,6 +8,7 @@ import AccountMenu from "@/components/home/AccountMenu";
 import OfflineBanner from "@/components/home/OfflineBanner";
 import LinkCoachSection from "@/components/home/LinkCoachSection";
 import WeekStrip from "@/components/home/WeekStrip";
+import RoutinesCarousel from "@/components/home/RoutinesCarousel";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +32,12 @@ export default async function Home() {
     getUserProfile(user.uid),
     listUserRoutines(user.uid),
   ]);
+
+  const enrichedRoutines = routines.map((routine) => ({
+    ...routine,
+    totalSets: totalSets(routine),
+    estimatedMinutes: estimatedDurationMinutes(routine),
+  }));
   const firstName = profile?.displayName?.trim().split(/\s+/)[0] || null;
   const greeting = firstName ? `Hola, ${firstName}` : "Hola";
 
@@ -174,43 +181,7 @@ export default async function Home() {
             </div>
           </section>
         ) : (
-          <section
-            aria-label="Tus rutinas"
-            className="relative mb-3 overflow-hidden rounded-[30px] bg-deep px-[18px] py-[22px]"
-          >
-            <div
-              aria-hidden="true"
-              className="absolute inset-0"
-              style={{
-                background:
-                  "radial-gradient(90% 70% at 20% 0%, rgba(63,169,188,.32) 0%, transparent 70%)",
-              }}
-            />
-            <div className="relative">
-              <p className="text-[10.5px] font-medium uppercase tracking-[0.16em] text-white/62">
-                {routines.length} {routines.length === 1 ? "rutina" : "rutinas"}
-              </p>
-              <h2 className="font-display mt-2.5 text-[34px] uppercase leading-[0.96] tracking-[0.005em] text-white">
-                {routines[0].name}
-              </h2>
-              <p className="mt-2.5 text-[12.5px] leading-[1.5] text-white/70">
-                {routines[0].exercises.length} ejercicios · {totalSets(routines[0])} series · ~
-                {estimatedDurationMinutes(routines[0])} min
-              </p>
-              <Link
-                href={`/rutinas/${routines[0].id}`}
-                className="mt-[18px] flex h-[54px] w-full items-center justify-center gap-2 rounded-full bg-white text-[16px] font-semibold text-onlight transition hover:opacity-90"
-              >
-                Ver rutina
-              </Link>
-              <Link
-                href="/rutinas"
-                className="mt-2 flex h-12 w-full items-center justify-center rounded-full border border-white/30 text-[14.5px] font-semibold text-white transition hover:bg-white/10"
-              >
-                Ver todas
-              </Link>
-            </div>
-          </section>
+          <RoutinesCarousel routines={enrichedRoutines} />
         )}
 
         <LinkCoachSection />
