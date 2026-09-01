@@ -8,6 +8,9 @@
     "start": "next start",
     "lint": "eslint"
   },
+  "overrides": {
+    "jose": "4.15.9"
+  },
   "dependencies": {
     "firebase": "^12.18.0",
     "firebase-admin": "^14.3.0",
