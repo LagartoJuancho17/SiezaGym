@@ -12,7 +12,9 @@ import {
 } from "@/lib/exercises/constants";
 import { totalSets, estimatedDurationMinutes, muscleDistribution } from "@/lib/routines/summary";
 import { deleteRoutine, duplicateRoutine, updateRoutine } from "@/app/(app)/rutinas/actions";
+import { assignRoutine, logExercise } from "@/app/(app)/rutinas/[id]/actions";
 import RoutineBuilder from "@/components/routines/RoutineBuilder";
+import AssignStudentButton from "@/components/routines/AssignStudentButton";
 import MediaAttribution from "@/components/routines/MediaAttribution";
 import ExerciseDetailSheet from "@/components/routines/ExerciseDetailSheet";
 
@@ -43,13 +45,23 @@ function MuscleRing({ pct }) {
   );
 }
 
-export default function RoutineDetail({ routine, catalogExercises, customExercises }) {
+export default function RoutineDetail({
+  routine,
+  catalogExercises,
+  customExercises,
+  isCoach = false,
+  students = [],
+  readOnly = false,
+}) {
   const router = useRouter();
   const [mode, setMode] = useState("view");
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [busy, setBusy] = useState(false);
   const [detailExercise, setDetailExercise] = useState(null);
+  const [assignModalOpen, setAssignModalOpen] = useState(false);
+  const [logStates, setLogStates] = useState({});
+  const [logStatus, setLogStatus] = useState(null);
 
   // Exercises list for interactive updates
   const [exercisesList, setExercisesList] = useState(routine.exercises || []);
@@ -109,6 +121,27 @@ export default function RoutineDetail({ routine, catalogExercises, customExercis
       setSaveStatus("error");
       setTimeout(() => setSaveStatus(null), 3000);
     }
+  };
+
+  const handleLogExercise = async (exerciseIndex) => {
+    const data = logStates[exerciseIndex] || {};
+    setLogStatus({ index: exerciseIndex, status: "saving" });
+    try {
+      await logExercise(routine.assignmentId, exerciseIndex, data);
+      setLogStatus({ index: exerciseIndex, status: "saved" });
+      setTimeout(() => setLogStatus(null), 2000);
+    } catch (err) {
+      console.error(err);
+      setLogStatus({ index: exerciseIndex, status: "error" });
+      setTimeout(() => setLogStatus(null), 3000);
+    }
+  };
+
+  const updateLogField = (exerciseIndex, field, value) => {
+    setLogStates((prev) => ({
+      ...prev,
+      [exerciseIndex]: { ...(prev[exerciseIndex] || {}), [field]: value },
+    }));
   };
 
   const handleStartWorkout = () => {
@@ -247,14 +280,25 @@ export default function RoutineDetail({ routine, catalogExercises, customExercis
           </svg>
         </Link>
         <div className="relative">
-          <button
-            type="button"
-            onClick={() => setMenuOpen((v) => !v)}
-            aria-label="Más opciones"
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-hair text-text transition hover:border-teal2"
-          >
-            ⋮
-          </button>
+          {readOnly && (
+            <span className="mt-1 inline-flex items-center gap-1 rounded-full border border-teal/40 bg-teal/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-teal2">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+              Plan del entrenador
+            </span>
+          )}
+          {!readOnly && (
+            <button
+              type="button"
+              onClick={() => setMenuOpen((v) => !v)}
+              aria-label="Más opciones"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-hair text-text transition hover:border-teal2"
+            >
+              ⋮
+            </button>
+          )}
           {menuOpen ? (
             <div className="absolute right-0 top-11 z-10 w-44 overflow-hidden rounded-2xl border border-hair bg-deep shadow-[0_16px_40px_rgba(0,0,0,0.45)]">
               <button
@@ -275,6 +319,18 @@ export default function RoutineDetail({ routine, catalogExercises, customExercis
               >
                 Duplicar
               </button>
+              {isCoach && students.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setAssignModalOpen(true);
+                  }}
+                  className="flex h-11 w-full items-center px-4 text-left text-sm text-teal2 transition hover:bg-teal/10"
+                >
+                  Asignar a alumno
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => {
@@ -434,7 +490,116 @@ export default function RoutineDetail({ routine, catalogExercises, customExercis
                 </button>
 
                 {/* Dropdown Expanded Body: Controls for Series, Reps, Weight, RIR */}
-                {isExpanded && (
+                {isExpanded && readOnly && (
+                  <div className="border-t border-hair/60 bg-black/20 p-4 transition-all duration-300">
+                    {/* Target values (read-only) */}
+                    <div className="flex flex-wrap gap-2">
+                      <span className="rounded-lg bg-glass px-2 py-1 text-xs text-faint">
+                        {item.targetSets} series × {item.targetReps} {timeBased ? "seg" : "reps"}
+                      </span>
+                      {item.targetWeight ? (
+                        <span className="rounded-lg bg-glass px-2 py-1 text-xs font-mono text-teal2">
+                          {item.targetWeight} kg
+                        </span>
+                      ) : null}
+                      {item.targetRIR != null ? (
+                        <span className="rounded-lg bg-glass px-2 py-1 text-xs text-faint">
+                          RIR {item.targetRIR}
+                        </span>
+                      ) : null}
+                    </div>
+
+                    {/* Logging form: ¿Qué hiciste? */}
+                    <div className="mt-3 space-y-2 border-t border-hair/50 pt-3">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-teal2">
+                        ¿Qué hiciste?
+                      </p>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-[10px] text-faint">Series</label>
+                          <input
+                            type="number"
+                            min="0"
+                            placeholder={String(item.targetSets || 3)}
+                            value={logStates[index]?.actualSets ?? ""}
+                            onChange={(e) => updateLogField(index, "actualSets", e.target.value)}
+                            className="mt-0.5 w-full rounded-lg border border-hair/60 bg-glass px-2.5 py-1.5 font-mono-digit text-xs text-text outline-none transition focus:border-teal2"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] text-faint">
+                            {timeBased ? "Seg" : "Reps"}
+                          </label>
+                          <input
+                            type="text"
+                            placeholder={String(item.targetReps || 10)}
+                            value={logStates[index]?.actualReps ?? ""}
+                            onChange={(e) => updateLogField(index, "actualReps", e.target.value)}
+                            className="mt-0.5 w-full rounded-lg border border-hair/60 bg-glass px-2.5 py-1.5 font-mono-digit text-xs text-text outline-none transition focus:border-teal2"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] text-faint">Peso (kg)</label>
+                          <input
+                            type="number"
+                            step="0.5"
+                            min="0"
+                            placeholder={item.targetWeight ? String(item.targetWeight) : "0"}
+                            value={logStates[index]?.actualWeight ?? ""}
+                            onChange={(e) => updateLogField(index, "actualWeight", e.target.value)}
+                            className="mt-0.5 w-full rounded-lg border border-hair/60 bg-glass px-2.5 py-1.5 font-mono-digit text-xs text-text outline-none transition focus:border-teal2"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] text-faint">RIR</label>
+                          <input
+                            type="number"
+                            min="0"
+                            max="5"
+                            placeholder={item.targetRIR != null ? String(item.targetRIR) : "-"}
+                            value={logStates[index]?.finalRIR ?? ""}
+                            onChange={(e) => updateLogField(index, "finalRIR", e.target.value)}
+                            className="mt-0.5 w-full rounded-lg border border-hair/60 bg-glass px-2.5 py-1.5 font-mono-digit text-xs text-text outline-none transition focus:border-teal2"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between pt-1">
+                        <button
+                          type="button"
+                          onClick={() => setDetailExercise(exercise)}
+                          className="flex items-center gap-1.5 text-xs font-medium text-teal2 transition hover:underline"
+                        >
+                          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="12" y1="16" x2="12" y2="12" />
+                            <line x1="12" y1="8" x2="12.01" y2="8" />
+                          </svg>
+                          Ver técnica
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleLogExercise(index)}
+                          disabled={logStatus?.index === index && logStatus?.status === "saving"}
+                          className="flex h-8 items-center gap-1.5 rounded-full bg-teal px-3.5 text-xs font-semibold text-onlight transition hover:opacity-90 active:scale-95 disabled:opacity-50"
+                        >
+                          {logStatus?.index === index && logStatus?.status === "saving" ? (
+                            <span>Guardando...</span>
+                          ) : logStatus?.index === index && logStatus?.status === "saved" ? (
+                            <span className="flex items-center gap-1">
+                              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="20 6 9 17 4 12" />
+                              </svg>
+                              Guardado
+                            </span>
+                          ) : (
+                            <span>Registrar</span>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {isExpanded && !readOnly && (
                   <div className="border-t border-hair/60 bg-black/20 p-4 transition-all duration-300">
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                       {/* Series Stepper */}
@@ -700,6 +865,15 @@ export default function RoutineDetail({ routine, catalogExercises, customExercis
       {detailExercise ? (
         <ExerciseDetailSheet exercise={detailExercise} onClose={() => setDetailExercise(null)} />
       ) : null}
+
+      {assignModalOpen && (
+        <AssignStudentButton
+          routineId={routine.id}
+          students={students}
+          modalOpen={assignModalOpen}
+          onClose={() => setAssignModalOpen(false)}
+        />
+      )}
     </div>
   );
 }

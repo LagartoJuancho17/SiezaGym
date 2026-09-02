@@ -4,14 +4,21 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { deleteRoutine, duplicateRoutine } from "@/app/(app)/rutinas/actions";
 
-export default function RoutineListItem({ routine, sets, minutes, muscleLabels }) {
+export default function RoutineListItem({ routine, sets, minutes, muscleLabels, isAssigned = false }) {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   return (
     <div className="rounded-2xl border border-hair bg-glass p-4">
       <Link href={`/rutinas/${routine.id}`} className="block">
-        <h3 className="text-base font-semibold text-text">{routine.name}</h3>
+        <h3 className="flex items-center gap-2 text-base font-semibold text-text">
+          <span className="truncate">{routine.name}</span>
+          {isAssigned && (
+            <span className="shrink-0 rounded-full border border-teal/40 bg-teal/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-teal2">
+              Asignada
+            </span>
+          )}
+        </h3>
         <p className="mt-1 text-xs text-faint">
           {routine.exercises.length} ejercicios · {sets} series · ~{minutes} min
         </p>
@@ -20,45 +27,47 @@ export default function RoutineListItem({ routine, sets, minutes, muscleLabels }
         ) : null}
       </Link>
 
-      <div className="mt-3 flex items-center gap-2">
-        <button
-          type="button"
-          disabled={isPending}
-          onClick={() => startTransition(() => duplicateRoutine(routine.id))}
-          className="h-8 rounded-full border border-hair px-3 text-xs font-medium text-muted transition hover:border-teal2 hover:text-text disabled:opacity-40"
-        >
-          Duplicar
-        </button>
-
-        {confirmingDelete ? (
-          <>
-            <span className="text-xs text-faint">¿Eliminar?</span>
-            <button
-              type="button"
-              disabled={isPending}
-              onClick={() => startTransition(() => deleteRoutine(routine.id))}
-              className="h-8 rounded-full border border-destructive/50 px-3 text-xs font-medium text-destructive transition hover:bg-destructive/10 disabled:opacity-40"
-            >
-              Sí, eliminar
-            </button>
-            <button
-              type="button"
-              onClick={() => setConfirmingDelete(false)}
-              className="h-8 rounded-full px-2 text-xs font-medium text-faint transition hover:text-text"
-            >
-              No
-            </button>
-          </>
-        ) : (
+      {!isAssigned && (
+        <div className="mt-3 flex items-center gap-2">
           <button
             type="button"
-            onClick={() => setConfirmingDelete(true)}
-            className="h-8 rounded-full border border-hair px-3 text-xs font-medium text-muted transition hover:border-destructive hover:text-destructive"
+            disabled={isPending}
+            onClick={() => startTransition(() => duplicateRoutine(routine.id))}
+            className="h-8 rounded-full border border-hair px-3 text-xs font-medium text-muted transition hover:border-teal2 hover:text-text disabled:opacity-40"
           >
-            Eliminar
+            Duplicar
           </button>
-        )}
-      </div>
+
+          {confirmingDelete ? (
+            <>
+              <span className="text-xs text-faint">¿Eliminar?</span>
+              <button
+                type="button"
+                disabled={isPending}
+                onClick={() => startTransition(() => deleteRoutine(routine.id))}
+                className="h-8 rounded-full border border-destructive/50 px-3 text-xs font-medium text-destructive transition hover:bg-destructive/10 disabled:opacity-40"
+              >
+                Sí, eliminar
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmingDelete(false)}
+                className="h-8 rounded-full px-2 text-xs font-medium text-faint transition hover:text-text"
+              >
+                No
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setConfirmingDelete(true)}
+              className="h-8 rounded-full border border-hair px-3 text-xs font-medium text-muted transition hover:border-destructive hover:text-destructive"
+            >
+              Eliminar
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
