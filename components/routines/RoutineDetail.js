@@ -13,6 +13,7 @@ import {
 import { totalSets, estimatedDurationMinutes, muscleDistribution } from "@/lib/routines/summary";
 import { deleteRoutine, duplicateRoutine, updateRoutine } from "@/app/(app)/rutinas/actions";
 import { assignRoutine, logExercise } from "@/app/(app)/rutinas/[id]/actions";
+import { finishSession } from "@/app/(app)/sesion/actions";
 import RoutineBuilder from "@/components/routines/RoutineBuilder";
 import AssignStudentButton from "@/components/routines/AssignStudentButton";
 import MediaAttribution from "@/components/routines/MediaAttribution";
@@ -73,6 +74,11 @@ export default function RoutineDetail({
   const [workoutPaused, setWorkoutPaused] = useState(false);
   const [workoutSeconds, setWorkoutSeconds] = useState(0);
   const [showFinishModal, setShowFinishModal] = useState(false);
+
+  // Series realmente cargadas durante el entrenamiento activo: { [exerciseId]: [{weight, reps, failed}] }
+  const [performedSets, setPerformedSets] = useState({});
+  const [sessionSaveStatus, setSessionSaveStatus] = useState(null); // 'saving' | 'error' | null
+  const [lastSessionSummary, setLastSessionSummary] = useState(null);
 
   // Live chronometer tick
   useEffect(() => {
@@ -145,15 +151,89 @@ export default function RoutineDetail({
   };
 
   const handleStartWorkout = () => {
+    const seeded = {};
+    for (const item of exercisesList) {
+      const setCount = Number(item.targetSets) || 1;
+      seeded[item.exerciseId] = Array.from({ length: setCount }, () => ({
+        weight: item.targetWeight != null ? String(item.targetWeight) : "",
+        reps: item.targetReps != null ? String(item.targetReps) : "",
+        failed: false,
+      }));
+    }
+    setPerformedSets(seeded);
     setWorkoutActive(true);
     setWorkoutPaused(false);
+    setExpandedIndex(0);
     // Smooth scroll to top to see session header
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleFinishWorkout = () => {
+  const handleUpdateSet = (exerciseId, setIndex, field, value) => {
+    setPerformedSets((prev) => {
+      const sets = [...(prev[exerciseId] || [])];
+      sets[setIndex] = { ...sets[setIndex], [field]: value };
+      return { ...prev, [exerciseId]: sets };
+    });
+  };
+
+  const handleAddSet = (exerciseId) => {
+    setPerformedSets((prev) => {
+      const sets = prev[exerciseId] || [];
+      const last = sets[sets.length - 1];
+      return {
+        ...prev,
+        [exerciseId]: [...sets, { weight: last?.weight || "", reps: last?.reps || "", failed: false }],
+      };
+    });
+  };
+
+  const handleRemoveSet = (exerciseId) => {
+    setPerformedSets((prev) => {
+      const sets = prev[exerciseId] || [];
+      if (sets.length <= 1) return prev;
+      return { ...prev, [exerciseId]: sets.slice(0, -1) };
+    });
+  };
+
+  const handleFinishWorkout = async () => {
     setWorkoutPaused(true);
-    setShowFinishModal(true);
+    setSessionSaveStatus("saving");
+
+    const exercises = exercisesList
+      .map((item) => ({
+        exerciseId: item.exerciseId,
+        sets: (performedSets[item.exerciseId] || [])
+          .filter((set) => set.weight !== "" && set.reps !== "" && Number(set.reps) > 0)
+          .map((set, index) => ({
+            setNumber: index + 1,
+            weight: Number(set.weight) || 0,
+            reps: Number(set.reps) || 0,
+            failed: !!set.failed,
+          })),
+      }))
+      .filter((exercise) => exercise.sets.length > 0);
+
+    if (exercises.length === 0) {
+      setSessionSaveStatus("error");
+      setWorkoutPaused(false);
+      return;
+    }
+
+    try {
+      const result = await finishSession({
+        source: { type: "routine", routineId: routine.id },
+        routineName: routine.name,
+        durationSeconds: workoutSeconds,
+        exercises,
+      });
+      setLastSessionSummary(result);
+      setSessionSaveStatus(null);
+      setShowFinishModal(true);
+    } catch (err) {
+      console.error(err);
+      setSessionSaveStatus("error");
+      setWorkoutPaused(false);
+    }
   };
 
   const handleCloseFinishModal = () => {
@@ -161,6 +241,8 @@ export default function RoutineDetail({
     setWorkoutActive(false);
     setWorkoutPaused(false);
     setWorkoutSeconds(0);
+    setPerformedSets({});
+    setLastSessionSummary(null);
   };
 
   if (mode === "edit") {
@@ -259,11 +341,18 @@ export default function RoutineDetail({
             <button
               type="button"
               onClick={handleFinishWorkout}
-              className="flex h-9 items-center justify-center rounded-full bg-destructive px-3 text-xs font-semibold text-white shadow-sm transition hover:opacity-90 active:scale-95"
+              disabled={sessionSaveStatus === "saving"}
+              className="flex h-9 items-center justify-center rounded-full bg-destructive px-3 text-xs font-semibold text-white shadow-sm transition hover:opacity-90 active:scale-95 disabled:opacity-60"
             >
-              Terminar
+              {sessionSaveStatus === "saving" ? "Guardando…" : "Terminar"}
             </button>
           </div>
+        </div>
+      )}
+
+      {sessionSaveStatus === "error" && (
+        <div className="rounded-2xl border border-destructive/40 bg-destructive/10 p-3.5 text-sm text-destructive">
+          No se pudo guardar la sesión — revisá que haya al menos una serie con peso y reps cargados, y probá de nuevo.
         </div>
       )}
 
@@ -601,6 +690,78 @@ export default function RoutineDetail({
                 )}
                 {isExpanded && !readOnly && (
                   <div className="border-t border-hair/60 bg-black/20 p-4 transition-all duration-300">
+                    {workoutActive ? (
+                      <div className="flex flex-col gap-2">
+                        <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-teal2">
+                          Series {timeBased ? "(seg)" : "reales"}
+                        </p>
+                        {(performedSets[item.exerciseId] || []).map((set, setIndex) => (
+                          <div
+                            key={setIndex}
+                            className="flex items-center gap-2 rounded-xl border border-hair/80 bg-glass p-2.5"
+                          >
+                            <span className="font-mono-digit w-5 shrink-0 text-center text-xs text-faint">
+                              {setIndex + 1}
+                            </span>
+                            <input
+                              type="number"
+                              inputMode="decimal"
+                              step="0.5"
+                              placeholder="kg"
+                              value={set.weight}
+                              onChange={(e) =>
+                                handleUpdateSet(item.exerciseId, setIndex, "weight", e.target.value)
+                              }
+                              className="font-mono-digit h-10 min-w-0 flex-1 rounded-lg border border-hair bg-glass2 px-2.5 text-center text-sm text-white outline-none focus:border-teal2"
+                            />
+                            <span className="shrink-0 text-xs text-faint">kg ×</span>
+                            <input
+                              type="number"
+                              inputMode="numeric"
+                              placeholder={timeBased ? "seg" : "reps"}
+                              value={set.reps}
+                              onChange={(e) =>
+                                handleUpdateSet(item.exerciseId, setIndex, "reps", e.target.value)
+                              }
+                              className="font-mono-digit h-10 min-w-0 flex-1 rounded-lg border border-hair bg-glass2 px-2.5 text-center text-sm text-white outline-none focus:border-teal2"
+                            />
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleUpdateSet(item.exerciseId, setIndex, "failed", !set.failed)
+                              }
+                              aria-pressed={set.failed}
+                              aria-label="Marcar serie fallada"
+                              className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border text-xs font-bold transition ${
+                                set.failed
+                                  ? "border-destructive/50 bg-destructive/20 text-destructive"
+                                  : "border-hair/60 bg-glass2 text-faint hover:text-white"
+                              }`}
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
+                        <div className="flex gap-2 pt-1">
+                          <button
+                            type="button"
+                            onClick={() => handleAddSet(item.exerciseId)}
+                            className="h-9 flex-1 rounded-lg border border-dashed border-hair text-xs font-semibold text-faint transition hover:border-teal2 hover:text-teal2"
+                          >
+                            + Serie
+                          </button>
+                          {(performedSets[item.exerciseId] || []).length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveSet(item.exerciseId)}
+                              className="h-9 rounded-lg border border-hair px-3 text-xs font-semibold text-faint transition hover:text-white"
+                            >
+                              Sacar última
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                       {/* Series Stepper */}
                       <div className="rounded-xl border border-hair/80 bg-glass p-2.5">
@@ -742,6 +903,7 @@ export default function RoutineDetail({
                         </div>
                       </div>
                     </div>
+                    )}
 
                     {/* Bottom row inside accordion */}
                     <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-hair/50 pt-3">
@@ -760,6 +922,7 @@ export default function RoutineDetail({
                         </button>
                       ) : <div />}
 
+                      {!workoutActive && (
                       <button
                         type="button"
                         onClick={handleSaveRoutineChanges}
@@ -779,6 +942,7 @@ export default function RoutineDetail({
                           <span>Guardar cambios</span>
                         )}
                       </button>
+                      )}
                     </div>
                   </div>
                 )}
@@ -832,32 +996,49 @@ export default function RoutineDetail({
               Has entrenado con la rutina &quot;{routine.name}&quot;
             </p>
 
-            <div className="my-5 grid grid-cols-2 gap-3">
+            <div className="my-5 grid grid-cols-3 gap-2.5">
               <div className="rounded-2xl border border-hair bg-glass p-3">
-                <p className="text-[11px] font-medium uppercase tracking-wider text-faint">
-                  Tiempo total
+                <p className="text-[10.5px] font-medium uppercase tracking-wider text-faint">
+                  Tiempo
                 </p>
-                <p className="font-mono-digit mt-1 text-xl font-bold text-white">
+                <p className="font-mono-digit mt-1 text-lg font-bold text-white">
                   {formatWorkoutTime(workoutSeconds)}
                 </p>
               </div>
               <div className="rounded-2xl border border-hair bg-glass p-3">
-                <p className="text-[11px] font-medium uppercase tracking-wider text-faint">
+                <p className="text-[10.5px] font-medium uppercase tracking-wider text-faint">
                   Series
                 </p>
-                <p className="font-mono-digit mt-1 text-xl font-bold text-white">
-                  {totalSets(currentRoutineWithExercises)}
+                <p className="font-mono-digit mt-1 text-lg font-bold text-white">
+                  {lastSessionSummary?.totalSetsCompleted ?? 0}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-hair bg-glass p-3">
+                <p className="text-[10.5px] font-medium uppercase tracking-wider text-faint">
+                  Volumen
+                </p>
+                <p className="font-mono-digit mt-1 text-lg font-bold text-teal2">
+                  {lastSessionSummary?.totalVolumeKg ?? 0}kg
                 </p>
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={handleCloseFinishModal}
-              className="h-12 w-full rounded-full bg-white text-sm font-semibold text-onlight shadow-lg transition hover:opacity-90 active:scale-95"
-            >
-              Cerrar y volver
-            </button>
+            <div className="flex flex-col gap-2">
+              <Link
+                href="/progreso"
+                onClick={handleCloseFinishModal}
+                className="flex h-12 w-full items-center justify-center rounded-full bg-white text-sm font-semibold text-onlight shadow-lg transition hover:opacity-90 active:scale-95"
+              >
+                Ver mi progreso
+              </Link>
+              <button
+                type="button"
+                onClick={handleCloseFinishModal}
+                className="h-11 w-full rounded-full border border-hair text-sm font-semibold text-faint transition hover:text-white"
+              >
+                Cerrar
+              </button>
+            </div>
           </div>
         </div>
       )}

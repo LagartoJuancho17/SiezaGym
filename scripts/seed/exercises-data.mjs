@@ -1243,4 +1243,37 @@ export const EXERCISES = [
     descriptionEn:
       "Band anchored overhead, elbows close to your torso, push down to full extension, then return under control.",
   },
+  {
+    nameEs: "Peso muerto convencional con barra",
+    nameEn: "Barbell conventional deadlift",
+    equipment: "barra",
+    pattern: "dominante_cadera",
+    muscleWeights: { gluteo: 0.3, isquiotibiales: 0.25, lumbar: 0.2, dorsal: 0.15, cuadriceps: 0.1 },
+    registrationType: "peso_reps",
+    unilateral: false,
+    descriptionEs:
+      "Barra en el piso, agarrá con los brazos extendidos por fuera de las piernas, empujá el piso con las piernas y extendé cadera y rodillas hasta quedar de pie, manteniendo la espalda neutra.",
+    descriptionEn:
+      "Bar on the floor, grip it with straight arms outside your legs, drive through the floor and extend hips and knees to stand tall, keeping your back neutral.",
+  },
+  {
+    nameEs: "Clean",
+    nameEn: "Power clean",
+    equipment: "barra",
+    pattern: "dominante_cadera",
+    muscleWeights: {
+      gluteo: 0.25,
+      isquiotibiales: 0.2,
+      espaldaAltaTrapecio: 0.2,
+      cuadriceps: 0.2,
+      deltoideAnterior: 0.1,
+      antebrazo: 0.05,
+    },
+    registrationType: "peso_reps",
+    unilateral: false,
+    descriptionEs:
+      "Barra en el piso, tirá explosivamente extendiendo la cadera y encogiendo los hombros para acelerar la barra, y recibila en posición de sentadilla frontal con los codos altos.",
+    descriptionEn:
+      "Bar on the floor, pull explosively by extending your hips and shrugging to accelerate the bar, then receive it in a front-squat catch with your elbows high.",
+  },
 ];

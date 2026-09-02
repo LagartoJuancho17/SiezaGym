@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/firebase/session";
 import { getUserProfile } from "@/lib/users/users";
 import { listUserRoutines } from "@/lib/routines/routines";
+import { weeklyVolumeKg } from "@/lib/sessions/sessions";
 import { totalSets, estimatedDurationMinutes } from "@/lib/routines/summary";
 import AccountMenu from "@/components/home/AccountMenu";
 import OfflineBanner from "@/components/home/OfflineBanner";
@@ -30,9 +31,10 @@ export default async function Home() {
     redirect("/login");
   }
 
-  const [profile, routines] = await Promise.all([
+  const [profile, routines, weekVolume] = await Promise.all([
     getUserProfile(user.uid),
     listUserRoutines(user.uid),
+    weeklyVolumeKg(user.uid),
   ]);
 
   const isCoach = !!profile?.isCoach || !!profile?.isAdmin;
@@ -101,7 +103,7 @@ export default async function Home() {
               </svg>
             </div>
             <div>
-              <div className="font-mono-digit text-2xl tracking-wide">0</div>
+              <div className="font-mono-digit text-2xl tracking-wide">{weekVolume}</div>
               <p className="mt-2 text-[11px] text-faint">kg esta semana</p>
             </div>
           </section>
