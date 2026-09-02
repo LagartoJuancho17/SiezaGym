@@ -603,7 +603,7 @@ export default function ExercisePicker({ exercises, customExercises, onConfirm, 
                   </ul>
 
                   {/* sm+: grid de 2 columnas, imagen grande */}
-                  <ul className="hidden gap-3 px-4 pb-2 pt-1 sm:grid sm:grid-cols-2">
+                  <ul className="hidden gap-3 px-4 pb-2 pt-1 sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {filteredWithMeta.map(({ exercise, subtitle, checked }) => (
                       <ExerciseCard
                         key={exercise.id}
