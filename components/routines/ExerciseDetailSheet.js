@@ -48,15 +48,15 @@ export default function ExerciseDetailSheet({ exercise, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 z-30 flex flex-col justify-end"
+      className="fixed inset-0 z-30 flex flex-col justify-end sm:items-center sm:justify-center sm:p-6"
       style={{ background: "rgba(0,0,0,0.6)" }}
     >
       {/* Tap outside to close */}
       <div className="absolute inset-0" onClick={onClose} />
 
       <div
-        className="relative z-10 flex max-h-[92vh] w-full flex-col overflow-hidden"
-        style={{ background: "#1c1c1e", borderRadius: "20px 20px 0 0" }}
+        className="relative z-10 flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-[20px] sm:max-w-2xl sm:rounded-[20px]"
+        style={{ background: "#1c1c1e" }}
       >
         {/* Drag handle */}
         <div className="flex justify-center pt-3 pb-1">
@@ -96,50 +96,52 @@ export default function ExerciseDetailSheet({ exercise, onClose }) {
         </div>
 
         {/* Scrollable content */}
-        <div className="flex flex-col gap-5 overflow-y-auto px-5 py-5">
+        <div className="flex flex-col gap-5 overflow-y-auto px-5 py-5 sm:flex-row sm:gap-6">
           {/* Exercise image */}
-          <div className="flex justify-center">
-            {exercise.mediaUrl ? (
-              <Image
-                src={exercise.mediaUrl}
-                alt=""
-                width={160}
-                height={160}
-                className="rounded-2xl object-cover"
-                style={{ width: 160, height: 160 }}
-                unoptimized
-              />
-            ) : (
-              <div
-                className="flex items-center justify-center rounded-2xl"
-                style={{ width: 160, height: 160, background: "rgba(255,255,255,0.07)" }}
-              >
-                <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1.4" strokeLinecap="round">
-                  <circle cx="12" cy="8.5" r="3.2" />
-                  <path d="M5 20a7 7 0 0 1 14 0" />
-                </svg>
-              </div>
-            )}
-          </div>
-          {exercise.mediaUrl ? <MediaAttribution /> : null}
-
-          {/* Tags */}
-          <div className="flex flex-wrap gap-1.5">
-            {exercise.equipment && <Tag>{EQUIPMENT_LABELS[exercise.equipment]}</Tag>}
-            {exercise.pattern && <Tag>{PATTERN_LABELS[exercise.pattern]}</Tag>}
-            {exercise.registrationType && <Tag>{REGISTRATION_TYPE_LABELS[exercise.registrationType]}</Tag>}
-            {exercise.unilateral && <Tag>Unilateral</Tag>}
+          <div className="flex flex-col items-center gap-2 sm:w-64 sm:shrink-0">
+            <div className="relative aspect-square w-40 overflow-hidden rounded-2xl sm:w-full">
+              {exercise.mediaUrl ? (
+                <Image
+                  src={exercise.mediaUrl}
+                  alt=""
+                  fill
+                  sizes="(min-width: 640px) 256px, 160px"
+                  style={{ objectFit: "cover" }}
+                  unoptimized
+                />
+              ) : (
+                <div
+                  className="flex h-full items-center justify-center"
+                  style={{ background: "rgba(255,255,255,0.07)" }}
+                >
+                  <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1.4" strokeLinecap="round">
+                    <circle cx="12" cy="8.5" r="3.2" />
+                    <path d="M5 20a7 7 0 0 1 14 0" />
+                  </svg>
+                </div>
+              )}
+            </div>
+            {exercise.mediaUrl ? <MediaAttribution /> : null}
           </div>
 
-          {/* Description */}
-          {exercise.descriptionEs ? (
-            <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.6)" }}>
-              {exercise.descriptionEs}
-            </p>
-          ) : null}
+          <div className="flex min-w-0 flex-1 flex-col gap-5">
+            {/* Tags */}
+            <div className="flex flex-wrap gap-1.5">
+              {exercise.equipment && <Tag>{EQUIPMENT_LABELS[exercise.equipment]}</Tag>}
+              {exercise.pattern && <Tag>{PATTERN_LABELS[exercise.pattern]}</Tag>}
+              {exercise.registrationType && <Tag>{REGISTRATION_TYPE_LABELS[exercise.registrationType]}</Tag>}
+              {exercise.unilateral && <Tag>Unilateral</Tag>}
+            </div>
 
-          {/* Muscle groups */}
-          {muscleEntries.length ? (
+            {/* Description */}
+            {exercise.descriptionEs ? (
+              <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.6)" }}>
+                {exercise.descriptionEs}
+              </p>
+            ) : null}
+
+            {/* Muscle groups */}
+            {muscleEntries.length ? (
             <section>
               <p
                 className="mb-3 text-xs font-semibold uppercase tracking-[0.14em]"
@@ -208,7 +210,8 @@ export default function ExerciseDetailSheet({ exercise, onClose }) {
                 })}
               </div>
             </section>
-          ) : null}
+            ) : null}
+          </div>
         </div>
       </div>
     </div>

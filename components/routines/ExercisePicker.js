@@ -140,6 +140,144 @@ function ExerciseCircle({ src, name }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Exercise list item — mobile row (compact, unchanged from original design)
+// ─────────────────────────────────────────────────────────────────────────────
+function ExerciseRow({ exercise, subtitle, checked, onToggle, onInfo }) {
+  return (
+    <li style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+      <div className="relative flex items-center">
+        {checked && (
+          <div
+            className="absolute inset-y-0 left-0"
+            style={{ width: 3, background: "#2e93a6", borderRadius: "0 3px 3px 0" }}
+          />
+        )}
+        <button
+          type="button"
+          onClick={() => onToggle(exercise.id)}
+          className="flex min-w-0 flex-1 items-center gap-3 px-4 py-3 text-left"
+        >
+          <ExerciseCircle src={exercise.mediaUrl} name={exercise.nameEs} />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5">
+              <span className="block truncate text-sm font-semibold leading-snug" style={{ color: "#fff" }}>
+                {exercise.nameEs}
+              </span>
+              {exercise.source === "custom" && (
+                <span
+                  className="shrink-0 rounded-full px-1.5 py-0.5 text-[9px] uppercase tracking-wide"
+                  style={{ background: "rgba(10,132,255,0.2)", color: "#2e93a6" }}
+                >
+                  Tuyo
+                </span>
+              )}
+            </div>
+            {subtitle ? (
+              <span className="mt-0.5 block truncate text-xs" style={{ color: "rgba(255,255,255,0.48)" }}>
+                {subtitle}
+              </span>
+            ) : null}
+          </div>
+        </button>
+        <button
+          type="button"
+          onClick={() => onInfo(exercise)}
+          aria-label={`Ver detalle de ${exercise.nameEs}`}
+          className="flex h-12 w-12 shrink-0 items-center justify-center"
+          style={{ color: "rgba(255,255,255,0.38)" }}
+        >
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+            <circle cx="12" cy="12" r="9.5" />
+            <line x1="12" y1="10.5" x2="12" y2="16.5" strokeWidth="1.6" />
+            <circle cx="12" cy="7.5" r="1.1" fill="currentColor" stroke="none" />
+          </svg>
+        </button>
+      </div>
+    </li>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Exercise list item — sm+ card (2-column grid, imagen grande)
+// ─────────────────────────────────────────────────────────────────────────────
+function ExerciseCard({ exercise, subtitle, checked, onToggle, onInfo }) {
+  return (
+    <li
+      className="relative overflow-hidden rounded-2xl transition"
+      style={{
+        background: "#1c1c1e",
+        boxShadow: checked ? "0 0 0 2px #2e93a6" : "0 0 0 1px rgba(255,255,255,0.08)",
+      }}
+    >
+      <button type="button" onClick={() => onToggle(exercise.id)} className="flex w-full flex-col text-left">
+        <div className="relative aspect-video w-full" style={{ background: "#ffffff" }}>
+          {exercise.mediaUrl ? (
+            <Image
+              src={exercise.mediaUrl}
+              alt={exercise.nameEs || ""}
+              fill
+              sizes="(min-width: 640px) 22vw, 100vw"
+              style={{ objectFit: "cover" }}
+              unoptimized
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center">
+              <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="#9ca3af" strokeWidth="1.4" strokeLinecap="round">
+                <circle cx="12" cy="8" r="3.5" />
+                <path d="M5 20a7 7 0 0 1 14 0" />
+              </svg>
+            </div>
+          )}
+          {checked && (
+            <div
+              className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full"
+              style={{ background: "#2e93a6" }}
+            >
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
+          )}
+        </div>
+        <div className="px-3 py-2.5">
+          <div className="flex items-center gap-1.5">
+            <span className="block truncate text-sm font-semibold leading-snug" style={{ color: "#fff" }}>
+              {exercise.nameEs}
+            </span>
+            {exercise.source === "custom" && (
+              <span
+                className="shrink-0 rounded-full px-1.5 py-0.5 text-[9px] uppercase tracking-wide"
+                style={{ background: "rgba(10,132,255,0.2)", color: "#2e93a6" }}
+              >
+                Tuyo
+              </span>
+            )}
+          </div>
+          {subtitle ? (
+            <span className="mt-0.5 block truncate text-xs" style={{ color: "rgba(255,255,255,0.48)" }}>
+              {subtitle}
+            </span>
+          ) : null}
+        </div>
+      </button>
+      <button
+        type="button"
+        onClick={() => onInfo(exercise)}
+        aria-label={`Ver detalle de ${exercise.nameEs}`}
+        className="absolute left-2 top-2 flex h-7 w-7 items-center justify-center rounded-full"
+        style={{ background: "rgba(0,0,0,0.55)", color: "#fff" }}
+      >
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+          <circle cx="12" cy="12" r="9.5" />
+          <line x1="12" y1="10.5" x2="12" y2="16.5" strokeWidth="1.8" />
+          <circle cx="12" cy="7.5" r="1.1" fill="currentColor" stroke="none" />
+        </svg>
+      </button>
+    </li>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Generic filter bottom-sheet
 // ─────────────────────────────────────────────────────────────────────────────
 function FilterSheet({ title, options, value, onChange, onClose }) {
@@ -290,6 +428,14 @@ export default function ExercisePicker({ exercises, customExercises, onConfirm, 
   ];
 
   const isFiltering = query || muscleGroup || equipment;
+
+  const filteredWithMeta = filtered.map((exercise) => {
+    const muscle = primaryMuscle(exercise.muscleWeights);
+    const muscleLabel = muscle ? MUSCLE_GROUP_LABELS[muscle] : "";
+    const equipLabel = EQUIPMENT_LABELS[exercise.equipment] || "";
+    const subtitle = [muscleLabel, equipLabel].filter(Boolean).join(", ");
+    return { exercise, subtitle, checked: selectedIds.has(exercise.id) };
+  });
 
   return (
     <>
@@ -442,86 +588,32 @@ export default function ExercisePicker({ exercises, customExercises, onConfirm, 
                     </span>
                   </div>
 
-                  <ul style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}>
-                    {filtered.map((exercise) => {
-                      const checked = selectedIds.has(exercise.id);
-                      const muscle = primaryMuscle(exercise.muscleWeights);
-                      const muscleLabel = muscle ? MUSCLE_GROUP_LABELS[muscle] : "";
-                      const equipLabel = EQUIPMENT_LABELS[exercise.equipment] || "";
+                  {/* Mobile: fila compacta (diseño original, sin cambios) */}
+                  <ul className="sm:hidden" style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}>
+                    {filteredWithMeta.map(({ exercise, subtitle, checked }) => (
+                      <ExerciseRow
+                        key={exercise.id}
+                        exercise={exercise}
+                        subtitle={subtitle}
+                        checked={checked}
+                        onToggle={toggle}
+                        onInfo={setDetailExercise}
+                      />
+                    ))}
+                  </ul>
 
-                      // Build subtitle: primary muscle + equipment separated by comma
-                      const subtitleParts = [muscleLabel, equipLabel].filter(Boolean);
-                      const subtitle = subtitleParts.join(", ");
-
-                      return (
-                        <li
-                          key={exercise.id}
-                          style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}
-                        >
-                          <div className="relative flex items-center">
-                            {/* Blue selection bar */}
-                            {checked && (
-                              <div
-                                className="absolute inset-y-0 left-0"
-                                style={{ width: 3, background: "#2e93a6", borderRadius: "0 3px 3px 0" }}
-                              />
-                            )}
-
-                            {/* Main tap area */}
-                            <button
-                              type="button"
-                              id={`exercise-${exercise.id}`}
-                              onClick={() => toggle(exercise.id)}
-                              className="flex min-w-0 flex-1 items-center gap-3 px-4 py-3 text-left"
-                            >
-                              <ExerciseCircle src={exercise.mediaUrl} name={exercise.nameEs} />
-                              <div className="min-w-0 flex-1">
-                                <div className="flex items-center gap-1.5">
-                                  <span
-                                    className="block truncate text-sm font-semibold leading-snug"
-                                    style={{ color: "#fff" }}
-                                  >
-                                    {exercise.nameEs}
-                                  </span>
-                                  {exercise.source === "custom" && (
-                                    <span
-                                      className="shrink-0 rounded-full px-1.5 py-0.5 text-[9px] uppercase tracking-wide"
-                                      style={{ background: "rgba(10,132,255,0.2)", color: "#2e93a6" }}
-                                    >
-                                      Tuyo
-                                    </span>
-                                  )}
-                                </div>
-                                {subtitle ? (
-                                  <span
-                                    className="mt-0.5 block truncate text-xs"
-                                    style={{ color: "rgba(255,255,255,0.48)" }}
-                                  >
-                                    {subtitle}
-                                  </span>
-                                ) : null}
-                              </div>
-                            </button>
-
-                            {/* Info button */}
-                            <button
-                              type="button"
-                              id={`exercise-info-${exercise.id}`}
-                              onClick={() => setDetailExercise(exercise)}
-                              aria-label={`Ver detalle de ${exercise.nameEs}`}
-                              className="flex h-12 w-12 shrink-0 items-center justify-center"
-                              style={{ color: "rgba(255,255,255,0.38)" }}
-                            >
-                              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
-                                <circle cx="12" cy="12" r="9.5" />
-                                <line x1="12" y1="10.5" x2="12" y2="16.5" strokeWidth="1.6" />
-                                <circle cx="12" cy="7.5" r="1.1" fill="currentColor" stroke="none" />
-                              </svg>
-                            </button>
-                          </div>
-                        </li>
-                      );
-                    })}
+                  {/* sm+: grid de 2 columnas, imagen grande */}
+                  <ul className="hidden gap-3 px-4 pb-2 pt-1 sm:grid sm:grid-cols-2">
+                    {filteredWithMeta.map(({ exercise, subtitle, checked }) => (
+                      <ExerciseCard
+                        key={exercise.id}
+                        exercise={exercise}
+                        subtitle={subtitle}
+                        checked={checked}
+                        onToggle={toggle}
+                        onInfo={setDetailExercise}
+                      />
+                    ))}
                   </ul>
 
                   {/* Create custom exercise */}
