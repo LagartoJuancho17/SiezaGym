@@ -97,33 +97,23 @@ export default function BottomNav() {
     <div className="pointer-events-none fixed bottom-6 left-0 right-0 z-50 flex justify-center px-4 md:hidden">
       <nav
         aria-label="Navegación móvil"
-        className="pointer-events-auto flex items-center p-1.5 rounded-[22px] border border-black/[0.06] bg-[#E7E4DE] shadow-[0_12px_36px_rgba(0,0,0,0.3)]"
+        className="pointer-events-auto flex items-center gap-2.5 rounded-[32px] border border-white/20 bg-white/[0.08] p-2.5 shadow-[0_18px_48px_rgba(0,0,0,0.3)] backdrop-blur-lg"
       >
-        {NAV_ITEMS.map((item, idx) => {
-          const isNextActive = idx < NAV_ITEMS.length - 1 && NAV_ITEMS[idx + 1].isActive;
-
-          return (
-            <div key={item.label} className="flex items-center">
-              <Link
-                href={item.href}
-                aria-label={item.label}
-                aria-current={item.isActive ? "page" : undefined}
-                className={`relative flex h-[50px] w-[50px] items-center justify-center rounded-[16px] transition-all duration-200 ${
-                  item.isActive
-                    ? "bg-[#FF5524] text-white shadow-[0_4px_14px_rgba(255,85,36,0.45)]"
-                    : "text-[#3D3A36] hover:bg-black/[0.05] active:scale-95"
-                }`}
-              >
-                {item.icon}
-              </Link>
-
-              {/* Subtle vertical divider between adjacent inactive items matching reference screenshot */}
-              {idx < NAV_ITEMS.length - 1 && !item.isActive && !isNextActive && (
-                <div className="h-6 w-[1px] bg-black/10 mx-[1px]" />
-              )}
-            </div>
-          );
-        })}
+        {NAV_ITEMS.map((item) => (
+          <Link
+            key={item.label}
+            href={item.href}
+            aria-label={item.label}
+            aria-current={item.isActive ? "page" : undefined}
+            className={`flex h-[52px] w-[52px] items-center justify-center rounded-[19px] border transition-all duration-200 active:scale-95 ${
+              item.isActive
+                ? "border-white/30 bg-[#FF5524] text-white shadow-[0_6px_20px_rgba(255,85,36,0.55),inset_0_1px_0_rgba(255,255,255,0.35)]"
+                : "border-white/80 bg-white/[0.88] text-[#2E2B28] shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_4px_12px_rgba(0,0,0,0.18)] backdrop-blur-2xl backdrop-saturate-150 hover:bg-white"
+            }`}
+          >
+            {item.icon}
+          </Link>
+        ))}
       </nav>
     </div>
   );
