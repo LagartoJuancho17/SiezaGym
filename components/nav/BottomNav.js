@@ -55,7 +55,7 @@ export default function BottomNav() {
   return (
     <nav
       aria-label="Navegación principal"
-      className="sticky bottom-0 z-30 px-[18px] pb-6"
+      className="sticky bottom-0 z-30 px-[18px] pb-6 md:hidden"
       style={{ background: "linear-gradient(to top, var(--bg) 58%, transparent)" }}
     >
       <div className="mx-auto flex w-full max-w-lg items-center gap-2.5">

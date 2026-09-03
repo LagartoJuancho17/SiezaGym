@@ -4,9 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { logout } from "@/app/dashboard/actions";
 
-export default function AccountMenu({ initial, photoURL, email }) {
+export default function AccountMenu({ initial, photoURL, email, size = "default" }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef(null);
+
+  const isSmall = size === "sm";
 
   useEffect(() => {
     if (!open) {
@@ -41,14 +43,16 @@ export default function AccountMenu({ initial, photoURL, email }) {
         aria-haspopup="true"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className="flex h-[46px] w-[46px] items-center justify-center overflow-hidden rounded-full border border-hair bg-glass text-[13.5px] font-semibold text-muted transition hover:border-teal2 hover:text-text"
+        className={`flex items-center justify-center overflow-hidden rounded-full border border-hair bg-glass font-semibold text-muted transition hover:border-teal2 hover:text-text ${
+          isSmall ? "h-9 w-9 text-xs" : "h-[46px] w-[46px] text-[13.5px]"
+        }`}
       >
         {photoURL ? (
           <Image
             src={photoURL}
             alt=""
-            width={46}
-            height={46}
+            width={isSmall ? 36 : 46}
+            height={isSmall ? 36 : 46}
             className="h-full w-full object-cover"
             referrerPolicy="no-referrer"
           />
@@ -58,7 +62,11 @@ export default function AccountMenu({ initial, photoURL, email }) {
       </button>
 
       {open ? (
-        <div className="absolute right-0 top-[54px] z-10 w-56 overflow-hidden rounded-[18px] border border-hair bg-deep shadow-[0_16px_40px_rgba(0,0,0,0.45)]">
+        <div
+          className={`absolute right-0 z-50 w-56 overflow-hidden rounded-[18px] border border-hair bg-deep shadow-[0_16px_40px_rgba(0,0,0,0.45)] ${
+            isSmall ? "top-[44px]" : "top-[54px]"
+          }`}
+        >
           {email ? (
             <p className="truncate border-b border-hair px-4 py-3 text-xs text-muted">
               {email}

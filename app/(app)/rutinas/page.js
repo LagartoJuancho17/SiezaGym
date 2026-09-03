@@ -56,7 +56,7 @@ export default async function RutinasPage() {
   );
 
   return (
-    <div className="flex flex-col gap-5 px-[18px] pb-[100px] lg:px-0">
+    <div className="flex flex-col gap-5 px-[18px] pb-[100px] md:pb-12 lg:px-0">
       <header className="flex items-center justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-teal2">

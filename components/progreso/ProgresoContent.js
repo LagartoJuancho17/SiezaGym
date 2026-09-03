@@ -42,7 +42,7 @@ export default function ProgresoContent({
   const [view, setView] = useState(isCoach ? "students" : "own");
 
   return (
-    <div className="flex flex-col gap-5 px-[18px] pb-[100px] lg:px-0">
+    <div className="flex flex-col gap-5 px-[18px] pb-[100px] md:pb-12 lg:px-0">
       <header>
         <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-faint">Progreso</p>
         <h1 className="font-display mt-1 text-[26px] uppercase leading-none text-white">

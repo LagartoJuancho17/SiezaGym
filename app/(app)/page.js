@@ -52,7 +52,7 @@ export default async function Home() {
   const initial = (profile?.displayName || user.email || "?").charAt(0).toUpperCase();
 
   return (
-    <div className="flex flex-col gap-6 px-[18px] pb-[100px] lg:px-0">
+    <div className="flex flex-col gap-6 px-[18px] pb-[100px] md:pb-12 lg:px-0">
       {/* Top Header */}
       <header className="flex items-center justify-between gap-4">
         <div className="min-w-0">
@@ -63,7 +63,7 @@ export default async function Home() {
             {greeting}
           </h1>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 md:hidden">
           <div className="hidden sm:block text-right">
             <p className="text-sm font-semibold text-white truncate max-w-[200px]">
               {profile?.displayName || user.email}
