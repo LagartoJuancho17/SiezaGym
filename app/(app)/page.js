@@ -4,7 +4,7 @@ import { getCurrentUser } from "@/lib/firebase/session";
 import { getUserProfile } from "@/lib/users/users";
 import { listUserRoutines } from "@/lib/routines/routines";
 import { listStudentAssignments } from "@/lib/assignments/assignments";
-import { weeklyVolumeKg, listTrainedDates } from "@/lib/sessions/sessions";
+import { listTrainedDates } from "@/lib/sessions/sessions";
 import { computeStreak } from "@/lib/sessions/streak";
 import { totalSets, estimatedDurationMinutes } from "@/lib/routines/summary";
 import AccountMenu from "@/components/home/AccountMenu";
@@ -33,10 +33,9 @@ export default async function Home() {
     redirect("/login");
   }
 
-  const [profile, routines, weekVolume, trainedDates, assignments] = await Promise.all([
+  const [profile, routines, trainedDates, assignments] = await Promise.all([
     getUserProfile(user.uid),
     listUserRoutines(user.uid),
-    weeklyVolumeKg(user.uid),
     listTrainedDates(user.uid),
     listStudentAssignments(user.uid),
   ]);
@@ -116,73 +115,37 @@ export default async function Home() {
 
           <WeekStrip trainedDates={trainedDates} streak={streak} />
 
-          {/* Volume & Goal Stat Cards */}
-          <div className="grid grid-cols-2 gap-3 sm:gap-4">
-            <section
-              aria-label="Volumen de la semana"
-              className="flex min-h-[136px] flex-col justify-between rounded-3xl border border-hair/80 bg-glass/60 p-4 sm:p-5 backdrop-blur-md transition hover:border-white/20"
-            >
-              <div className="flex items-start justify-between gap-2">
-                <span className="text-xs sm:text-[13px] font-semibold tracking-wide text-text">
-                  Volumen
+          {/* Goal Stat Card */}
+          <section
+            aria-label="Tu objetivo semanal"
+            className="relative flex min-h-[110px] flex-col justify-between overflow-hidden rounded-3xl p-4 sm:p-5 text-white border border-teal/40 shadow-[0_8px_24px_rgba(63,169,188,0.15)] sm:flex-row sm:items-center"
+            style={{
+              background:
+                "linear-gradient(150deg, rgba(63,169,188,0.25) 0%, rgba(8,23,26,0.9) 100%)",
+            }}
+          >
+            <div>
+              <p className="text-xs sm:text-[13px] font-semibold tracking-wide text-teal2">
+                Tu objetivo
+              </p>
+              <p className="mt-1 text-[11px] leading-snug text-white/80">
+                Se activa con tu primera sesión registrada.
+              </p>
+            </div>
+            <div className="mt-3 flex items-center justify-end gap-2 sm:mt-0">
+              <span
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full"
+                style={{
+                  background:
+                    "conic-gradient(var(--teal2) 0 0%, rgba(255,255,255,.15) 0)",
+                }}
+              >
+                <span className="font-mono-digit flex h-8 w-8 items-center justify-center rounded-full bg-deep text-[10px] font-bold text-white">
+                  0%
                 </span>
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-teal/15 text-teal2">
-                  <svg
-                    viewBox="0 0 24 24"
-                    width="15"
-                    height="15"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  >
-                    <path d="M4 9v6" />
-                    <path d="M20 9v6" />
-                    <path d="M7 7v10" />
-                    <path d="M17 7v10" />
-                    <path d="M7 12h10" />
-                  </svg>
-                </span>
-              </div>
-              <div>
-                <div className="font-mono-digit text-2xl sm:text-3xl font-bold tracking-wide text-white">
-                  {weekVolume}
-                </div>
-                <p className="mt-1 text-[11px] text-faint">kg esta semana</p>
-              </div>
-            </section>
-
-            <section
-              aria-label="Tu objetivo semanal"
-              className="relative flex min-h-[136px] flex-col justify-between overflow-hidden rounded-3xl p-4 sm:p-5 text-white border border-teal/40 shadow-[0_8px_24px_rgba(63,169,188,0.15)]"
-              style={{
-                background:
-                  "linear-gradient(150deg, rgba(63,169,188,0.25) 0%, rgba(8,23,26,0.9) 100%)",
-              }}
-            >
-              <div>
-                <p className="text-xs sm:text-[13px] font-semibold tracking-wide text-teal2">
-                  Tu objetivo
-                </p>
-                <p className="mt-1 text-[11px] leading-snug text-white/80">
-                  Se activa con tu primera sesión registrada.
-                </p>
-              </div>
-              <div className="flex items-center justify-end gap-2">
-                <span
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full"
-                  style={{
-                    background:
-                      "conic-gradient(var(--teal2) 0 0%, rgba(255,255,255,.15) 0)",
-                  }}
-                >
-                  <span className="font-mono-digit flex h-8 w-8 items-center justify-center rounded-full bg-deep text-[10px] font-bold text-white">
-                    0%
-                  </span>
-                </span>
-              </div>
-            </section>
-          </div>
+              </span>
+            </div>
+          </section>
 
           {/* Routines Section */}
           {!hasAnyRoutine ? (

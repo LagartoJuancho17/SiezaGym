@@ -30,14 +30,19 @@ function StatCard({ label, value, unit, accent, children }) {
   );
 }
 
+function formatShortDate(iso) {
+  if (!iso) return null;
+  return new Intl.DateTimeFormat("es-AR", { day: "numeric", month: "short" }).format(new Date(iso));
+}
+
 export default function ProgresoContent({
   isCoach,
   students,
   userName,
+  keyLifts = [],
   exerciseSummaries = [],
   totalSessions = 0,
   lastSession = null,
-  weekVolume = 0,
 }) {
   const [view, setView] = useState(isCoach ? "students" : "own");
 
@@ -75,32 +80,21 @@ export default function ProgresoContent({
 
       {view === "own" ? (
         <>
-          <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
-            <StatCard label="Volumen semanal" value={`${weekVolume}kg`} unit="esta semana">
-              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-teal2">
-                <path d="M4 9v6M20 9v6M7 7v10M17 7v10M7 12h10" />
-              </svg>
-            </StatCard>
-            <StatCard label="Sesiones totales" value={totalSessions} unit="registradas">
+          <div className="grid grid-cols-3 gap-2.5">
+            <StatCard label="Sesiones" value={totalSessions} unit="registradas">
               <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-teal2">
                 <circle cx="12" cy="12" r="9" />
                 <path d="M12 7v5l3 3" />
               </svg>
             </StatCard>
-            <StatCard label="Ejercicios trackeados" value={exerciseSummaries.length} unit="distintos">
+            <StatCard label="Ejercicios" value={exerciseSummaries.length + keyLifts.filter((k) => k.timesPerformed > 0).length} unit="trackeados">
               <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-teal2">
                 <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
               </svg>
             </StatCard>
             <StatCard
               label="Última sesión"
-              value={
-                lastSession
-                  ? new Intl.DateTimeFormat("es-AR", { day: "numeric", month: "short" }).format(
-                      new Date(lastSession.finishedAt),
-                    )
-                  : "—"
-              }
+              value={lastSession ? formatShortDate(lastSession.finishedAt) : "—"}
               unit="último entrenamiento"
               accent
             >
@@ -110,7 +104,37 @@ export default function ProgresoContent({
             </StatCard>
           </div>
 
-          {exerciseSummaries.length === 0 ? (
+          {keyLifts.length > 0 && (
+            <section>
+              <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-orange-400">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
+                  <path d="M12 2l2.4 7.2H22l-6 4.6 2.3 7.2-6.3-4.5-6.3 4.5 2.3-7.2-6-4.6h7.6z" />
+                </svg>
+                Levantamientos clave
+              </p>
+              <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-5">
+                {keyLifts.map((lift) => (
+                  <Link
+                    key={lift.exerciseId}
+                    href={`/progreso/${lift.exerciseId}`}
+                    className="flex flex-col justify-between gap-2 rounded-2xl border border-orange-500/25 bg-orange-500/[0.06] p-3.5 transition hover:border-orange-500/50"
+                  >
+                    <p className="truncate text-xs font-semibold text-text">{lift.nameEs}</p>
+                    <div>
+                      <p className="font-mono-digit text-xl text-orange-400">
+                        {lift.maxWeightKg > 0 ? `${lift.maxWeightKg}kg` : "—"}
+                      </p>
+                      <p className="mt-0.5 text-[10px] text-faint">
+                        {lift.timesPerformed > 0 ? "peso máximo" : "sin registros"}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {exerciseSummaries.length === 0 && keyLifts.every((k) => k.timesPerformed === 0) ? (
             <section className="relative overflow-hidden rounded-[30px] bg-deep px-[18px] py-[22px]">
               <p className="text-[10.5px] font-medium uppercase tracking-[0.16em] text-white/62">
                 Todavía no hay datos
@@ -121,7 +145,7 @@ export default function ProgresoContent({
                 tu progreso acá
               </h2>
               <p className="mt-2.5 text-[12.5px] leading-[1.5] text-white/70">
-                Terminá un entrenamiento desde una rutina y el 1RM estimado de cada ejercicio empieza
+                Terminá un entrenamiento desde una rutina y el peso máximo de cada ejercicio empieza
                 a graficarse solo.
               </p>
               <Link
@@ -131,7 +155,7 @@ export default function ProgresoContent({
                 Ir a mis rutinas
               </Link>
             </section>
-          ) : (
+          ) : exerciseSummaries.length > 0 ? (
             <section>
               <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-teal2">
                 Por ejercicio
@@ -152,9 +176,7 @@ export default function ProgresoContent({
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
                       <span className="font-mono-digit text-base text-teal2">
-                        {summary.bestEstimatedOneRepMax > 0
-                          ? `${summary.bestEstimatedOneRepMax.toFixed(1)}kg`
-                          : "—"}
+                        {summary.maxWeightKg > 0 ? `${summary.maxWeightKg}kg` : "—"}
                       </span>
                       <svg
                         viewBox="0 0 24 24"
@@ -174,7 +196,7 @@ export default function ProgresoContent({
                 ))}
               </div>
             </section>
-          )}
+          ) : null}
         </>
       ) : (
         <div className="flex flex-col gap-2.5">
@@ -184,9 +206,10 @@ export default function ProgresoContent({
             </div>
           ) : (
             students.map((student) => (
-              <div
+              <Link
                 key={student.studentId}
-                className="rounded-2xl border border-hair bg-glass p-4"
+                href={`/dashboard/coach/alumnos/${student.studentId}`}
+                className="rounded-2xl border border-hair bg-glass p-4 transition hover:border-teal2/50"
               >
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-teal/20 text-sm font-semibold text-teal2">
@@ -200,18 +223,25 @@ export default function ProgresoContent({
                       <p className="truncate text-xs text-faint">{student.email}</p>
                     )}
                   </div>
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-faint">
+                    <path d="M9 18l6-6-6-6" />
+                  </svg>
                 </div>
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   <div className="rounded-xl border border-hair/60 bg-black/10 px-3 py-2 text-center">
-                    <p className="font-mono-digit text-lg font-semibold text-faint">0</p>
+                    <p className="font-mono-digit text-lg font-semibold text-text">
+                      {student.sessionsCount ?? 0}
+                    </p>
                     <p className="text-[10px] text-faint">sesiones</p>
                   </div>
                   <div className="rounded-xl border border-hair/60 bg-black/10 px-3 py-2 text-center">
-                    <p className="font-mono-digit text-lg font-semibold text-faint">0 kg</p>
-                    <p className="text-[10px] text-faint">esta semana</p>
+                    <p className="font-mono-digit text-sm font-semibold text-text">
+                      {formatShortDate(student.lastSessionAt) || "—"}
+                    </p>
+                    <p className="text-[10px] text-faint">última sesión</p>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))
           )}
         </div>

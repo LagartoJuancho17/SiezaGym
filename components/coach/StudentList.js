@@ -1,6 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
+import Link from "next/link";
 import Image from "next/image";
 import { removeStudent } from "@/app/dashboard/coach/actions";
 
@@ -71,33 +72,38 @@ export default function StudentList({ students, onOpenAdd }) {
           key={student.id}
           className="flex items-center gap-4 rounded-[16px] border border-hair bg-glass p-4 transition hover:bg-glass2"
         >
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-glass2 text-sm font-semibold text-teal2">
-            {student.photoURL ? (
-              <Image
-                src={student.photoURL}
-                alt=""
-                width={40}
-                height={40}
-                className="h-full w-full rounded-full object-cover"
-                referrerPolicy="no-referrer"
-              />
-            ) : (
-              (student.displayName || "?").charAt(0).toUpperCase()
-            )}
-          </div>
+          <Link
+            href={`/dashboard/coach/alumnos/${student.studentId}`}
+            className="flex min-w-0 flex-1 items-center gap-4"
+          >
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-glass2 text-sm font-semibold text-teal2">
+              {student.photoURL ? (
+                <Image
+                  src={student.photoURL}
+                  alt=""
+                  width={40}
+                  height={40}
+                  className="h-full w-full rounded-full object-cover"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                (student.displayName || "?").charAt(0).toUpperCase()
+              )}
+            </div>
 
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-text">
-              {student.displayName}
-            </p>
-            {student.email && (
-              <p className="truncate text-xs text-faint">{student.email}</p>
-            )}
-          </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-text">
+                {student.displayName}
+              </p>
+              {student.email && (
+                <p className="truncate text-xs text-faint">{student.email}</p>
+              )}
+            </div>
 
-          <span className="shrink-0 text-xs text-faint">
-            {formatDate(student.linkedAt)}
-          </span>
+            <span className="shrink-0 text-xs text-faint">
+              {formatDate(student.linkedAt)}
+            </span>
+          </Link>
 
           <button
             type="button"

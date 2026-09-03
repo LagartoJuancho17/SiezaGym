@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/firebase/session";
 import { getExerciseById } from "@/lib/exercises/exercises";
 import { listSessionsForExercise } from "@/lib/sessions/sessions";
-import { bestSetByEstimatedOneRepMax } from "@/lib/epley";
+import { bestSetByEstimatedOneRepMax, maxWeightFromSets } from "@/lib/epley";
 import ExerciseProgressChart from "@/components/progress/ExerciseProgressChart";
 
 export const dynamic = "force-dynamic";
@@ -59,6 +59,10 @@ export default async function ExerciseProgressPage({ params }) {
     .reverse();
 
   const currentBest = rows.reduce((max, r) => Math.max(max, r.estimatedOneRepMax), 0);
+  const maxWeightKg = sessions.reduce((max, session) => {
+    const exerciseInSession = session.exercises.find((e) => e.exerciseId === exerciseId);
+    return Math.max(max, maxWeightFromSets(exerciseInSession?.sets));
+  }, 0);
 
   return (
     <div className="flex flex-col gap-5 px-[18px] pb-[100px] lg:px-0">
@@ -81,7 +85,13 @@ export default async function ExerciseProgressPage({ params }) {
         </div>
       </header>
 
-      <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
+      <div className="grid grid-cols-3 gap-2.5">
+        <div className="rounded-[18px] border border-orange-500/25 bg-orange-500/[0.06] p-[15px]">
+          <p className="text-[11px] font-medium uppercase tracking-wider text-faint">Peso máximo</p>
+          <p className="font-mono-digit mt-1 text-2xl text-orange-400">
+            {maxWeightKg > 0 ? `${maxWeightKg}kg` : "—"}
+          </p>
+        </div>
         <div className="rounded-[18px] border border-hair bg-glass p-[15px]">
           <p className="text-[11px] font-medium uppercase tracking-wider text-faint">1RM estimado</p>
           <p className="font-mono-digit mt-1 text-2xl text-teal2">
@@ -89,7 +99,7 @@ export default async function ExerciseProgressPage({ params }) {
           </p>
         </div>
         <div className="rounded-[18px] border border-hair bg-glass p-[15px]">
-          <p className="text-[11px] font-medium uppercase tracking-wider text-faint">Sesiones registradas</p>
+          <p className="text-[11px] font-medium uppercase tracking-wider text-faint">Sesiones</p>
           <p className="font-mono-digit mt-1 text-2xl text-white">{rows.length}</p>
         </div>
       </div>

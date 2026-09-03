@@ -2,7 +2,7 @@ import Image from "next/image";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/firebase/session";
 import { getUserProfile } from "@/lib/users/users";
-import { listUserSessions, weeklyVolumeKg } from "@/lib/sessions/sessions";
+import { listUserSessions } from "@/lib/sessions/sessions";
 import { getStudentCount, getLinkedCoach } from "@/lib/coach/students";
 import { logout } from "@/app/dashboard/actions";
 import PerfilForm from "@/components/perfil/PerfilForm";
@@ -16,9 +16,8 @@ export default async function PerfilPage() {
   const profile = await getUserProfile(user.uid);
   const isCoach = !!profile?.isCoach || !!profile?.isAdmin;
 
-  const [sessions, weekVolume, studentCount, linkedCoach] = await Promise.all([
+  const [sessions, studentCount, linkedCoach] = await Promise.all([
     listUserSessions(user.uid, { limitCount: 500 }),
-    weeklyVolumeKg(user.uid),
     isCoach ? getStudentCount(user.uid) : Promise.resolve(0),
     !isCoach ? getLinkedCoach(user.uid) : Promise.resolve(null),
   ]);
@@ -63,14 +62,10 @@ export default async function PerfilPage() {
         </div>
       </section>
 
-      <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
+      <div className="grid grid-cols-3 gap-2.5">
         <div className="rounded-[18px] border border-hair bg-glass p-[15px]">
           <p className="text-[11px] font-medium uppercase tracking-wider text-faint">Sesiones</p>
           <p className="font-mono-digit mt-1 text-2xl text-white">{sessions.length}</p>
-        </div>
-        <div className="rounded-[18px] border border-hair bg-glass p-[15px]">
-          <p className="text-[11px] font-medium uppercase tracking-wider text-faint">Volumen semanal</p>
-          <p className="font-mono-digit mt-1 text-2xl text-teal2">{weekVolume}kg</p>
         </div>
         {isCoach ? (
           <div className="rounded-[18px] border border-hair bg-glass p-[15px]">
