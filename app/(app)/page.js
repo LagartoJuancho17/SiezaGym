@@ -80,19 +80,19 @@ export default async function Home() {
       {/* Top Header */}
       <header className="flex items-center justify-between gap-4">
         <div className="min-w-0">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-teal2">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-orange-600">
             {today}
           </p>
-          <h1 className="font-display mt-1 text-[28px] sm:text-[34px] lg:text-[38px] uppercase leading-none tracking-wide text-white">
+          <h1 className="font-display mt-1 text-[28px] sm:text-[34px] lg:text-[38px] uppercase leading-none tracking-wide text-[#18120f]">
             {greeting}
           </h1>
         </div>
         <div className="flex items-center gap-3 md:hidden">
           <div className="hidden sm:block text-right">
-            <p className="text-sm font-semibold text-white truncate max-w-[200px]">
+            <p className="text-sm font-semibold text-[#18120f] truncate max-w-[200px]">
               {profile?.displayName || user.email}
             </p>
-            <p className="text-[10.5px] font-semibold uppercase tracking-wider text-teal2">
+            <p className="text-[10.5px] font-semibold uppercase tracking-wider text-orange-600">
               {isCoach ? (profile?.isAdmin ? "Admin & Coach" : "Entrenador") : "Atleta"}
             </p>
           </div>
@@ -100,6 +100,7 @@ export default async function Home() {
             initial={initial}
             photoURL={profile?.photoURL || null}
             email={user.email || null}
+            light
           />
         </div>
       </header>

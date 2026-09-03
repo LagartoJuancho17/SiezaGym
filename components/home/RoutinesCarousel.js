@@ -249,10 +249,10 @@ export default function RoutinesCarousel({ routines = [] }) {
       {/* Header bar with counter, add routine button and view all */}
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-teal2">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-orange-600">
             Tus Rutinas
           </p>
-          <span className="font-mono-digit rounded-md bg-white/10 px-2 py-0.5 text-xs text-white">
+          <span className="font-mono-digit rounded-md bg-black/[0.05] px-2 py-0.5 text-xs text-[#18120f]">
             {routines.length}
           </span>
         </div>
@@ -260,7 +260,7 @@ export default function RoutinesCarousel({ routines = [] }) {
         <div className="flex items-center gap-2">
           <Link
             href="/rutinas/nueva"
-            className="flex h-7 items-center gap-1 rounded-full border border-teal/40 bg-teal/10 px-2.5 text-xs font-semibold text-teal2 transition hover:border-teal hover:bg-teal/20"
+            className="flex h-7 items-center gap-1 rounded-full border border-orange-500/30 bg-orange-50 px-2.5 text-xs font-semibold text-orange-600 transition hover:border-orange-500 hover:bg-orange-100"
           >
             <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
               <path d="M12 5v14" />
@@ -271,7 +271,7 @@ export default function RoutinesCarousel({ routines = [] }) {
 
           <Link
             href="/rutinas"
-            className="text-xs font-medium text-faint transition hover:text-white"
+            className="text-xs font-medium text-[#a39a91] transition hover:text-[#18120f]"
           >
             Ver todas
           </Link>
@@ -333,11 +333,11 @@ export default function RoutinesCarousel({ routines = [] }) {
                 className={`h-2 rounded-full transition-all duration-300 ${
                   isActive
                     ? isAddSlide
-                      ? "w-6 bg-teal2"
-                      : "w-6 bg-white"
+                      ? "w-6 bg-orange-500"
+                      : "w-6 bg-[#18120f]"
                     : isAddSlide
-                    ? "w-2 bg-teal/40 hover:bg-teal/70"
-                    : "w-2 bg-white/25 hover:bg-white/50"
+                    ? "w-2 bg-orange-500/30 hover:bg-orange-500/60"
+                    : "w-2 bg-black/15 hover:bg-black/30"
                 }`}
               />
             );

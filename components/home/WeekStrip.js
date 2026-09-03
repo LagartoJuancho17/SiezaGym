@@ -60,15 +60,15 @@ export default function WeekStrip({ trainedDates = [], streak = 0 }) {
   return (
     <section
       aria-label="Tu semana"
-      className="rounded-3xl border border-hair/80 bg-glass/60 p-4 sm:p-5 backdrop-blur-md transition hover:border-white/20"
+      className="rounded-3xl border border-black/[0.06] bg-white p-4 shadow-[0_2px_10px_rgba(24,18,15,0.04)] transition sm:p-5"
     >
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <div className="font-mono-digit text-[20px] sm:text-[22px] tracking-wide text-white">
+          <div className="font-mono-digit text-[20px] sm:text-[22px] tracking-wide text-[#18120f]">
             {monthLabel}
           </div>
           {streak > 0 && (
-            <span className="flex items-center gap-1 rounded-full border border-orange-500/40 bg-orange-500/15 px-2.5 py-1 text-xs font-bold text-orange-400">
+            <span className="flex items-center gap-1 rounded-full border border-orange-500/30 bg-orange-50 px-2.5 py-1 text-xs font-bold text-orange-600">
               <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
                 <path d="M12 2c-.3 3-2.5 4.8-4.2 6.7C6.2 10.5 5 12.6 5 15a7 7 0 0 0 14 0c0-2.9-1.6-4.7-2.8-6.6-.4.9-1.1 1.8-1.9 1.8-1.1 0-1.5-1-1.3-2C13.3 6 12.7 3.6 12 2z" />
               </svg>
@@ -81,7 +81,7 @@ export default function WeekStrip({ trainedDates = [], streak = 0 }) {
             type="button"
             aria-label="Semana anterior"
             onClick={() => setWeekOffset((n) => n - 1)}
-            className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full border border-hair bg-glass2 text-white transition hover:bg-white/20 active:scale-95"
+            className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full border border-black/10 bg-black/[0.03] text-[#18120f] transition hover:bg-black/[0.08] active:scale-95"
           >
             <svg
               viewBox="0 0 24 24"
@@ -99,7 +99,7 @@ export default function WeekStrip({ trainedDates = [], streak = 0 }) {
             type="button"
             aria-label="Semana siguiente"
             onClick={() => setWeekOffset((n) => n + 1)}
-            className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full border border-hair bg-glass2 text-white transition hover:bg-white/20 active:scale-95"
+            className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full border border-black/10 bg-black/[0.03] text-[#18120f] transition hover:bg-black/[0.08] active:scale-95"
           >
             <svg
               viewBox="0 0 24 24"
@@ -121,15 +121,15 @@ export default function WeekStrip({ trainedDates = [], streak = 0 }) {
             key={i}
             className={`flex flex-col items-center gap-2 rounded-2xl py-2 px-1 transition ${
               d.isToday
-                ? "bg-teal/15 border border-teal/40 shadow-[0_0_16px_rgba(63,169,188,0.2)]"
+                ? "bg-black/[0.03] border border-black/15"
                 : d.trained
-                ? "bg-orange-500/10 border border-orange-500/25"
-                : "hover:bg-glass2"
+                ? "bg-orange-50 border border-orange-200"
+                : "hover:bg-black/[0.02]"
             }`}
           >
             <span
               className={`text-[11px] font-semibold uppercase tracking-wider ${
-                d.isToday ? "text-teal2" : d.trained ? "text-orange-400" : "text-faint"
+                d.isToday ? "text-[#18120f]" : d.trained ? "text-orange-600" : "text-[#a39a91]"
               }`}
             >
               {d.label}
@@ -137,16 +137,16 @@ export default function WeekStrip({ trainedDates = [], streak = 0 }) {
             <span
               className={`font-mono-digit flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full text-xs sm:text-sm font-semibold transition ${
                 d.trained
-                  ? "bg-gradient-to-br from-orange-400 to-orange-600 text-white shadow-[0_4px_12px_rgba(249,115,22,0.35)]"
+                  ? "bg-gradient-to-br from-orange-400 to-orange-600 text-white shadow-[0_4px_12px_rgba(234,88,12,0.3)]"
                   : d.isToday
-                  ? "bg-gradient-to-br from-teal2 to-teal text-onlight shadow-[0_4px_12px_rgba(63,169,188,0.4)]"
-                  : "text-muted"
+                  ? "bg-gradient-to-br from-[#18120f] to-[#3a3028] text-white shadow-[0_4px_12px_rgba(24,18,15,0.25)]"
+                  : "text-[#a39a91]"
               }`}
             >
               {d.date.getDate()}
             </span>
             {d.isToday ? (
-              <span className="h-1.5 w-1.5 rounded-full bg-teal2 animate-pulse" />
+              <span className="h-1.5 w-1.5 rounded-full bg-[#18120f] animate-pulse" />
             ) : d.trained ? (
               <span className="h-1.5 w-1.5 rounded-full bg-orange-500" />
             ) : (

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { logout } from "@/app/dashboard/actions";
 
-export default function AccountMenu({ initial, photoURL, email, size = "default" }) {
+export default function AccountMenu({ initial, photoURL, email, size = "default", light = false }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef(null);
 
@@ -43,9 +43,11 @@ export default function AccountMenu({ initial, photoURL, email, size = "default"
         aria-haspopup="true"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className={`flex items-center justify-center overflow-hidden rounded-full border border-hair bg-glass font-semibold text-muted transition hover:border-teal2 hover:text-text ${
-          isSmall ? "h-9 w-9 text-xs" : "h-[46px] w-[46px] text-[13.5px]"
-        }`}
+        className={`flex items-center justify-center overflow-hidden rounded-full border font-semibold transition ${
+          light
+            ? "border-black/10 bg-black/[0.04] text-[#7a716a] hover:border-orange-400 hover:text-[#18120f]"
+            : "border-hair bg-glass text-muted hover:border-teal2 hover:text-text"
+        } ${isSmall ? "h-9 w-9 text-xs" : "h-[46px] w-[46px] text-[13.5px]"}`}
       >
         {photoURL ? (
           <Image

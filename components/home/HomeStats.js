@@ -6,28 +6,22 @@ function formatDuration(totalSec) {
   return `${hrs}h ${rem}min`;
 }
 
-function StatTile({ icon, label, value, sublabel, accent = "teal" }) {
+function StatTile({ icon, label, value, sublabel, highlighted = false }) {
   return (
     <div
-      className={`flex min-h-[104px] flex-col justify-between rounded-2xl border p-4 ${
-        accent === "orange" ? "border-orange-500/25 bg-orange-500/[0.06]" : "border-hair bg-glass"
+      className={`flex min-h-[104px] flex-col justify-between rounded-2xl border p-4 shadow-[0_2px_10px_rgba(24,18,15,0.04)] ${
+        highlighted ? "border-orange-200 bg-orange-50" : "border-black/[0.06] bg-white"
       }`}
     >
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-faint">
+        <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#8a8078]">
           {label}
         </span>
-        <span className={accent === "orange" ? "text-orange-400" : "text-teal2"}>{icon}</span>
+        <span className="text-orange-600">{icon}</span>
       </div>
       <div>
-        <p
-          className={`font-mono-digit text-xl ${
-            accent === "orange" ? "text-orange-400" : "text-white"
-          }`}
-        >
-          {value}
-        </p>
-        {sublabel && <p className="mt-0.5 text-[10px] text-faint">{sublabel}</p>}
+        <p className="font-mono-digit text-xl text-[#18120f]">{value}</p>
+        {sublabel && <p className="mt-0.5 text-[10px] text-[#a39a91]">{sublabel}</p>}
       </div>
     </div>
   );
@@ -40,7 +34,7 @@ export default function HomeStats({ streak, routinesCount, lastSession }) {
         label="Racha"
         value={streak}
         sublabel={streak === 1 ? "día seguido" : "días seguidos"}
-        accent="orange"
+        highlighted
         icon={
           <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
             <path d="M12 2c-.3 3-2.5 4.8-4.2 6.7C6.2 10.5 5 12.6 5 15a7 7 0 0 0 14 0c0-2.9-1.6-4.7-2.8-6.6-.4.9-1.1 1.8-1.9 1.8-1.1 0-1.5-1-1.3-2C13.3 6 12.7 3.6 12 2z" />

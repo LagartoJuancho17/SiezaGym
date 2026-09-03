@@ -51,19 +51,34 @@ const NOT_BUILT_YET = new Set([]);
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const isHome = pathname === "/";
 
   return (
     <nav
       aria-label="Navegación principal"
       className="sticky bottom-0 z-30 px-[18px] pb-6 md:hidden"
-      style={{ background: "linear-gradient(to top, var(--bg) 58%, transparent)" }}
+      style={{
+        background: isHome
+          ? "linear-gradient(to top, #f4f1ec 58%, transparent)"
+          : "linear-gradient(to top, var(--bg) 58%, transparent)",
+      }}
     >
       <div className="mx-auto flex w-full max-w-lg items-center gap-2.5">
-        <div className="grid flex-1 grid-cols-4 items-center justify-items-center rounded-full border border-hair bg-nav p-1.5 backdrop-blur-[20px]">
+        <div
+          className={`grid flex-1 grid-cols-4 items-center justify-items-center rounded-full border p-1.5 backdrop-blur-[20px] ${
+            isHome ? "border-black/[0.06] bg-white/85" : "border-hair bg-nav"
+          }`}
+        >
         {TABS.map((tab) => {
           const active = tab.href === "/" ? pathname === "/" : pathname.startsWith(tab.href);
           const className = `flex h-[46px] w-[46px] items-center justify-center rounded-full transition ${
-            active ? "bg-glass2 text-text" : "text-faint hover:text-text"
+            isHome
+              ? active
+                ? "bg-orange-500/10 text-orange-600"
+                : "text-[#a39a91] hover:text-[#18120f]"
+              : active
+              ? "bg-glass2 text-text"
+              : "text-faint hover:text-text"
           }`;
           const icon = (
             <svg
@@ -98,9 +113,13 @@ export default function BottomNav() {
       <button
         type="button"
         aria-label="Empezar sesión vacía"
-        className="flex h-[58px] w-[58px] shrink-0 items-center justify-center rounded-full text-white shadow-[0_10px_24px_rgba(63,169,188,0.4)] transition hover:opacity-90 active:scale-95"
+        className={`flex h-[58px] w-[58px] shrink-0 items-center justify-center rounded-full text-white transition hover:opacity-90 active:scale-95 ${
+          isHome ? "shadow-[0_10px_24px_rgba(234,88,12,0.4)]" : "shadow-[0_10px_24px_rgba(63,169,188,0.4)]"
+        }`}
         style={{
-          background: "linear-gradient(140deg, var(--teal2) 0%, var(--teal) 55%, #1C5F6C 100%)",
+          background: isHome
+            ? "linear-gradient(140deg, #f97316 0%, #ea580c 55%, #7a1f16 100%)"
+            : "linear-gradient(140deg, var(--teal2) 0%, var(--teal) 55%, #1C5F6C 100%)",
         }}
       >
         <svg

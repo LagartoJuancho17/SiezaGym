@@ -88,6 +88,7 @@ const NOT_BUILT_YET = new Set([]);
 
 export default function TopNavbar({ user, profile }) {
   const pathname = usePathname();
+  const isHome = pathname === "/";
 
   const userInitial = (
     profile?.displayName ||
@@ -98,7 +99,11 @@ export default function TopNavbar({ user, profile }) {
     .toUpperCase();
 
   return (
-    <header className="sticky top-0 z-40 hidden w-full border-b border-hair/80 bg-bg/85 backdrop-blur-xl md:block">
+    <header
+      className={`sticky top-0 z-40 hidden w-full backdrop-blur-xl md:block ${
+        isHome ? "border-b border-black/[0.06] bg-[#f4f1ec]/90" : "border-b border-hair/80 bg-bg/85"
+      }`}
+    >
       <div className="mx-auto flex h-16 max-w-md items-center justify-between px-[18px] sm:max-w-xl md:max-w-2xl lg:max-w-5xl lg:px-0">
         {/* Brand Logo */}
         <Link
@@ -106,16 +111,30 @@ export default function TopNavbar({ user, profile }) {
           className="group flex items-center gap-2.5 transition active:scale-98"
           aria-label="SiezaGym Inicio"
         >
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-teal2 to-teal text-onlight shadow-[0_2px_12px_rgba(63,169,188,0.35)] transition group-hover:shadow-[0_4px_16px_rgba(63,169,188,0.5)]">
+          <div
+            className={`flex h-9 w-9 items-center justify-center rounded-xl text-white shadow-[0_2px_12px_rgba(0,0,0,0.2)] transition ${
+              isHome
+                ? "bg-gradient-to-br from-orange-500 to-red-600 group-hover:shadow-[0_4px_16px_rgba(234,88,12,0.45)]"
+                : "bg-gradient-to-br from-teal2 to-teal text-onlight group-hover:shadow-[0_4px_16px_rgba(63,169,188,0.5)]"
+            }`}
+          >
             <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
               <path d="M6 5h2v14H6zm10 0h2v14h-2zM2 9h2v6H2zm18 0h2v6h-2zM7 11h10v2H7z" />
             </svg>
           </div>
           <div className="flex flex-col">
-            <span className="font-display text-lg tracking-wider text-white leading-none">
+            <span
+              className={`font-display text-lg tracking-wider leading-none ${
+                isHome ? "text-[#18120f]" : "text-white"
+              }`}
+            >
               SIEZAGYM
             </span>
-            <span className="text-[9.5px] font-semibold uppercase tracking-[0.18em] text-teal2 leading-tight">
+            <span
+              className={`text-[9.5px] font-semibold uppercase tracking-[0.18em] leading-tight ${
+                isHome ? "text-orange-600" : "text-teal2"
+              }`}
+            >
               Training
             </span>
           </div>
@@ -124,7 +143,9 @@ export default function TopNavbar({ user, profile }) {
         {/* Center Navigation Links */}
         <nav
           aria-label="Navegación escritorio"
-          className="flex items-center gap-1 rounded-full border border-hair/80 bg-glass/60 p-1 backdrop-blur-md"
+          className={`flex items-center gap-1 rounded-full border p-1 backdrop-blur-md ${
+            isHome ? "border-black/[0.06] bg-white/70" : "border-hair/80 bg-glass/60"
+          }`}
         >
           {TABS.map((tab) => {
             const active =
@@ -136,9 +157,13 @@ export default function TopNavbar({ user, profile }) {
 
             const linkClass = `flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-semibold tracking-wide transition-all ${
               active
-                ? "bg-teal/15 text-teal2 border border-teal/30 shadow-[0_0_12px_rgba(63,169,188,0.2)]"
+                ? isHome
+                  ? "bg-orange-500/10 text-orange-600 border border-orange-500/30 shadow-[0_0_12px_rgba(234,88,12,0.15)]"
+                  : "bg-teal/15 text-teal2 border border-teal/30 shadow-[0_0_12px_rgba(63,169,188,0.2)]"
                 : isPending
                 ? "text-faint/60 cursor-default"
+                : isHome
+                ? "text-[#7a716a] hover:bg-black/[0.04] hover:text-[#18120f]"
                 : "text-muted hover:bg-glass2 hover:text-white"
             }`;
 
@@ -169,7 +194,11 @@ export default function TopNavbar({ user, profile }) {
         <div className="flex items-center gap-3">
           <Link
             href="/rutinas/nueva"
-            className="flex h-9 items-center gap-1.5 rounded-full bg-white px-3.5 text-xs font-semibold text-onlight shadow-[0_2px_10px_rgba(255,255,255,0.15)] transition hover:opacity-90 active:scale-95"
+            className={`flex h-9 items-center gap-1.5 rounded-full px-3.5 text-xs font-semibold transition hover:opacity-90 active:scale-95 ${
+              isHome
+                ? "bg-[#18120f] text-white shadow-[0_2px_10px_rgba(0,0,0,0.15)]"
+                : "bg-white text-onlight shadow-[0_2px_10px_rgba(255,255,255,0.15)]"
+            }`}
           >
             <svg
               viewBox="0 0 24 24"
@@ -192,6 +221,7 @@ export default function TopNavbar({ user, profile }) {
               photoURL={profile?.photoURL}
               email={profile?.email || user?.email}
               size="sm"
+              light={isHome}
             />
           ) : (
             <Link
