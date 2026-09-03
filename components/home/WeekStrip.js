@@ -64,7 +64,7 @@ export default function WeekStrip({ trainedDates = [], streak = 0 }) {
     >
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <div className="font-mono-digit text-[20px] sm:text-[22px] tracking-wide text-[#18120f]">
+          <div className="font-sans text-[20px] sm:text-[22px] font-extrabold tracking-tight text-[#18120f]">
             {monthLabel}
           </div>
           {streak > 0 && (
@@ -135,7 +135,7 @@ export default function WeekStrip({ trainedDates = [], streak = 0 }) {
               {d.label}
             </span>
             <span
-              className={`font-mono-digit flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full text-xs sm:text-sm font-semibold transition ${
+              className={`font-sans flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full text-xs sm:text-sm font-bold transition ${
                 d.trained
                   ? "bg-gradient-to-br from-orange-400 to-orange-600 text-white shadow-[0_4px_12px_rgba(234,88,12,0.3)]"
                   : d.isToday

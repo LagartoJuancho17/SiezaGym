@@ -4,11 +4,16 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { logout } from "@/app/dashboard/actions";
 
-export default function AccountMenu({ initial, photoURL, email, size = "default", light = false }) {
+export default function AccountMenu({ initial, photoURL, email, size = "default", variant = "dark" }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef(null);
 
   const isSmall = size === "sm";
+  const triggerVariant = {
+    dark: "border-hair bg-glass text-muted hover:border-teal2 hover:text-text",
+    light: "border-black/10 bg-black/[0.04] text-[#7a716a] hover:border-orange-400 hover:text-[#18120f]",
+    hero: "border-white/25 bg-white/20 text-white backdrop-blur-md hover:bg-white/30",
+  }[variant];
 
   useEffect(() => {
     if (!open) {
@@ -43,11 +48,9 @@ export default function AccountMenu({ initial, photoURL, email, size = "default"
         aria-haspopup="true"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className={`flex items-center justify-center overflow-hidden rounded-full border font-semibold transition ${
-          light
-            ? "border-black/10 bg-black/[0.04] text-[#7a716a] hover:border-orange-400 hover:text-[#18120f]"
-            : "border-hair bg-glass text-muted hover:border-teal2 hover:text-text"
-        } ${isSmall ? "h-9 w-9 text-xs" : "h-[46px] w-[46px] text-[13.5px]"}`}
+        className={`flex items-center justify-center overflow-hidden rounded-full border font-semibold transition ${triggerVariant} ${
+          isSmall ? "h-9 w-9 text-xs" : "h-[46px] w-[46px] text-[13.5px]"
+        }`}
       >
         {photoURL ? (
           <Image

@@ -71,14 +71,14 @@ export default function BottomNav() {
         >
         {TABS.map((tab) => {
           const active = tab.href === "/" ? pathname === "/" : pathname.startsWith(tab.href);
-          const className = `flex h-[46px] w-[46px] items-center justify-center rounded-full transition ${
+          const className = `flex h-[46px] w-[46px] items-center justify-center transition ${
             isHome
               ? active
-                ? "bg-orange-500/10 text-orange-600"
-                : "text-[#a39a91] hover:text-[#18120f]"
+                ? "rounded-2xl bg-orange-500 text-white shadow-[0_4px_12px_rgba(234,88,12,0.35)]"
+                : "rounded-full text-[#a39a91] hover:text-[#18120f]"
               : active
-              ? "bg-glass2 text-text"
-              : "text-faint hover:text-text"
+              ? "rounded-full bg-glass2 text-text"
+              : "rounded-full text-faint hover:text-text"
           }`;
           const icon = (
             <svg

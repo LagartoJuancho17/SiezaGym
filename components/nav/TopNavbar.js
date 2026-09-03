@@ -158,7 +158,7 @@ export default function TopNavbar({ user, profile }) {
             const linkClass = `flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-semibold tracking-wide transition-all ${
               active
                 ? isHome
-                  ? "bg-orange-500/10 text-orange-600 border border-orange-500/30 shadow-[0_0_12px_rgba(234,88,12,0.15)]"
+                  ? "bg-[#18120f] text-white shadow-[0_2px_10px_rgba(24,18,15,0.2)]"
                   : "bg-teal/15 text-teal2 border border-teal/30 shadow-[0_0_12px_rgba(63,169,188,0.2)]"
                 : isPending
                 ? "text-faint/60 cursor-default"
@@ -221,7 +221,7 @@ export default function TopNavbar({ user, profile }) {
               photoURL={profile?.photoURL}
               email={profile?.email || user?.email}
               size="sm"
-              light={isHome}
+              variant={isHome ? "light" : "dark"}
             />
           ) : (
             <Link

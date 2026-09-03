@@ -83,26 +83,20 @@ export default async function Home() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-orange-600">
             {today}
           </p>
-          <h1 className="font-display mt-1 text-[28px] sm:text-[34px] lg:text-[38px] uppercase leading-none tracking-wide text-[#18120f]">
+          <h1 className="font-sans mt-1 text-[26px] sm:text-[32px] lg:text-[36px] font-extrabold leading-none tracking-tight text-[#18120f]">
             {greeting}
           </h1>
         </div>
-        <div className="flex items-center gap-3 md:hidden">
-          <div className="hidden sm:block text-right">
-            <p className="text-sm font-semibold text-[#18120f] truncate max-w-[200px]">
-              {profile?.displayName || user.email}
-            </p>
-            <p className="text-[10.5px] font-semibold uppercase tracking-wider text-orange-600">
-              {isCoach ? (profile?.isAdmin ? "Admin & Coach" : "Entrenador") : "Atleta"}
-            </p>
+        {visibleRoutines.length === 0 && (
+          <div className="md:hidden">
+            <AccountMenu
+              initial={initial}
+              photoURL={profile?.photoURL || null}
+              email={user.email || null}
+              variant="light"
+            />
           </div>
-          <AccountMenu
-            initial={initial}
-            photoURL={profile?.photoURL || null}
-            email={user.email || null}
-            light
-          />
-        </div>
+        )}
       </header>
 
       <OfflineBanner />
@@ -129,6 +123,9 @@ export default async function Home() {
                     }`
                   : "Todavía no registraste ningún entrenamiento. Arrancá esta rutina y empezá a sumar progreso."
               }
+              accountInitial={initial}
+              accountPhotoURL={profile?.photoURL || null}
+              accountEmail={user.email || null}
             />
           )}
 
@@ -146,64 +143,54 @@ export default async function Home() {
           {!hasAnyRoutine ? (
             <section
               aria-label="Primer paso"
-              className="relative overflow-hidden rounded-3xl bg-deep px-6 py-7 border border-white/10"
+              className="relative overflow-hidden rounded-3xl border border-black/[0.06] bg-white px-6 py-7 shadow-[0_2px_10px_rgba(24,18,15,0.04)]"
             >
-              <div
-                aria-hidden="true"
-                className="absolute inset-0"
-                style={{
-                  background:
-                    "radial-gradient(90% 70% at 20% 0%, rgba(63,169,188,.32) 0%, transparent 70%)",
-                }}
-              />
-              <div className="relative">
-                <p className="text-[10.5px] font-semibold uppercase tracking-[0.16em] text-teal2">
-                  Primer paso
-                </p>
-                <h2 className="font-display mt-2 text-[30px] sm:text-[36px] uppercase leading-[0.96] tracking-wide text-white">
-                  Armá tu primera rutina
-                </h2>
-                <p className="mt-2 text-sm leading-relaxed text-white/70 max-w-md">
-                  Elegí ejercicios y días. Si entrenás con alguien, cargá su código y te asigna el
-                  plan.
-                </p>
-                <div className="mt-5 flex flex-col sm:flex-row items-center gap-3">
-                  <Link
-                    href="/rutinas/nueva"
-                    className="flex h-12 w-full sm:w-auto px-6 items-center justify-center gap-2 rounded-full bg-white text-sm font-semibold text-onlight shadow-md transition hover:opacity-90 active:scale-95"
+              <p className="text-[10.5px] font-semibold uppercase tracking-[0.16em] text-orange-600">
+                Primer paso
+              </p>
+              <h2 className="font-sans mt-2 text-[28px] sm:text-[34px] font-extrabold leading-[1.02] tracking-tight text-[#18120f]">
+                Armá tu primera rutina
+              </h2>
+              <p className="mt-2 text-sm leading-relaxed text-[#7a716a] max-w-md">
+                Elegí ejercicios y días. Si entrenás con alguien, cargá su código y te asigna el
+                plan.
+              </p>
+              <div className="mt-5 flex flex-col sm:flex-row items-center gap-3">
+                <Link
+                  href="/rutinas/nueva"
+                  className="flex h-12 w-full sm:w-auto px-6 items-center justify-center gap-2 rounded-full bg-[#18120f] text-sm font-semibold text-white shadow-md transition hover:opacity-90 active:scale-95"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    width="16"
+                    height="16"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
                   >
-                    <svg
-                      viewBox="0 0 24 24"
-                      width="16"
-                      height="16"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                    >
-                      <path d="M12 5v14" />
-                      <path d="M5 12h14" />
-                    </svg>
-                    Crear rutina
-                  </Link>
-                  <button
-                    type="button"
-                    className="h-12 w-full sm:w-auto px-5 rounded-full border border-white/25 text-sm font-semibold text-white transition hover:bg-white/10 active:scale-95"
-                  >
-                    Tengo un código de entrenador
-                  </button>
-                </div>
+                    <path d="M12 5v14" />
+                    <path d="M5 12h14" />
+                  </svg>
+                  Crear rutina
+                </Link>
+                <button
+                  type="button"
+                  className="h-12 w-full sm:w-auto px-5 rounded-full border border-black/15 text-sm font-semibold text-[#18120f] transition hover:bg-black/[0.04] active:scale-95"
+                >
+                  Tengo un código de entrenador
+                </button>
               </div>
             </section>
           ) : visibleRoutines.length === 0 ? (
-            <section className="rounded-3xl border border-dashed border-hair bg-glass/60 px-6 py-7 text-center">
-              <p className="text-sm text-faint">
+            <section className="rounded-3xl border border-dashed border-black/15 bg-white/60 px-6 py-7 text-center">
+              <p className="text-sm text-[#7a716a]">
                 Tenés {routines.length} {routines.length === 1 ? "rutina oculta" : "rutinas ocultas"} del
                 inicio.
               </p>
               <Link
                 href="/rutinas"
-                className="mt-3 inline-flex h-10 items-center rounded-full border border-hair px-5 text-xs font-semibold text-white transition hover:border-teal2"
+                className="mt-3 inline-flex h-10 items-center rounded-full border border-black/15 px-5 text-xs font-semibold text-[#18120f] transition hover:border-orange-400"
               >
                 Ver en Rutinas
               </Link>

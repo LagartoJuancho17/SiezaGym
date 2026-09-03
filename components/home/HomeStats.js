@@ -20,7 +20,7 @@ function StatTile({ icon, label, value, sublabel, highlighted = false }) {
         <span className="text-orange-600">{icon}</span>
       </div>
       <div>
-        <p className="font-mono-digit text-xl text-[#18120f]">{value}</p>
+        <p className="font-sans text-xl font-extrabold tracking-tight text-[#18120f]">{value}</p>
         {sublabel && <p className="mt-0.5 text-[10px] text-[#a39a91]">{sublabel}</p>}
       </div>
     </div>

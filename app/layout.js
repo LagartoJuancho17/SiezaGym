@@ -8,7 +8,7 @@ const anton = Anton({
 });
 
 const archivo = Archivo({
-  weight: ["400", "500", "600"],
+  weight: ["400", "500", "600", "800"],
   subsets: ["latin"],
   variable: "--font-sans",
 });
