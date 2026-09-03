@@ -8,6 +8,7 @@ import {
   assignRoutineToStudent as assignDb,
   unassignRoutine as unassignDb,
   logExerciseSet as logExerciseSetDb,
+  completeAssignmentSession as completeAssignmentSessionDb,
 } from "@/lib/assignments/assignments";
 
 export async function assignRoutine(routineId, studentId) {
@@ -39,4 +40,13 @@ export async function logExerciseSet(assignmentId, exerciseIndex, setIndex, setD
 
   await logExerciseSetDb(user.uid, assignmentId, exerciseIndex, setIndex, setData);
   revalidatePath("/rutinas");
+}
+
+export async function completeAssignmentSession(assignmentId, durationSeconds) {
+  const user = await getCurrentUser();
+  if (!user) throw new Error("Debes iniciar sesión.");
+
+  await completeAssignmentSessionDb(user.uid, assignmentId, durationSeconds);
+  revalidatePath("/rutinas");
+  revalidatePath("/dashboard/coach");
 }

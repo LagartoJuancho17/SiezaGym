@@ -5,7 +5,21 @@ import Link from "next/link";
 import AddStudentModal from "@/components/coach/AddStudentModal";
 import StudentList from "@/components/coach/StudentList";
 
-export default function CoachDashboardClient({ students, profile }) {
+function formatActivityDate(iso) {
+  return new Intl.DateTimeFormat("es-AR", {
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(iso));
+}
+
+function formatActivityDuration(totalSec) {
+  const mins = Math.round(totalSec / 60);
+  return mins < 1 ? "<1 min" : `${mins} min`;
+}
+
+export default function CoachDashboardClient({ students, profile, recentActivity = [] }) {
   const [modalOpen, setModalOpen] = useState(false);
   const firstName =
     profile?.displayName?.trim().split(/\s+/)[0] || "Entrenador";
@@ -76,6 +90,34 @@ export default function CoachDashboardClient({ students, profile }) {
           </section>
 
           <StudentList students={students} />
+
+          {recentActivity.length > 0 && (
+            <section className="mt-2">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-teal2">
+                Actividad reciente
+              </p>
+              <div className="flex flex-col gap-2">
+                {recentActivity.map((activity) => (
+                  <div
+                    key={activity.id}
+                    className="flex items-center justify-between gap-3 rounded-2xl border border-hair bg-glass px-4 py-3"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-text">
+                        {activity.studentName}
+                      </p>
+                      <p className="truncate text-xs text-faint">
+                        {activity.routineName} · {formatActivityDate(activity.completedAt)}
+                      </p>
+                    </div>
+                    <span className="font-mono-digit shrink-0 text-sm text-teal2">
+                      {formatActivityDuration(activity.durationSeconds)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
         </div>
 
         <div className="min-h-[30px] flex-1" />

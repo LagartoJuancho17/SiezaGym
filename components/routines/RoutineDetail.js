@@ -13,7 +13,7 @@ import {
 import { primaryMuscle } from "@/lib/exercises/filters";
 import { totalSets, estimatedDurationMinutes, muscleDistribution } from "@/lib/routines/summary";
 import { deleteRoutine, duplicateRoutine, updateRoutine, setRoutineShowOnHome } from "@/app/(app)/rutinas/actions";
-import { assignRoutine, logExerciseSet } from "@/app/(app)/rutinas/[id]/actions";
+import { assignRoutine, logExerciseSet, completeAssignmentSession } from "@/app/(app)/rutinas/[id]/actions";
 import { finishSession } from "@/app/(app)/sesion/actions";
 import RoutineBuilder from "@/components/routines/RoutineBuilder";
 import AssignStudentButton from "@/components/routines/AssignStudentButton";
@@ -250,6 +250,38 @@ export default function RoutineDetail({
   const handleFinishWorkout = async () => {
     setWorkoutPaused(true);
     setSessionSaveStatus("saving");
+
+    if (readOnly) {
+      // Rutina asignada: cada serie ya se guardó al tocar "Listo". Acá solo
+      // cerramos el timer y dejamos la duración en la asignación, visible
+      // para el coach.
+      try {
+        let loggedSetsCount = 0;
+        let totalVolumeKg = 0;
+        exercisesList.forEach((item, exerciseIndex) => {
+          const targetSets = Number(item.targetSets) || 0;
+          for (let setIndex = 0; setIndex < targetSets; setIndex += 1) {
+            const row = getSetLogRow(exerciseIndex, setIndex, item);
+            if (row.saved) {
+              loggedSetsCount += 1;
+              totalVolumeKg += (Number(row.weight) || 0) * (Number(row.reps) || 0);
+            }
+          }
+        });
+        await completeAssignmentSession(routine.assignmentId, workoutSeconds);
+        setLastSessionSummary({
+          totalSetsCompleted: loggedSetsCount,
+          totalVolumeKg: Math.round(totalVolumeKg * 100) / 100,
+        });
+        setSessionSaveStatus(null);
+        setShowFinishModal(true);
+      } catch (err) {
+        console.error(err);
+        setSessionSaveStatus("error");
+        setWorkoutPaused(false);
+      }
+      return;
+    }
 
     const exercises = exercisesList
       .map((item) => ({
@@ -639,9 +671,8 @@ export default function RoutineDetail({
           ) : null}
 
           {/* Desktop Primary Action & Active Workout Controls (Sticky in Left Sidebar) */}
-          {/* Solo para rutinas propias: una asignada se registra serie por serie mas abajo, no con este timer. */}
           <div className="hidden lg:block">
-            {readOnly ? null : !workoutActive ? (
+            {!workoutActive ? (
               <button
                 type="button"
                 onClick={handleStartWorkout}
@@ -859,6 +890,14 @@ export default function RoutineDetail({
 
                       {/* Logging por serie: cada una puede tener reps/peso distinto */}
                       <div className="mt-3 border-t border-hair/50 pt-3">
+                        {!workoutActive ? (
+                          <div className="rounded-xl border border-dashed border-hair/70 bg-glass/40 p-3 text-center">
+                            <p className="text-xs text-faint">
+                              Tocá &quot;Empezar entrenamiento&quot; para cargar tus series.
+                            </p>
+                          </div>
+                        ) : (
+                          <>
                         <div className="flex items-center justify-between">
                           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-teal2">
                             Series {timeBased ? "(seg)" : "reales"}
@@ -929,6 +968,8 @@ export default function RoutineDetail({
                             );
                           })}
                         </div>
+                          </>
+                        )}
 
                         <div className="mt-3 flex items-center justify-between">
                           <button
@@ -1243,7 +1284,6 @@ export default function RoutineDetail({
           ) : null}
 
           {/* Mobile Bottom Workout Button */}
-          {!readOnly && (
           <div className="mt-3 lg:hidden">
             {!workoutActive ? (
               <button
@@ -1266,7 +1306,6 @@ export default function RoutineDetail({
               </button>
             )}
           </div>
-          )}
         </main>
       </div>
 
@@ -1315,11 +1354,11 @@ export default function RoutineDetail({
 
             <div className="flex flex-col gap-2">
               <Link
-                href="/progreso"
+                href={readOnly ? "/rutinas" : "/progreso"}
                 onClick={handleCloseFinishModal}
                 className="flex h-12 w-full items-center justify-center rounded-full bg-white text-sm font-semibold text-onlight shadow-lg transition hover:opacity-90 active:scale-95"
               >
-                Ver mi progreso
+                {readOnly ? "Volver a rutinas" : "Ver mi progreso"}
               </Link>
               <button
                 type="button"
