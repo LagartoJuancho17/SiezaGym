@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import ActivityHeatmap from "./ActivityHeatmap";
+import WeeklyVolumeChart from "./WeeklyVolumeChart";
 
 function StatCard({ label, value, unit, accent, children }) {
   return (
@@ -35,14 +37,26 @@ function formatShortDate(iso) {
   return new Intl.DateTimeFormat("es-AR", { day: "numeric", month: "short" }).format(new Date(iso));
 }
 
+function formatVolumeKg(kg) {
+  if (!kg) return "0";
+  if (kg >= 10000) return `${(kg / 1000).toFixed(1)}t`;
+  if (kg >= 1000) return `${(kg / 1000).toFixed(2).replace(/\.?0+$/, "")}t`;
+  return `${Math.round(kg)}`;
+}
+
+function formatEffectiveness(pct) {
+  if (pct === null || pct === undefined) return "—";
+  const sign = pct > 0 ? "+" : "";
+  return `${sign}${pct}%`;
+}
+
 export default function ProgresoContent({
   isCoach,
   students,
   userName,
-  keyLifts = [],
-  exerciseSummaries = [],
-  totalSessions = 0,
-  lastSession = null,
+  weeklyStats = { volumeKg: 0, sessionsThisWeek: 0, effectivenessPct: null },
+  trainedDates = [],
+  volumeByWeek = [],
 }) {
   const [view, setView] = useState(isCoach ? "students" : "own");
 
@@ -80,123 +94,50 @@ export default function ProgresoContent({
 
       {view === "own" ? (
         <>
-          <div className="grid grid-cols-3 gap-2.5">
-            <StatCard label="Sesiones" value={totalSessions} unit="registradas">
-              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-teal2">
-                <circle cx="12" cy="12" r="9" />
-                <path d="M12 7v5l3 3" />
-              </svg>
-            </StatCard>
-            <StatCard label="Ejercicios" value={exerciseSummaries.length + keyLifts.filter((k) => k.timesPerformed > 0).length} unit="trackeados">
-              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-teal2">
-                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-              </svg>
-            </StatCard>
-            <StatCard
-              label="Última sesión"
-              value={lastSession ? formatShortDate(lastSession.finishedAt) : "—"}
-              unit="último entrenamiento"
-              accent
-            >
-              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-white/80">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-              </svg>
-            </StatCard>
-          </div>
-
-          {keyLifts.length > 0 && (
-            <section>
-              <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-orange-400">
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
-                  <path d="M12 2l2.4 7.2H22l-6 4.6 2.3 7.2-6.3-4.5-6.3 4.5 2.3-7.2-6-4.6h7.6z" />
-                </svg>
-                Levantamientos clave
-              </p>
-              <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-5">
-                {keyLifts.map((lift) => (
-                  <Link
-                    key={lift.exerciseId}
-                    href={`/progreso/${lift.exerciseId}`}
-                    className="flex flex-col justify-between gap-2 rounded-2xl border border-orange-500/25 bg-orange-500/[0.06] p-3.5 transition hover:border-orange-500/50"
-                  >
-                    <p className="truncate text-xs font-semibold text-text">{lift.nameEs}</p>
-                    <div>
-                      <p className="font-mono-digit text-xl text-orange-400">
-                        {lift.maxWeightKg > 0 ? `${lift.maxWeightKg}kg` : "—"}
-                      </p>
-                      <p className="mt-0.5 text-[10px] text-faint">
-                        {lift.timesPerformed > 0 ? "peso máximo" : "sin registros"}
-                      </p>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {exerciseSummaries.length === 0 && keyLifts.every((k) => k.timesPerformed === 0) ? (
-            <section className="relative overflow-hidden rounded-[30px] bg-deep px-[18px] py-[22px]">
-              <p className="text-[10.5px] font-medium uppercase tracking-[0.16em] text-white/62">
-                Todavía no hay datos
-              </p>
-              <h2 className="font-display mt-2.5 text-[28px] uppercase leading-[0.96] tracking-[0.005em] text-white">
-                Entrená para ver
-                <br />
-                tu progreso acá
-              </h2>
-              <p className="mt-2.5 text-[12.5px] leading-[1.5] text-white/70">
-                Terminá un entrenamiento desde una rutina y el peso máximo de cada ejercicio empieza
-                a graficarse solo.
-              </p>
-              <Link
-                href="/rutinas"
-                className="mt-[18px] flex h-[54px] w-full items-center justify-center gap-2 rounded-full bg-white text-[16px] font-semibold text-onlight transition hover:opacity-90 lg:w-auto lg:px-8"
+          <section aria-label="Esta semana">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-teal2">
+              Esta semana
+            </p>
+            <div className="grid grid-cols-3 gap-2.5">
+              <StatCard
+                label="Volumen"
+                value={formatVolumeKg(weeklyStats.volumeKg)}
+                unit="kg levantados esta semana"
               >
-                Ir a mis rutinas
-              </Link>
-            </section>
-          ) : exerciseSummaries.length > 0 ? (
-            <section>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-teal2">
-                Por ejercicio
-              </p>
-              <div className="grid grid-cols-1 gap-2.5 lg:grid-cols-3">
-                {exerciseSummaries.map((summary) => (
-                  <Link
-                    key={summary.exerciseId}
-                    href={`/progreso/${summary.exerciseId}`}
-                    className="flex items-center justify-between gap-3 rounded-2xl border border-hair bg-glass px-4 py-3.5 transition hover:border-white/20"
-                  >
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-text">{summary.nameEs}</p>
-                      <p className="mt-0.5 text-xs text-faint">
-                        {summary.timesPerformed}{" "}
-                        {summary.timesPerformed === 1 ? "sesión" : "sesiones"}
-                      </p>
-                    </div>
-                    <div className="flex shrink-0 items-center gap-2">
-                      <span className="font-mono-digit text-base text-teal2">
-                        {summary.maxWeightKg > 0 ? `${summary.maxWeightKg}kg` : "—"}
-                      </span>
-                      <svg
-                        viewBox="0 0 24 24"
-                        width="16"
-                        height="16"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.7"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="text-faint"
-                      >
-                        <path d="M9 18l6-6-6-6" />
-                      </svg>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </section>
-          ) : null}
+                <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-teal2">
+                  <path d="M6.5 6.5v11M17.5 6.5v11M3.5 9.5v5M20.5 9.5v5M6.5 12h11" />
+                </svg>
+              </StatCard>
+              <StatCard
+                label="Sesiones"
+                value={weeklyStats.sessionsThisWeek}
+                unit={weeklyStats.sessionsThisWeek === 1 ? "entrenamiento" : "entrenamientos"}
+              >
+                <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-teal2">
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="M12 7v5l3 3" />
+                </svg>
+              </StatCard>
+              <StatCard
+                label="Efectividad"
+                value={formatEffectiveness(weeklyStats.effectivenessPct)}
+                unit="vs semana anterior"
+                accent
+              >
+                <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-white/80">
+                  {weeklyStats.effectivenessPct != null && weeklyStats.effectivenessPct < 0 ? (
+                    <path d="M23 18l-9.5-9.5-5 5L1 6M17 18h6v-6" />
+                  ) : (
+                    <path d="M23 6l-9.5 9.5-5-5L1 18M17 6h6v6" />
+                  )}
+                </svg>
+              </StatCard>
+            </div>
+          </section>
+
+          <WeeklyVolumeChart points={volumeByWeek} />
+
+          <ActivityHeatmap trainedDates={trainedDates} />
         </>
       ) : (
         <div className="flex flex-col gap-2.5">
