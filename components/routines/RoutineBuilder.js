@@ -119,7 +119,7 @@ export default function RoutineBuilder({ mode, routine, catalogExercises, custom
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex flex-col gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <label className="grid gap-1.5 text-sm text-muted">
           <span>Nombre</span>
           <input
@@ -172,7 +172,7 @@ export default function RoutineBuilder({ mode, routine, catalogExercises, custom
         <button
           type="button"
           onClick={() => setShowPicker(true)}
-          className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-full border border-hair text-sm font-semibold text-text transition hover:border-teal2"
+          className="mt-3 flex h-12 w-full sm:max-w-md sm:mx-auto items-center justify-center gap-2 rounded-full border border-hair text-sm font-semibold text-text transition hover:border-teal2"
         >
           + Agregar ejercicios
         </button>
@@ -188,7 +188,7 @@ export default function RoutineBuilder({ mode, routine, catalogExercises, custom
         type="button"
         onClick={handleSave}
         disabled={saving}
-        className="h-[52px] w-full rounded-full bg-white text-[15px] font-semibold text-onlight transition hover:opacity-90 disabled:opacity-40"
+        className="h-[52px] w-full sm:max-w-md sm:mx-auto rounded-full bg-white text-[15px] font-semibold text-onlight transition hover:opacity-90 disabled:opacity-40"
       >
         {saving ? "Guardando..." : mode === "edit" ? "Guardar cambios" : "Crear rutina"}
       </button>

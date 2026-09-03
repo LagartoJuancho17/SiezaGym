@@ -99,14 +99,15 @@ export default function ExerciseDetailSheet({ exercise, onClose }) {
         <div className="flex flex-col gap-5 overflow-y-auto px-5 py-5 sm:flex-row sm:gap-6">
           {/* Exercise image */}
           <div className="flex flex-col items-center gap-2 sm:w-64 sm:shrink-0">
-            <div className="relative aspect-square w-40 overflow-hidden rounded-2xl sm:w-full">
+            <div className="relative aspect-square w-40 overflow-hidden rounded-2xl sm:w-full" style={{ background: "#ffffff" }}>
               {exercise.mediaUrl ? (
                 <Image
                   src={exercise.mediaUrl}
                   alt=""
                   fill
                   sizes="(min-width: 640px) 256px, 160px"
-                  style={{ objectFit: "cover" }}
+                  className="p-3"
+                  style={{ objectFit: "contain" }}
                   unoptimized
                 />
               ) : (

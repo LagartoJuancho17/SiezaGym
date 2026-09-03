@@ -126,7 +126,8 @@ function ExerciseCircle({ src, name }) {
           alt={name || ""}
           width={56}
           height={56}
-          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          className="p-1"
+          style={{ width: "100%", height: "100%", objectFit: "contain" }}
           unoptimized
         />
       ) : (
@@ -210,14 +211,15 @@ function ExerciseCard({ exercise, subtitle, checked, onToggle, onInfo }) {
       }}
     >
       <button type="button" onClick={() => onToggle(exercise.id)} className="flex w-full flex-col text-left">
-        <div className="relative aspect-video w-full" style={{ background: "#ffffff" }}>
+        <div className="relative aspect-video w-full overflow-hidden" style={{ background: "#ffffff" }}>
           {exercise.mediaUrl ? (
             <Image
               src={exercise.mediaUrl}
               alt={exercise.nameEs || ""}
               fill
               sizes="(min-width: 640px) 22vw, 100vw"
-              style={{ objectFit: "cover" }}
+              className="p-3"
+              style={{ objectFit: "contain" }}
               unoptimized
             />
           ) : (
@@ -230,7 +232,7 @@ function ExerciseCard({ exercise, subtitle, checked, onToggle, onInfo }) {
           )}
           {checked && (
             <div
-              className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full"
+              className="absolute right-2 top-2 z-10 flex h-7 w-7 items-center justify-center rounded-full shadow-sm"
               style={{ background: "#2e93a6" }}
             >
               <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
@@ -264,7 +266,7 @@ function ExerciseCard({ exercise, subtitle, checked, onToggle, onInfo }) {
         type="button"
         onClick={() => onInfo(exercise)}
         aria-label={`Ver detalle de ${exercise.nameEs}`}
-        className="absolute left-2 top-2 flex h-7 w-7 items-center justify-center rounded-full"
+        className="absolute left-2 top-2 z-10 flex h-7 w-7 items-center justify-center rounded-full shadow-sm transition hover:scale-105 active:scale-95"
         style={{ background: "rgba(0,0,0,0.55)", color: "#fff" }}
       >
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">

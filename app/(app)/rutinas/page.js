@@ -56,7 +56,7 @@ export default async function RutinasPage() {
   );
 
   return (
-    <div className="flex flex-col gap-5 px-[18px] pb-[100px]">
+    <div className="flex flex-col gap-5 px-[18px] pb-[100px] lg:px-0">
       <header className="flex items-center justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-teal2">
@@ -83,7 +83,7 @@ export default async function RutinasPage() {
           </Link>
         </div>
       ) : (
-        <div className="flex flex-col gap-2.5">
+        <div className="flex flex-col gap-2.5 sm:grid sm:grid-cols-2 sm:gap-3">
           {allItems.map((item) => {
             const muscles = item.muscleDistribution
               .slice(0, 3)

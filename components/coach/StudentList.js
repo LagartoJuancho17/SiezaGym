@@ -12,7 +12,7 @@ function formatDate(iso) {
   }).format(new Date(iso));
 }
 
-export default function StudentList({ students }) {
+export default function StudentList({ students, onOpenAdd }) {
   const [isPending, startTransition] = useTransition();
 
   function handleRemove(studentId, displayName) {
@@ -28,29 +28,38 @@ export default function StudentList({ students }) {
 
   if (students.length === 0) {
     return (
-      <div className="rounded-[20px] border border-dashed border-hair bg-glass p-10 text-center">
+      <div className="rounded-2xl border border-dashed border-hair/70 bg-glass/40 p-5 text-center">
         <svg
           viewBox="0 0 24 24"
-          width="32"
-          height="32"
+          width="28"
+          height="28"
           fill="none"
           stroke="currentColor"
-          strokeWidth="1.4"
+          strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="mx-auto text-faint"
+          className="mx-auto text-teal2/70"
         >
           <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
           <circle cx="9" cy="7" r="4" />
           <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
           <path d="M16 3.13a4 4 0 0 1 0 7.75" />
         </svg>
-        <p className="mt-3 text-sm font-medium text-muted">
+        <p className="mt-2 text-xs font-semibold text-text">
           No hay alumnos vinculados aún
         </p>
-        <p className="mt-1 text-xs text-faint">
+        <p className="mt-0.5 text-[11px] text-faint">
           Generá un código y compartilo con tu alumno.
         </p>
+        {onOpenAdd && (
+          <button
+            type="button"
+            onClick={onOpenAdd}
+            className="mt-3 inline-flex h-8 items-center gap-1.5 rounded-full bg-teal/15 px-3 text-xs font-semibold text-teal2 transition hover:bg-teal/25 active:scale-95"
+          >
+            + Invitar alumno
+          </button>
+        )}
       </div>
     );
   }

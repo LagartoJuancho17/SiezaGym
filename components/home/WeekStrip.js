@@ -53,23 +53,23 @@ export default function WeekStrip() {
   return (
     <section
       aria-label="Tu semana"
-      className="mb-3 rounded-[26px] border border-hair bg-glass p-4"
+      className="rounded-3xl border border-hair/80 bg-glass/60 p-4 sm:p-5 backdrop-blur-md transition hover:border-white/20"
     >
       <div className="flex items-center justify-between gap-3">
-        <div className="font-mono-digit text-[21px] tracking-wide">
+        <div className="font-mono-digit text-[20px] sm:text-[22px] tracking-wide text-white">
           {monthLabel}
         </div>
-        <div className="flex items-center">
+        <div className="flex items-center gap-1.5">
           <button
             type="button"
             aria-label="Semana anterior"
             onClick={() => setWeekOffset((n) => n - 1)}
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-pill text-onlight transition hover:opacity-90"
+            className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full border border-hair bg-glass2 text-white transition hover:bg-white/20 active:scale-95"
           >
             <svg
               viewBox="0 0 24 24"
-              width="17"
-              height="17"
+              width="16"
+              height="16"
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
@@ -82,12 +82,12 @@ export default function WeekStrip() {
             type="button"
             aria-label="Semana siguiente"
             onClick={() => setWeekOffset((n) => n + 1)}
-            className="-ml-2 flex h-11 w-11 items-center justify-center rounded-full bg-pill text-onlight transition hover:opacity-90"
+            className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full border border-hair bg-glass2 text-white transition hover:bg-white/20 active:scale-95"
           >
             <svg
               viewBox="0 0 24 24"
-              width="17"
-              height="17"
+              width="16"
+              height="16"
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
@@ -98,22 +98,37 @@ export default function WeekStrip() {
           </button>
         </div>
       </div>
-      <div className="mt-5 grid grid-cols-7 gap-0.5">
+      <div className="mt-4 grid grid-cols-7 gap-1.5 sm:gap-2">
         {days.map((d, i) => (
-          <div key={i} className="flex flex-col items-center gap-2.5">
+          <div
+            key={i}
+            className={`flex flex-col items-center gap-2 rounded-2xl py-2 px-1 transition ${
+              d.isToday
+                ? "bg-teal/15 border border-teal/40 shadow-[0_0_16px_rgba(63,169,188,0.2)]"
+                : "hover:bg-glass2"
+            }`}
+          >
             <span
-              className={`text-xs font-medium ${d.isToday ? "text-text" : "text-faint"}`}
+              className={`text-[11px] font-semibold uppercase tracking-wider ${
+                d.isToday ? "text-teal2" : "text-faint"
+              }`}
             >
               {d.label}
             </span>
             <span
-              className={`font-mono-digit flex h-9 w-9 items-center justify-center rounded-full text-sm ${
-                d.isToday ? "bg-linear-to-br from-teal2 to-teal text-onlight" : "text-muted"
+              className={`font-mono-digit flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full text-xs sm:text-sm font-semibold transition ${
+                d.isToday
+                  ? "bg-gradient-to-br from-teal2 to-teal text-onlight shadow-[0_4px_12px_rgba(63,169,188,0.4)]"
+                  : "text-muted"
               }`}
             >
               {d.date.getDate()}
             </span>
-            <span className="h-1 w-1 rounded-full bg-transparent" />
+            {d.isToday ? (
+              <span className="h-1.5 w-1.5 rounded-full bg-teal2 animate-pulse" />
+            ) : (
+              <span className="h-1.5 w-1.5 rounded-full bg-transparent" />
+            )}
           </div>
         ))}
       </div>
