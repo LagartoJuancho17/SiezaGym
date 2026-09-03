@@ -13,7 +13,7 @@ import {
 import { primaryMuscle } from "@/lib/exercises/filters";
 import { totalSets, estimatedDurationMinutes, muscleDistribution } from "@/lib/routines/summary";
 import { deleteRoutine, duplicateRoutine, updateRoutine, setRoutineShowOnHome } from "@/app/(app)/rutinas/actions";
-import { assignRoutine, logExercise } from "@/app/(app)/rutinas/[id]/actions";
+import { assignRoutine, logExerciseSet } from "@/app/(app)/rutinas/[id]/actions";
 import { finishSession } from "@/app/(app)/sesion/actions";
 import RoutineBuilder from "@/components/routines/RoutineBuilder";
 import AssignStudentButton from "@/components/routines/AssignStudentButton";
@@ -136,25 +136,70 @@ export default function RoutineDetail({
     }
   };
 
-  const handleLogExercise = async (exerciseIndex) => {
-    const data = logStates[exerciseIndex] || {};
-    setLogStatus({ index: exerciseIndex, status: "saving" });
-    try {
-      await logExercise(routine.assignmentId, exerciseIndex, data);
-      setLogStatus({ index: exerciseIndex, status: "saved" });
-      setTimeout(() => setLogStatus(null), 2000);
-    } catch (err) {
-      console.error(err);
-      setLogStatus({ index: exerciseIndex, status: "error" });
-      setTimeout(() => setLogStatus(null), 3000);
+  // Fila de una serie de un ejercicio asignado: override local (si el alumno
+  // ya la tocó en esta sesión) o lo ya guardado en Firestore, o el target
+  // como default. item.targetReps/targetWeight quedan como punto de partida
+  // editable porque en la práctica cada serie puede variar (10/12/14 reps
+  // subiendo carga, por ejemplo).
+  const getSetLogRow = (exerciseIndex, setIndex, item) => {
+    const local = logStates[exerciseIndex]?.[setIndex];
+    if (local) return local;
+    const saved = routine.exerciseLogs?.[exerciseIndex]?.sets?.[setIndex];
+    if (saved) {
+      return {
+        reps: String(saved.reps ?? ""),
+        weight: saved.weight != null ? String(saved.weight) : "",
+        saved: true,
+      };
     }
+    return {
+      reps: item.targetReps != null ? String(item.targetReps) : "",
+      weight: item.targetWeight != null ? String(item.targetWeight) : "",
+      saved: false,
+    };
   };
 
-  const updateLogField = (exerciseIndex, field, value) => {
-    setLogStates((prev) => ({
-      ...prev,
-      [exerciseIndex]: { ...(prev[exerciseIndex] || {}), [field]: value },
-    }));
+  const updateSetLogField = (exerciseIndex, setIndex, field, value, item) => {
+    setLogStates((prev) => {
+      const current = prev[exerciseIndex]?.[setIndex] || getSetLogRow(exerciseIndex, setIndex, item);
+      return {
+        ...prev,
+        [exerciseIndex]: {
+          ...(prev[exerciseIndex] || {}),
+          [setIndex]: { ...current, [field]: value, saved: false },
+        },
+      };
+    });
+  };
+
+  const isExerciseFullyLogged = (exerciseIndex, item) => {
+    const targetSets = Number(item.targetSets) || 0;
+    if (targetSets === 0) return false;
+    for (let setIndex = 0; setIndex < targetSets; setIndex += 1) {
+      if (!getSetLogRow(exerciseIndex, setIndex, item).saved) return false;
+    }
+    return true;
+  };
+
+  const handleLogSet = async (exerciseIndex, setIndex, item) => {
+    const row = getSetLogRow(exerciseIndex, setIndex, item);
+    const key = `${exerciseIndex}-${setIndex}`;
+    setLogStatus({ key, status: "saving" });
+    try {
+      await logExerciseSet(routine.assignmentId, exerciseIndex, setIndex, {
+        reps: row.reps,
+        weight: row.weight,
+      });
+      setLogStates((prev) => ({
+        ...prev,
+        [exerciseIndex]: { ...(prev[exerciseIndex] || {}), [setIndex]: { ...row, saved: true } },
+      }));
+      setLogStatus(null);
+    } catch (err) {
+      console.error(err);
+      setLogStatus({ key, status: "error" });
+      setTimeout(() => setLogStatus(null), 3000);
+    }
   };
 
   const handleStartWorkout = () => {
@@ -594,8 +639,9 @@ export default function RoutineDetail({
           ) : null}
 
           {/* Desktop Primary Action & Active Workout Controls (Sticky in Left Sidebar) */}
+          {/* Solo para rutinas propias: una asignada se registra serie por serie mas abajo, no con este timer. */}
           <div className="hidden lg:block">
-            {!workoutActive ? (
+            {readOnly ? null : !workoutActive ? (
               <button
                 type="button"
                 onClick={handleStartWorkout}
@@ -744,6 +790,14 @@ export default function RoutineDetail({
                             Tuyo
                           </span>
                         )}
+                        {readOnly && isExerciseFullyLogged(index, item) && (
+                          <span className="flex shrink-0 items-center gap-1 rounded-full bg-teal/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-teal2">
+                            <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                            Ya hecho
+                          </span>
+                        )}
                       </div>
 
                       {subtitle && (
@@ -803,61 +857,80 @@ export default function RoutineDetail({
                         ) : null}
                       </div>
 
-                      {/* Logging form: ¿Qué hiciste? */}
-                      <div className="mt-3 space-y-2.5 border-t border-hair/50 pt-3">
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-teal2">
-                          ¿Qué hiciste?
-                        </p>
-                        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                          <div>
-                            <label className="block text-[10px] text-faint">Series</label>
-                            <input
-                              type="number"
-                              min="0"
-                              placeholder={String(item.targetSets || 3)}
-                              value={logStates[index]?.actualSets ?? ""}
-                              onChange={(e) => updateLogField(index, "actualSets", e.target.value)}
-                              className="mt-0.5 w-full rounded-lg border border-hair/60 bg-glass px-2.5 py-2 font-mono-digit text-xs text-text outline-none transition focus:border-teal2"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-[10px] text-faint">
-                              {timeBased ? "Seg" : "Reps"}
-                            </label>
-                            <input
-                              type="text"
-                              placeholder={String(item.targetReps || 10)}
-                              value={logStates[index]?.actualReps ?? ""}
-                              onChange={(e) => updateLogField(index, "actualReps", e.target.value)}
-                              className="mt-0.5 w-full rounded-lg border border-hair/60 bg-glass px-2.5 py-2 font-mono-digit text-xs text-text outline-none transition focus:border-teal2"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-[10px] text-faint">Peso (kg)</label>
-                            <input
-                              type="number"
-                              step="0.5"
-                              min="0"
-                              placeholder={item.targetWeight ? String(item.targetWeight) : "0"}
-                              value={logStates[index]?.actualWeight ?? ""}
-                              onChange={(e) => updateLogField(index, "actualWeight", e.target.value)}
-                              className="mt-0.5 w-full rounded-lg border border-hair/60 bg-glass px-2.5 py-2 font-mono-digit text-xs text-text outline-none transition focus:border-teal2"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-[10px] text-faint">RIR</label>
-                            <input
-                              type="number"
-                              min="0"
-                              max="5"
-                              placeholder={item.targetRIR != null ? String(item.targetRIR) : "-"}
-                              value={logStates[index]?.finalRIR ?? ""}
-                              onChange={(e) => updateLogField(index, "finalRIR", e.target.value)}
-                              className="mt-0.5 w-full rounded-lg border border-hair/60 bg-glass px-2.5 py-2 font-mono-digit text-xs text-text outline-none transition focus:border-teal2"
-                            />
-                          </div>
+                      {/* Logging por serie: cada una puede tener reps/peso distinto */}
+                      <div className="mt-3 border-t border-hair/50 pt-3">
+                        <div className="flex items-center justify-between">
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-teal2">
+                            Series {timeBased ? "(seg)" : "reales"}
+                          </p>
+                          <span className="text-[10px] text-faint">
+                            Peso (kg) · {timeBased ? "Segundos" : "Reps"}
+                          </span>
                         </div>
-                        <div className="flex items-center justify-between pt-1">
+
+                        <div className="mt-2.5 flex flex-col gap-2">
+                          {Array.from({ length: Number(item.targetSets) || 1 }, (_, setIndex) => {
+                            const row = getSetLogRow(index, setIndex, item);
+                            const statusKey = `${index}-${setIndex}`;
+                            const isSaving = logStatus?.key === statusKey && logStatus?.status === "saving";
+                            const hasError = logStatus?.key === statusKey && logStatus?.status === "error";
+                            return (
+                              <div
+                                key={setIndex}
+                                className={`flex items-center gap-2 rounded-xl border p-2.5 transition ${
+                                  row.saved
+                                    ? "border-teal/40 bg-teal/10"
+                                    : hasError
+                                    ? "border-destructive/50 bg-destructive/10"
+                                    : "border-hair/80 bg-glass"
+                                }`}
+                              >
+                                <span className="font-mono-digit w-5 shrink-0 text-center text-xs font-semibold text-teal2">
+                                  #{setIndex + 1}
+                                </span>
+                                <input
+                                  type="number"
+                                  inputMode="decimal"
+                                  step="0.5"
+                                  placeholder="kg"
+                                  disabled={row.saved}
+                                  value={row.weight}
+                                  onChange={(e) => updateSetLogField(index, setIndex, "weight", e.target.value, item)}
+                                  className="font-mono-digit h-10 min-w-0 flex-1 rounded-lg border border-hair bg-glass2 px-2 text-center text-sm text-white outline-none focus:border-teal2 disabled:opacity-60"
+                                />
+                                <span className="shrink-0 text-xs text-faint">×</span>
+                                <input
+                                  type="number"
+                                  inputMode="numeric"
+                                  placeholder={timeBased ? "seg" : "reps"}
+                                  disabled={row.saved}
+                                  value={row.reps}
+                                  onChange={(e) => updateSetLogField(index, setIndex, "reps", e.target.value, item)}
+                                  className="font-mono-digit h-10 min-w-0 flex-1 rounded-lg border border-hair bg-glass2 px-2 text-center text-sm text-white outline-none focus:border-teal2 disabled:opacity-60"
+                                />
+                                <button
+                                  type="button"
+                                  disabled={isSaving || row.saved}
+                                  onClick={() => handleLogSet(index, setIndex, item)}
+                                  className={`flex h-9 shrink-0 items-center justify-center gap-1 rounded-lg px-3 text-xs font-semibold transition disabled:opacity-70 ${
+                                    row.saved
+                                      ? "bg-teal/20 text-teal2"
+                                      : "bg-teal text-onlight hover:opacity-90 active:scale-95"
+                                  }`}
+                                >
+                                  {row.saved && (
+                                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                      <polyline points="20 6 9 17 4 12" />
+                                    </svg>
+                                  )}
+                                  {isSaving ? "..." : "Listo"}
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        <div className="mt-3 flex items-center justify-between">
                           <button
                             type="button"
                             onClick={() => setDetailExercise(exercise)}
@@ -870,25 +943,14 @@ export default function RoutineDetail({
                             </svg>
                             Ver técnica
                           </button>
-                          <button
-                            type="button"
-                            onClick={() => handleLogExercise(index)}
-                            disabled={logStatus?.index === index && logStatus?.status === "saving"}
-                            className="flex h-8 items-center gap-1.5 rounded-full bg-teal px-3.5 text-xs font-semibold text-onlight transition hover:opacity-90 active:scale-95 disabled:opacity-50"
-                          >
-                            {logStatus?.index === index && logStatus?.status === "saving" ? (
-                              <span>Guardando...</span>
-                            ) : logStatus?.index === index && logStatus?.status === "saved" ? (
-                              <span className="flex items-center gap-1">
-                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                                  <polyline points="20 6 9 17 4 12" />
-                                </svg>
-                                Guardado
-                              </span>
-                            ) : (
-                              <span>Registrar</span>
-                            )}
-                          </button>
+                          {isExerciseFullyLogged(index, item) && (
+                            <span className="flex items-center gap-1.5 rounded-full bg-teal/15 px-3 py-1 text-xs font-semibold text-teal2">
+                              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="20 6 9 17 4 12" />
+                              </svg>
+                              Ya hecho
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -1181,6 +1243,7 @@ export default function RoutineDetail({
           ) : null}
 
           {/* Mobile Bottom Workout Button */}
+          {!readOnly && (
           <div className="mt-3 lg:hidden">
             {!workoutActive ? (
               <button
@@ -1203,6 +1266,7 @@ export default function RoutineDetail({
               </button>
             )}
           </div>
+          )}
         </main>
       </div>
 

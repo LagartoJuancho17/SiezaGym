@@ -7,7 +7,7 @@ import { isLinkedToCoach } from "@/lib/coach/students";
 import {
   assignRoutineToStudent as assignDb,
   unassignRoutine as unassignDb,
-  logExercise as logExerciseDb,
+  logExerciseSet as logExerciseSetDb,
 } from "@/lib/assignments/assignments";
 
 export async function assignRoutine(routineId, studentId) {
@@ -33,10 +33,10 @@ export async function unassignRoutine(assignmentId) {
   revalidatePath("/rutinas");
 }
 
-export async function logExercise(assignmentId, exerciseIndex, logData) {
+export async function logExerciseSet(assignmentId, exerciseIndex, setIndex, setData) {
   const user = await getCurrentUser();
   if (!user) throw new Error("Debes iniciar sesión.");
 
-  await logExerciseDb(user.uid, assignmentId, exerciseIndex, logData);
+  await logExerciseSetDb(user.uid, assignmentId, exerciseIndex, setIndex, setData);
   revalidatePath("/rutinas");
 }
