@@ -24,9 +24,15 @@ function RoutineCardItem({ routine, index, totalRoutines, isDesktop = false }) {
 
       {/* Top row: Badge and Order */}
       <div className="relative flex items-center justify-between">
-        <span className="rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/70">
-          Rutina {index + 1} de {totalRoutines}
-        </span>
+        {routine.isAssigned ? (
+          <span className="rounded-full border border-teal/40 bg-teal/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-teal2">
+            Asignada
+          </span>
+        ) : (
+          <span className="rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/70">
+            Rutina {index + 1} de {totalRoutines}
+          </span>
+        )}
         <span className="font-mono text-xs font-semibold text-teal2">
           ~{routine.estimatedMinutes || 0} min
         </span>

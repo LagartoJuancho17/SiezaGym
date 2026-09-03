@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/firebase/session";
 import { getUserProfile } from "@/lib/users/users";
 import { listUserRoutines } from "@/lib/routines/routines";
+import { listStudentAssignments } from "@/lib/assignments/assignments";
 import { weeklyVolumeKg, listTrainedDates } from "@/lib/sessions/sessions";
 import { computeStreak } from "@/lib/sessions/streak";
 import { totalSets, estimatedDurationMinutes } from "@/lib/routines/summary";
@@ -32,11 +33,12 @@ export default async function Home() {
     redirect("/login");
   }
 
-  const [profile, routines, weekVolume, trainedDates] = await Promise.all([
+  const [profile, routines, weekVolume, trainedDates, assignments] = await Promise.all([
     getUserProfile(user.uid),
     listUserRoutines(user.uid),
     weeklyVolumeKg(user.uid),
     listTrainedDates(user.uid),
+    listStudentAssignments(user.uid),
   ]);
 
   const streak = computeStreak(trainedDates);
@@ -47,8 +49,23 @@ export default async function Home() {
     ...routine,
     totalSets: totalSets(routine),
     estimatedMinutes: estimatedDurationMinutes(routine),
+    isAssigned: false,
+    sortKey: routine.lastUsedAt || routine.createdAt,
   }));
-  const visibleRoutines = enrichedRoutines.filter((routine) => routine.showOnHome !== false);
+  const enrichedAssignments = assignments.map((assignment) => ({
+    id: assignment.id,
+    name: assignment.routineName,
+    exercises: assignment.exercises,
+    showOnHome: true,
+    isAssigned: true,
+    totalSets: totalSets({ exercises: assignment.exercises }),
+    estimatedMinutes: estimatedDurationMinutes({ exercises: assignment.exercises }),
+    sortKey: assignment.lastUsedAt || assignment.assignedAt,
+  }));
+  const hasAnyRoutine = routines.length > 0 || assignments.length > 0;
+  const visibleRoutines = [...enrichedRoutines, ...enrichedAssignments]
+    .filter((routine) => routine.showOnHome !== false)
+    .sort((a, b) => new Date(b.sortKey || 0) - new Date(a.sortKey || 0));
   const firstName = profile?.displayName?.trim().split(/\s+/)[0] || null;
   const greeting = firstName ? `Hola, ${firstName}` : "Hola";
 
@@ -168,7 +185,7 @@ export default async function Home() {
           </div>
 
           {/* Routines Section */}
-          {routines.length === 0 ? (
+          {!hasAnyRoutine ? (
             <section
               aria-label="Primer paso"
               className="relative overflow-hidden rounded-3xl bg-deep px-6 py-7 border border-white/10"
