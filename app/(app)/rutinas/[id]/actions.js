@@ -29,7 +29,7 @@ export async function unassignRoutine(assignmentId) {
   const user = await getCurrentUser();
   if (!user) throw new Error("Debes iniciar sesión.");
 
-  await unassignDb(assignmentId);
+  await unassignDb(user.uid, assignmentId);
   revalidatePath("/rutinas");
 }
 
@@ -37,6 +37,6 @@ export async function logExercise(assignmentId, exerciseIndex, logData) {
   const user = await getCurrentUser();
   if (!user) throw new Error("Debes iniciar sesión.");
 
-  await logExerciseDb(assignmentId, exerciseIndex, logData);
+  await logExerciseDb(user.uid, assignmentId, exerciseIndex, logData);
   revalidatePath("/rutinas");
 }
