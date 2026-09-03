@@ -47,7 +47,7 @@ const TABS = [
 
 // Rutas de estas tabs que todavia no existen como pantalla real - se
 // muestran en el nav (matchea el diseño) pero no navegan a un 404.
-const NOT_BUILT_YET = new Set(["/perfil"]);
+const NOT_BUILT_YET = new Set([]);
 
 export default function BottomNav() {
   const pathname = usePathname();
@@ -55,10 +55,11 @@ export default function BottomNav() {
   return (
     <nav
       aria-label="Navegación principal"
-      className="sticky bottom-0 flex items-center gap-2.5 px-[18px] pb-6"
+      className="sticky bottom-0 z-30 px-[18px] pb-6"
       style={{ background: "linear-gradient(to top, var(--bg) 58%, transparent)" }}
     >
-      <div className="grid flex-1 grid-cols-4 items-center justify-items-center rounded-full border border-hair bg-nav p-1.5 backdrop-blur-[20px]">
+      <div className="mx-auto flex w-full max-w-lg items-center gap-2.5">
+        <div className="grid flex-1 grid-cols-4 items-center justify-items-center rounded-full border border-hair bg-nav p-1.5 backdrop-blur-[20px]">
         {TABS.map((tab) => {
           const active = tab.href === "/" ? pathname === "/" : pathname.startsWith(tab.href);
           const className = `flex h-[46px] w-[46px] items-center justify-center rounded-full transition ${
@@ -114,7 +115,8 @@ export default function BottomNav() {
           <path d="M12 5v14" />
           <path d="M5 12h14" />
         </svg>
-      </button>
+        </button>
+      </div>
     </nav>
   );
 }
