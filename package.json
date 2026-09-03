@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "vitest run",
     "seed:exercises": "node --env-file=.env --env-file=.env.local scripts/seedExercises.mjs"
   },
   "overrides": {
@@ -28,6 +29,7 @@
     "@tailwindcss/postcss": "^4.3.3",
     "eslint": "^9",
     "eslint-config-next": "16.3.1",
-    "tailwindcss": "^4.3.3"
+    "tailwindcss": "^4.3.3",
+    "vitest": "^5.0.0"
   }
 }

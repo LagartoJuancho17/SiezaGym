@@ -3,7 +3,8 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/firebase/session";
 import { getUserProfile } from "@/lib/users/users";
 import { listUserRoutines } from "@/lib/routines/routines";
-import { weeklyVolumeKg } from "@/lib/sessions/sessions";
+import { weeklyVolumeKg, listTrainedDates } from "@/lib/sessions/sessions";
+import { computeStreak } from "@/lib/sessions/streak";
 import { totalSets, estimatedDurationMinutes } from "@/lib/routines/summary";
 import AccountMenu from "@/components/home/AccountMenu";
 import OfflineBanner from "@/components/home/OfflineBanner";
@@ -31,12 +32,14 @@ export default async function Home() {
     redirect("/login");
   }
 
-  const [profile, routines, weekVolume] = await Promise.all([
+  const [profile, routines, weekVolume, trainedDates] = await Promise.all([
     getUserProfile(user.uid),
     listUserRoutines(user.uid),
     weeklyVolumeKg(user.uid),
+    listTrainedDates(user.uid),
   ]);
 
+  const streak = computeStreak(trainedDates);
   const isCoach = !!profile?.isCoach || !!profile?.isAdmin;
   const students = isCoach ? await listCoachStudents(user.uid) : [];
 
@@ -45,6 +48,7 @@ export default async function Home() {
     totalSets: totalSets(routine),
     estimatedMinutes: estimatedDurationMinutes(routine),
   }));
+  const visibleRoutines = enrichedRoutines.filter((routine) => routine.showOnHome !== false);
   const firstName = profile?.displayName?.trim().split(/\s+/)[0] || null;
   const greeting = firstName ? `Hola, ${firstName}` : "Hola";
 
@@ -93,7 +97,7 @@ export default async function Home() {
             </div>
           )}
 
-          <WeekStrip />
+          <WeekStrip trainedDates={trainedDates} streak={streak} />
 
           {/* Volume & Goal Stat Cards */}
           <div className="grid grid-cols-2 gap-3 sm:gap-4">
@@ -216,8 +220,21 @@ export default async function Home() {
                 </div>
               </div>
             </section>
+          ) : visibleRoutines.length === 0 ? (
+            <section className="rounded-3xl border border-dashed border-hair bg-glass/60 px-6 py-7 text-center">
+              <p className="text-sm text-faint">
+                Tenés {routines.length} {routines.length === 1 ? "rutina oculta" : "rutinas ocultas"} del
+                inicio.
+              </p>
+              <Link
+                href="/rutinas"
+                className="mt-3 inline-flex h-10 items-center rounded-full border border-hair px-5 text-xs font-semibold text-white transition hover:border-teal2"
+              >
+                Ver en Rutinas
+              </Link>
+            </section>
           ) : (
-            <RoutinesCarousel routines={enrichedRoutines} />
+            <RoutinesCarousel routines={visibleRoutines} />
           )}
 
           {!isCoach && (

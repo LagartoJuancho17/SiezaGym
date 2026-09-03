@@ -8,6 +8,7 @@ import {
   updateRoutine as updateRoutineData,
   deleteRoutine as deleteRoutineData,
   duplicateRoutine as duplicateRoutineData,
+  setRoutineShowOnHome as setRoutineShowOnHomeData,
 } from "@/lib/routines/routines";
 import { createCustomExercise as createCustomExerciseData } from "@/lib/customExercises/customExercises";
 
@@ -44,6 +45,16 @@ export async function duplicateRoutine(routineId) {
 
   await duplicateRoutineData(user.uid, routineId);
   revalidatePath("/rutinas");
+}
+
+export async function setRoutineShowOnHome(routineId, showOnHome) {
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+
+  await setRoutineShowOnHomeData(user.uid, routineId, showOnHome);
+  revalidatePath("/rutinas");
+  revalidatePath(`/rutinas/${routineId}`);
+  revalidatePath("/");
 }
 
 export async function createCustomExercise(data) {

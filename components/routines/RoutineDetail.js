@@ -12,7 +12,7 @@ import {
 } from "@/lib/exercises/constants";
 import { primaryMuscle } from "@/lib/exercises/filters";
 import { totalSets, estimatedDurationMinutes, muscleDistribution } from "@/lib/routines/summary";
-import { deleteRoutine, duplicateRoutine, updateRoutine } from "@/app/(app)/rutinas/actions";
+import { deleteRoutine, duplicateRoutine, updateRoutine, setRoutineShowOnHome } from "@/app/(app)/rutinas/actions";
 import { assignRoutine, logExercise } from "@/app/(app)/rutinas/[id]/actions";
 import { finishSession } from "@/app/(app)/sesion/actions";
 import RoutineBuilder from "@/components/routines/RoutineBuilder";
@@ -66,6 +66,8 @@ export default function RoutineDetail({
   const [busy, setBusy] = useState(false);
   const [detailExercise, setDetailExercise] = useState(null);
   const [assignModalOpen, setAssignModalOpen] = useState(false);
+  const [showOnHome, setShowOnHome] = useState(routine.showOnHome !== false);
+  const [showOnHomeBusy, setShowOnHomeBusy] = useState(false);
   const [logStates, setLogStates] = useState({});
   const [logStatus, setLogStatus] = useState(null);
 
@@ -292,6 +294,20 @@ export default function RoutineDetail({
     await deleteRoutine(routine.id);
   }
 
+  async function handleToggleShowOnHome() {
+    const next = !showOnHome;
+    setShowOnHomeBusy(true);
+    setShowOnHome(next);
+    try {
+      await setRoutineShowOnHome(routine.id, next);
+    } catch (err) {
+      console.error(err);
+      setShowOnHome(!next);
+    } finally {
+      setShowOnHomeBusy(false);
+    }
+  }
+
   return (
     <div className="relative flex flex-col gap-6 px-[18px] pb-[110px] lg:px-0">
       {/* Mobile Active Workout Floating / Sticky Banner */}
@@ -421,6 +437,17 @@ export default function RoutineDetail({
                     className="flex h-11 w-full items-center px-4 text-left text-sm text-text transition hover:bg-glass2 disabled:opacity-40"
                   >
                     Duplicar
+                  </button>
+                  <button
+                    type="button"
+                    disabled={showOnHomeBusy}
+                    onClick={() => {
+                      setMenuOpen(false);
+                      handleToggleShowOnHome();
+                    }}
+                    className="flex h-11 w-full items-center px-4 text-left text-sm text-text transition hover:bg-glass2 disabled:opacity-40"
+                  >
+                    {showOnHome ? "Quitar del inicio" : "Mostrar en inicio"}
                   </button>
                   {isCoach && students.length > 0 && (
                     <button
