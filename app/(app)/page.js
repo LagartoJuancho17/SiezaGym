@@ -4,7 +4,7 @@ import { getCurrentUser } from "@/lib/firebase/session";
 import { getUserProfile } from "@/lib/users/users";
 import { listUserRoutines } from "@/lib/routines/routines";
 import { listStudentAssignments } from "@/lib/assignments/assignments";
-import { listTrainedDates } from "@/lib/sessions/sessions";
+import { listTrainedDates, listUserSessions } from "@/lib/sessions/sessions";
 import { computeStreak } from "@/lib/sessions/streak";
 import { totalSets, estimatedDurationMinutes } from "@/lib/routines/summary";
 import AccountMenu from "@/components/home/AccountMenu";
@@ -12,6 +12,8 @@ import OfflineBanner from "@/components/home/OfflineBanner";
 import LinkCoachSection from "@/components/home/LinkCoachSection";
 import WeekStrip from "@/components/home/WeekStrip";
 import RoutinesCarousel from "@/components/home/RoutinesCarousel";
+import HomeHero from "@/components/home/HomeHero";
+import HomeStats from "@/components/home/HomeStats";
 import CoachHomeSection from "@/components/coach/CoachHomeSection";
 import { listCoachStudents } from "@/lib/coach/students";
 
@@ -33,14 +35,16 @@ export default async function Home() {
     redirect("/login");
   }
 
-  const [profile, routines, trainedDates, assignments] = await Promise.all([
+  const [profile, routines, trainedDates, assignments, lastSessions] = await Promise.all([
     getUserProfile(user.uid),
     listUserRoutines(user.uid),
     listTrainedDates(user.uid),
     listStudentAssignments(user.uid),
+    listUserSessions(user.uid, { limitCount: 1 }),
   ]);
 
   const streak = computeStreak(trainedDates);
+  const lastSession = lastSessions[0] || null;
   const isCoach = !!profile?.isCoach || !!profile?.isAdmin;
   const students = isCoach ? await listCoachStudents(user.uid) : [];
 
@@ -113,39 +117,29 @@ export default async function Home() {
             </div>
           )}
 
-          <WeekStrip trainedDates={trainedDates} streak={streak} />
+          {visibleRoutines.length > 0 && (
+            <HomeHero
+              routineId={visibleRoutines[0].id}
+              routineName={visibleRoutines[0].name}
+              description={
+                lastSession
+                  ? `La última vez moviste ${lastSession.totalVolumeKg}kg en ${lastSession.totalSetsCompleted} series.${
+                      streak > 1 ? ` Llevás ${streak} días seguidos, no cortes la racha.` : ""
+                    }`
+                  : "Todavía no registraste ningún entrenamiento. Arrancá esta rutina y empezá a sumar progreso."
+              }
+            />
+          )}
 
-          {/* Goal Stat Card */}
-          <section
-            aria-label="Tu objetivo semanal"
-            className="relative flex min-h-[110px] flex-col justify-between overflow-hidden rounded-3xl p-4 sm:p-5 text-white border border-teal/40 shadow-[0_8px_24px_rgba(63,169,188,0.15)] sm:flex-row sm:items-center"
-            style={{
-              background:
-                "linear-gradient(150deg, rgba(63,169,188,0.25) 0%, rgba(8,23,26,0.9) 100%)",
-            }}
-          >
-            <div>
-              <p className="text-xs sm:text-[13px] font-semibold tracking-wide text-teal2">
-                Tu objetivo
-              </p>
-              <p className="mt-1 text-[11px] leading-snug text-white/80">
-                Se activa con tu primera sesión registrada.
-              </p>
-            </div>
-            <div className="mt-3 flex items-center justify-end gap-2 sm:mt-0">
-              <span
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full"
-                style={{
-                  background:
-                    "conic-gradient(var(--teal2) 0 0%, rgba(255,255,255,.15) 0)",
-                }}
-              >
-                <span className="font-mono-digit flex h-8 w-8 items-center justify-center rounded-full bg-deep text-[10px] font-bold text-white">
-                  0%
-                </span>
-              </span>
-            </div>
-          </section>
+          {hasAnyRoutine && (
+            <HomeStats
+              streak={streak}
+              routinesCount={visibleRoutines.length}
+              lastSession={lastSession}
+            />
+          )}
+
+          <WeekStrip trainedDates={trainedDates} streak={streak} />
 
           {/* Routines Section */}
           {!hasAnyRoutine ? (
