@@ -82,7 +82,7 @@ export default function WeekStrip({ trainedDates = [], streak = 0 }) {
   return (
     <section
       aria-label="Tu semana"
-      className="rounded-[26px] border border-black/[0.05] bg-[#F5F3F0] p-3.5 shadow-[0_6px_20px_rgba(24,18,15,0.08)] sm:p-4"
+      className="rounded-[26px] border border-black/[0.05] bg-surface p-3.5 shadow-[0_6px_20px_rgba(24,18,15,0.08)] sm:p-4"
     >
       <div className="flex items-center justify-between gap-2 px-1.5 pb-3.5">
         <button

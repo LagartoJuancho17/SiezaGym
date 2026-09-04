@@ -5,57 +5,88 @@
   --font-display: var(--font-display), Anton, sans-serif;
   --font-mono-digit: var(--font-mono-digit), Silkscreen, ui-monospace, monospace;
 
-  /* Indirection on purpose: @theme fixes values at build time, but these
-     need to change at runtime for the light/dark toggle. Each utility
-     (bg-bg, text-teal, ...) resolves the raw --token below, which
-     :root / [data-theme="light"] redefine. */
   --color-bg: var(--bg);
   --color-deep: var(--deep);
+  --color-card: var(--card);
+  --color-surface: var(--surface);
+  --color-card-border: var(--card-border);
+  --color-card-text: var(--card-text);
+  --color-card-muted: var(--card-muted);
+  --color-accent: var(--accent);
+  --color-accent-light: var(--accent-light);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-subtle: var(--accent-subtle);
+  --color-crimson: var(--crimson);
+  --color-crimson-light: var(--crimson-light);
+  --color-crimson-dark: var(--crimson-dark);
+
+  /* Compatibility tokens mapped to new Crimson & Bone + Coral palette */
   --color-glass: var(--glass);
   --color-glass2: var(--glass2);
   --color-hair: var(--hair);
   --color-text: var(--text);
   --color-muted: var(--muted);
   --color-faint: var(--faint);
-  --color-teal: var(--teal);
-  --color-teal2: var(--teal2);
-  --color-onlight: var(--onlight);
-  --color-pill: var(--pill);
+  --color-teal: var(--accent);
+  --color-teal2: var(--accent-light);
+  --color-onlight: #141414;
+  --color-pill: #ffffff;
   --color-nav: var(--nav-bg);
-  --color-destructive: var(--destructive);
+  --color-destructive: #f87171;
 }
 
 :root {
-  --bg: #050c0e;
-  --deep: #08171a;
-  --glass: rgba(255, 255, 255, 0.06);
-  --glass2: rgba(255, 255, 255, 0.1);
-  --hair: rgba(255, 255, 255, 0.12);
+  --bg: #3B0A0C;
+  --deep: #250507;
+  --card: #EDE8E1;
+  /* Fondo de los widgets de la Home (metricas, calendario). */
+  --surface: #E5E1E0;
+  --card-border: #6B1717;
+  --card-text: #141414;
+  --card-muted: #756C65;
+  --accent: #FF5733;
+  --accent-light: #FF7352;
+  --accent-hover: #E84D29;
+  --accent-subtle: rgba(255, 87, 51, 0.12);
+  --crimson: #6B1717;
+  --crimson-light: #8B1E1E;
+  --crimson-dark: #450C0E;
+
+  --glass: rgba(255, 255, 255, 0.08);
+  --glass2: rgba(255, 255, 255, 0.14);
+  --hair: #6B1717;
   --text: #ffffff;
-  --muted: rgba(255, 255, 255, 0.66);
-  --faint: rgba(255, 255, 255, 0.5);
-  --teal: #3fa9bc;
-  --teal2: #67d2de;
-  --onlight: #06171a;
-  --pill: #ffffff;
-  --nav-bg: rgba(10, 22, 25, 0.72);
+  --muted: rgba(255, 255, 255, 0.72);
+  --faint: rgba(255, 255, 255, 0.52);
+  --nav-bg: rgba(35, 8, 10, 0.85);
   --destructive: #f87171;
 }
 
 [data-theme="light"] {
-  --bg: #edf3f4;
-  --deep: #dde9eb;
-  --glass: rgba(6, 23, 26, 0.05);
-  --glass2: rgba(6, 23, 26, 0.08);
-  --hair: rgba(6, 23, 26, 0.12);
-  --text: #06171a;
-  --muted: rgba(6, 23, 26, 0.66);
-  --faint: rgba(6, 23, 26, 0.5);
-  --teal: #2e93a6;
-  --teal2: #57c0ce;
-  --onlight: #ffffff;
-  --pill: #06171a;
-  --nav-bg: rgba(255, 255, 255, 0.78);
+  --bg: #3B0A0C;
+  --deep: #250507;
+  --card: #EDE8E1;
+  /* Fondo de los widgets de la Home (metricas, calendario). */
+  --surface: #E5E1E0;
+  --card-border: #6B1717;
+  --card-text: #141414;
+  --card-muted: #756C65;
+  --accent: #FF5733;
+  --accent-light: #FF7352;
+  --accent-hover: #E84D29;
+  --accent-subtle: rgba(255, 87, 51, 0.12);
+  --crimson: #6B1717;
+  --crimson-light: #8B1E1E;
+  --crimson-dark: #450C0E;
+
+  --glass: rgba(255, 255, 255, 0.08);
+  --glass2: rgba(255, 255, 255, 0.14);
+  --hair: #6B1717;
+  --text: #ffffff;
+  --muted: rgba(255, 255, 255, 0.72);
+  --faint: rgba(255, 255, 255, 0.52);
+  --nav-bg: rgba(35, 8, 10, 0.85);
+  --destructive: #f87171;
 }
 
 @layer base {

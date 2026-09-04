@@ -22,9 +22,9 @@ function ArrowUpRight() {
 export default function HomeStats({ volumeKg = 2040, setsCount = 17, targetSets = 26 }) {
   return (
     <section aria-label="Métricas de entrenamiento" className="w-full px-4 pb-4 sm:px-6 lg:px-7">
-      <div className="mx-auto grid max-w-[1360px] gap-3.5 lg:grid-cols-12">
+      <div className="mx-auto grid max-w-[1360px] gap-0.5 lg:grid-cols-12">
         {/* Session Volume */}
-        <div className="flex flex-col justify-between rounded-2xl border border-[#5A1215] bg-[#EDE8E1] p-5 shadow-sm lg:col-span-7">
+        <div className="flex flex-col justify-between rounded-[10px] border border-[#5A1215] bg-surface p-5 shadow-sm lg:col-span-7">
           <div>
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-[#6E665E]">Volumen de la sesión</span>
@@ -60,7 +60,7 @@ export default function HomeStats({ volumeKg = 2040, setsCount = 17, targetSets 
         </div>
 
         {/* HRV Status */}
-        <div className="flex flex-col justify-between rounded-2xl border border-[#5A1215] bg-[#EDE8E1] p-5 shadow-sm lg:col-span-5">
+        <div className="flex flex-col justify-between rounded-[10px] border border-[#5A1215] bg-surface p-5 shadow-sm lg:col-span-5">
           <div>
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-[#6E665E]">Variabilidad (HRV)</span>

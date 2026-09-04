@@ -162,6 +162,41 @@ function RoutineCard({ routine, interactive }) {
   );
 }
 
+function AddRoutineCard({ interactive }) {
+  return (
+    <article
+      className="relative flex h-full w-full flex-col items-start justify-between overflow-hidden rounded-[30px] border-2 border-dashed border-white/25 p-6 shadow-[0_18px_44px_rgba(24,6,6,0.45)] sm:p-7"
+      style={{ background: "linear-gradient(150deg, #4A130F 0%, #35080A 55%, #240607 100%)" }}
+    >
+      <h3 className="font-sans text-[30px] font-bold leading-[1.05] tracking-tight text-white sm:text-[34px]">
+        Nueva rutina
+      </h3>
+      <p className="max-w-[260px] text-[15px] leading-relaxed text-white/70">
+        Sumá otro día de entrenamiento o una variante de tu semana.
+      </p>
+      {interactive ? (
+        <Link
+          href="/rutinas/nueva"
+          className="inline-flex h-12 items-center gap-2.5 rounded-full bg-[#FF5524] px-6 text-[15px] font-semibold text-white transition hover:bg-[#F0491B] active:scale-[0.98]"
+        >
+          Crear rutina
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+            <path d="M12 5v14" />
+            <path d="M5 12h14" />
+          </svg>
+        </Link>
+      ) : (
+        <span
+          aria-hidden="true"
+          className="inline-flex h-12 items-center rounded-full bg-[#FF5524] px-6 text-[15px] font-semibold text-white"
+        >
+          Crear rutina
+        </span>
+      )}
+    </article>
+  );
+}
+
 export default function RoutinesCarousel({ routines = [] }) {
   const [top, setTop] = useState(0);
   const [dx, setDx] = useState(0);
@@ -175,7 +210,13 @@ export default function RoutinesCarousel({ routines = [] }) {
   // llegar antes del re-render y el estado todavia estaria en 0.
   const dxRef = useRef(0);
 
-  const total = routines.length;
+  // La card de "nueva rutina" es parte del mazo: asi con una sola rutina el
+  // gesto de arrastre sigue teniendo a donde ir (antes no se movia nada).
+  const items = [
+    ...routines.map((routine) => ({ kind: "routine", id: routine.id, routine })),
+    { kind: "add", id: "__add__" },
+  ];
+  const total = items.length;
   const canSwipe = total > 1;
   // Derivado, no sincronizado: si borran rutinas el indice viejo sigue siendo valido.
   const safeTop = total === 0 ? 0 : top % total;
@@ -189,7 +230,7 @@ export default function RoutinesCarousel({ routines = [] }) {
     if (!flyingTo) return;
     // La card que sale vuelve al fondo: sin esto animaria de vuelta cruzando
     // la pantalla, porque React reusa el nodo (misma key).
-    setNoAnimId(routines[safeTop]?.id ?? null);
+    setNoAnimId(items[safeTop]?.id ?? null);
     setFlyingTo(null);
     dxRef.current = 0;
     setDx(0);
@@ -245,7 +286,7 @@ export default function RoutinesCarousel({ routines = [] }) {
 
   const visible = Array.from({ length: Math.min(VISIBLE_DEPTH, total) }, (_, depth) => ({
     depth,
-    routine: routines[(safeTop + depth) % total],
+    item: items[(safeTop + depth) % total],
   }));
 
   return (
@@ -256,7 +297,7 @@ export default function RoutinesCarousel({ routines = [] }) {
             Tus Rutinas
           </p>
           <span className="rounded-md bg-white/10 px-2 py-0.5 text-xs font-semibold text-white">
-            {total}
+            {routines.length}
           </span>
         </div>
         <Link
@@ -272,7 +313,7 @@ export default function RoutinesCarousel({ routines = [] }) {
         {visible
           .slice()
           .reverse()
-          .map(({ depth, routine }) => {
+          .map(({ depth, item }) => {
             const isFront = depth === 0;
             const dragRotation = isFront ? dx / 22 : 0;
             const flying = isFront && flyingTo;
@@ -287,9 +328,13 @@ export default function RoutinesCarousel({ routines = [] }) {
 
             return (
               <div
-                key={routine.id}
-                className={`absolute inset-x-0 top-6 bottom-0 ${
-                  isFront ? "cursor-grab touch-pan-y active:cursor-grabbing" : "pointer-events-none"
+                key={item.id}
+                className={`absolute inset-x-0 top-6 bottom-0 select-none ${
+                  isFront
+                    ? canSwipe
+                      ? "cursor-grab touch-pan-y active:cursor-grabbing"
+                      : ""
+                    : "pointer-events-none"
                 }`}
                 style={{
                   zIndex: VISIBLE_DEPTH - depth,
@@ -298,7 +343,7 @@ export default function RoutinesCarousel({ routines = [] }) {
                   // Las de atrás se aclaran y desaturan, como en el diseño.
                   filter: isFront ? "none" : `brightness(${1 + depth * 0.55}) saturate(${1 - depth * 0.45})`,
                   transition:
-                    routine.id === noAnimId || (isDragging && isFront && !flying)
+                    item.id === noAnimId || (isDragging && isFront && !flying)
                       ? "none"
                       : "transform 320ms cubic-bezier(0.22, 0.61, 0.36, 1), opacity 320ms ease",
                 }}
@@ -309,7 +354,11 @@ export default function RoutinesCarousel({ routines = [] }) {
                 onTransitionEnd={isFront ? handleFlyEnd : undefined}
                 aria-hidden={isFront ? undefined : "true"}
               >
-                <RoutineCard routine={routine} interactive={isFront && !flying} />
+                {item.kind === "add" ? (
+                  <AddRoutineCard interactive={isFront && !flying} />
+                ) : (
+                  <RoutineCard routine={item.routine} interactive={isFront && !flying} />
+                )}
               </div>
             );
           })}
@@ -338,9 +387,9 @@ export default function RoutinesCarousel({ routines = [] }) {
           </button>
 
           <div className="flex items-center gap-1.5">
-            {routines.map((routine, index) => (
+            {items.map((item, index) => (
               <span
-                key={routine.id}
+                key={item.id}
                 className={`h-2 rounded-full transition-all duration-300 ${
                   index === safeTop ? "w-6 bg-[#FF5524]" : "w-2 bg-white/25"
                 }`}
