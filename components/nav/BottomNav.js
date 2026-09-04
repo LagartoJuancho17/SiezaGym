@@ -15,7 +15,7 @@ export default function BottomNav() {
   const NAV_ITEMS = [
     {
       href: "/",
-      label: "Dashboard / Inicio",
+      label: "Inicio",
       isActive: isHome,
       icon: (
         /* Bento / Dashboard layout icon: 2 rounded blocks on left, 1 tall rounded block on right */
@@ -28,7 +28,7 @@ export default function BottomNav() {
     },
     {
       href: "/rutinas",
-      label: "Rutinas / Entrenamiento",
+      label: "Rutinas",
       isActive: isWorkout,
       icon: (
         /* Solid Gym Dumbbell with inner & outer plates */
@@ -45,7 +45,7 @@ export default function BottomNav() {
     },
     {
       href: "/historial",
-      label: "Historial / Planes",
+      label: "Historial",
       isActive: isHistory,
       icon: (
         /* Solid Clipboard with top clip and cutout text lines */
@@ -62,7 +62,7 @@ export default function BottomNav() {
     },
     {
       href: "/progreso",
-      label: "Progreso / Calendario",
+      label: "Progreso",
       isActive: isProgress,
       icon: (
         /* Solid Wall Calendar with top binder rings and cutout grid */
@@ -80,7 +80,7 @@ export default function BottomNav() {
     },
     {
       href: "/perfil",
-      label: "Más opciones / Perfil",
+      label: "Perfil",
       isActive: isProfile,
       icon: (
         /* Three horizontal dots */
@@ -97,7 +97,7 @@ export default function BottomNav() {
     <div className="pointer-events-none fixed bottom-6 left-0 right-0 z-50 flex justify-center px-4 md:hidden">
       <nav
         aria-label="Navegación móvil"
-        className="pointer-events-auto flex items-center gap-2.5 rounded-[32px] border border-white/20 bg-white/[0.08] p-2.5 shadow-[0_18px_48px_rgba(0,0,0,0.3)] backdrop-blur-lg"
+        className="pointer-events-auto flex items-center gap-2.5 rounded-[10px] border border-white/20 bg-white/[0.08] p-2.5 shadow-[0_18px_48px_rgba(0,0,0,0.3)] backdrop-blur-lg"
       >
         {NAV_ITEMS.map((item) => (
           <Link
@@ -105,7 +105,7 @@ export default function BottomNav() {
             href={item.href}
             aria-label={item.label}
             aria-current={item.isActive ? "page" : undefined}
-            className={`flex h-[52px] w-[52px] items-center justify-center rounded-[19px] border transition-all duration-200 active:scale-95 ${
+            className={`flex h-[52px] w-[52px] items-center justify-center rounded-[10px] border transition-all duration-200 active:scale-95 ${
               item.isActive
                 ? "border-white/30 bg-[#FF5524] text-white shadow-[0_6px_20px_rgba(255,85,36,0.55),inset_0_1px_0_rgba(255,255,255,0.35)]"
                 : "border-white/80 bg-white/[0.88] text-[#2E2B28] shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_4px_12px_rgba(0,0,0,0.18)] backdrop-blur-2xl backdrop-saturate-150 hover:bg-white"

@@ -3,8 +3,22 @@
 import { useMemo, useState } from "react";
 import { toLocalDayKey } from "@/lib/sessions/streak";
 
-const DAY_LABELS = ["L", "M", "M", "J", "V", "S", "D"];
+const DAY_LABELS = ["LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB", "DOM"];
 const MONTH_LABELS = [
+  "ENERO",
+  "FEBRERO",
+  "MARZO",
+  "ABRIL",
+  "MAYO",
+  "JUNIO",
+  "JULIO",
+  "AGOSTO",
+  "SEPTIEMBRE",
+  "OCTUBRE",
+  "NOVIEMBRE",
+  "DICIEMBRE",
+];
+const MONTH_LABELS_SHORT = [
   "ENE",
   "FEB",
   "MAR",
@@ -36,6 +50,16 @@ function isSameDay(a, b) {
   );
 }
 
+// "7–13 SEPTIEMBRE" si la semana cae en un mes, "28 SEP–4 OCT" si la cruza.
+function rangeLabel(first, last) {
+  if (first.getMonth() === last.getMonth()) {
+    return `${first.getDate()}–${last.getDate()} ${MONTH_LABELS[first.getMonth()]}`;
+  }
+  return `${first.getDate()} ${MONTH_LABELS_SHORT[first.getMonth()]}–${last.getDate()} ${
+    MONTH_LABELS_SHORT[last.getMonth()]
+  }`;
+}
+
 export default function WeekStrip({ trainedDates = [], streak = 0 }) {
   const [weekOffset, setWeekOffset] = useState(0);
   const trainedSet = useMemo(() => new Set(trainedDates), [trainedDates]);
@@ -55,106 +79,102 @@ export default function WeekStrip({ trainedDates = [], streak = 0 }) {
     };
   });
 
-  const monthLabel = `${MONTH_LABELS[base.getMonth()]} ${base.getFullYear()}`;
-
   return (
     <section
       aria-label="Tu semana"
-      className="rounded-3xl border border-black/[0.06] bg-white p-4 shadow-[0_2px_10px_rgba(24,18,15,0.04)] transition sm:p-5"
+      className="rounded-[26px] border border-black/[0.05] bg-[#F5F3F0] p-3.5 shadow-[0_6px_20px_rgba(24,18,15,0.08)] sm:p-4"
     >
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5">
-          <div className="font-sans text-[20px] sm:text-[22px] font-extrabold tracking-tight text-[#18120f]">
-            {monthLabel}
-          </div>
-          {streak > 0 && (
-            <span className="flex items-center gap-1 rounded-full border border-orange-500/30 bg-orange-50 px-2.5 py-1 text-xs font-bold text-orange-600">
-              <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
-                <path d="M12 2c-.3 3-2.5 4.8-4.2 6.7C6.2 10.5 5 12.6 5 15a7 7 0 0 0 14 0c0-2.9-1.6-4.7-2.8-6.6-.4.9-1.1 1.8-1.9 1.8-1.1 0-1.5-1-1.3-2C13.3 6 12.7 3.6 12 2z" />
-              </svg>
-              {streak}
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            aria-label="Semana anterior"
-            onClick={() => setWeekOffset((n) => n - 1)}
-            className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full border border-black/10 bg-black/[0.03] text-[#18120f] transition hover:bg-black/[0.08] active:scale-95"
+      <div className="flex items-center justify-between gap-2 px-1.5 pb-3.5">
+        <button
+          type="button"
+          aria-label="Semana anterior"
+          onClick={() => setWeekOffset((n) => n - 1)}
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] text-[#2E2B28] transition hover:bg-black/[0.05] active:scale-95"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="18"
+            height="18"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           >
-            <svg
-              viewBox="0 0 24 24"
-              width="16"
-              height="16"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-            >
-              <path d="M15 6l-6 6 6 6" />
-            </svg>
-          </button>
-          <button
-            type="button"
-            aria-label="Semana siguiente"
-            onClick={() => setWeekOffset((n) => n + 1)}
-            className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full border border-black/10 bg-black/[0.03] text-[#18120f] transition hover:bg-black/[0.08] active:scale-95"
+            <path d="M15 6l-6 6 6 6" />
+          </svg>
+        </button>
+
+        <p className="min-w-0 truncate text-center text-[13px] font-bold uppercase tracking-[0.12em] text-[#2E2B28]">
+          {rangeLabel(days[0].date, days[6].date)}
+        </p>
+
+        <button
+          type="button"
+          aria-label="Semana siguiente"
+          onClick={() => setWeekOffset((n) => n + 1)}
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] text-[#2E2B28] transition hover:bg-black/[0.05] active:scale-95"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="18"
+            height="18"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           >
-            <svg
-              viewBox="0 0 24 24"
-              width="16"
-              height="16"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-            >
-              <path d="M9 6l6 6-6 6" />
-            </svg>
-          </button>
-        </div>
+            <path d="M9 6l6 6-6 6" />
+          </svg>
+        </button>
       </div>
-      <div className="mt-4 grid grid-cols-7 gap-1.5 sm:gap-2">
-        {days.map((d, i) => (
+
+      <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
+        {days.map((day, i) => (
           <div
             key={i}
-            className={`flex flex-col items-center gap-2 rounded-2xl py-2 px-1 transition ${
-              d.isToday
-                ? "bg-black/[0.03] border border-black/15"
-                : d.trained
-                ? "bg-orange-50 border border-orange-200"
-                : "hover:bg-black/[0.02]"
+            aria-current={day.isToday ? "date" : undefined}
+            className={`flex min-h-[92px] flex-col items-center justify-center gap-1.5 rounded-[16px] border py-3 transition sm:min-h-[104px] ${
+              day.isToday
+                ? "border-transparent bg-[#FF5524] shadow-[0_6px_16px_rgba(255,85,36,0.35)]"
+                : "border-black/[0.04] bg-white"
             }`}
           >
             <span
-              className={`text-[11px] font-semibold uppercase tracking-wider ${
-                d.isToday ? "text-[#18120f]" : d.trained ? "text-orange-600" : "text-[#a39a91]"
+              className={`text-[10px] font-bold uppercase tracking-[0.06em] sm:text-[11px] ${
+                day.isToday ? "text-white/85" : "text-[#8C827A]"
               }`}
             >
-              {d.label}
+              {day.label}
             </span>
             <span
-              className={`font-sans flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full text-xs sm:text-sm font-bold transition ${
-                d.trained
-                  ? "bg-gradient-to-br from-orange-400 to-orange-600 text-white shadow-[0_4px_12px_rgba(234,88,12,0.3)]"
-                  : d.isToday
-                  ? "bg-gradient-to-br from-[#18120f] to-[#3a3028] text-white shadow-[0_4px_12px_rgba(24,18,15,0.25)]"
-                  : "text-[#a39a91]"
+              className={`font-sans text-[19px] font-bold leading-none sm:text-[22px] ${
+                day.isToday ? "text-white" : "text-[#2E2B28]"
               }`}
             >
-              {d.date.getDate()}
+              {day.date.getDate()}
             </span>
-            {d.isToday ? (
-              <span className="h-1.5 w-1.5 rounded-full bg-[#18120f] animate-pulse" />
-            ) : d.trained ? (
-              <span className="h-1.5 w-1.5 rounded-full bg-orange-500" />
-            ) : (
-              <span className="h-1.5 w-1.5 rounded-full bg-transparent" />
-            )}
+            <span
+              aria-hidden="true"
+              className={`h-1.5 w-1.5 rounded-full ${
+                day.trained
+                  ? day.isToday
+                    ? "bg-white"
+                    : "bg-[#FF5524]"
+                  : "bg-transparent"
+              }`}
+            />
           </div>
         ))}
       </div>
+
+      {streak > 0 && (
+        <p className="pt-3 text-center text-[11px] font-semibold text-[#8C827A]">
+          <span className="text-[#FF5524]">{streak}</span>{" "}
+          {streak === 1 ? "día seguido" : "días seguidos"} entrenando
+        </p>
+      )}
     </section>
   );
 }

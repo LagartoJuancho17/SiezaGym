@@ -1,349 +1,354 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
-function RoutineCardItem({ routine, index, totalRoutines, isDesktop = false }) {
+const SWIPE_THRESHOLD = 90;
+const DRAG_START_SLOP = 6;
+const VISIBLE_DEPTH = 3;
+
+const META_ICONS = {
+  exercises: (
+    <>
+      <circle cx="15.5" cy="5" r="1.9" />
+      <path d="M7.6 9.6l3.6-1.6 2.9 2.7 3.3.9" />
+      <path d="M11.2 21l1.1-4.6-3.3-2.9.9-4.9" />
+      <path d="M5.6 20.2l2.9-2.3" />
+    </>
+  ),
+  sets: (
+    <>
+      <path d="M6 18v-5" />
+      <path d="M12 18V7" />
+      <path d="M18 18v-8" />
+    </>
+  ),
+  minutes: (
+    <>
+      <circle cx="12" cy="12" r="8.4" />
+      <path d="M12 7.4V12l3 1.9" />
+    </>
+  ),
+};
+
+function MetaRow({ kind, value, label, accent, withRule }) {
   return (
-    <article
-      className={`group relative flex min-h-[290px] flex-col justify-between overflow-hidden rounded-[28px] border border-white/10 bg-deep px-5 py-6 transition-all duration-300 hover:border-teal/50 hover:shadow-[0_12px_36px_rgba(0,0,0,0.45)] ${
-        isDesktop ? "w-full" : "w-[84vw] max-w-[340px] shrink-0 snap-start"
-      }`}
-    >
-      {/* Background Ambient Radial Glow */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 transition-opacity duration-300 group-hover:opacity-100"
-        style={{
-          background:
-            index % 2 === 0
-              ? "radial-gradient(90% 70% at 20% 0%, rgba(63,169,188,0.3) 0%, transparent 70%)"
-              : "radial-gradient(90% 70% at 20% 0%, rgba(87,192,206,0.25) 0%, transparent 70%)",
-        }}
-      />
-
-      {/* Top row: Badge and Order */}
-      <div className="relative flex items-center justify-between">
-        {routine.isAssigned ? (
-          <span className="rounded-full border border-teal/40 bg-teal/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-teal2">
-            Asignada
-          </span>
-        ) : (
-          <span className="rounded-full border border-white/15 bg-white/5 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/70">
-            Rutina {index + 1} de {totalRoutines}
-          </span>
-        )}
-        <span className="font-mono text-xs font-semibold text-teal2">
-          ~{routine.estimatedMinutes || 0} min
-        </span>
-      </div>
-
-      {/* Center: Title and stats */}
-      <div className="relative my-auto py-3">
-        <h3 className="font-display line-clamp-2 text-[28px] sm:text-[30px] uppercase leading-[0.96] tracking-wide text-white">
-          {routine.name}
-        </h3>
-        <p className="mt-2 text-xs leading-relaxed text-white/70">
-          {routine.exercises?.length || 0} {routine.exercises?.length === 1 ? "ejercicio" : "ejercicios"} · {routine.totalSets || 0} series
-        </p>
-      </div>
-
-      {/* Bottom Actions */}
-      <div className="relative flex flex-col gap-2">
-        <Link
-          href={`/rutinas/${routine.id}`}
-          className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-white text-sm font-semibold text-onlight shadow-md transition hover:opacity-90 active:scale-[0.98]"
+    <div className={withRule ? "border-t border-white/15 pt-3.5" : ""}>
+      <div className="flex items-center gap-3.5">
+        <span
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border ${
+            accent ? "border-[#FF7A4D]/50 text-[#FF9068]" : "border-white/30 text-white"
+          }`}
         >
-          Ver rutina
           <svg
             viewBox="0 0 24 24"
-            width="15"
-            height="15"
+            width="19"
+            height="19"
             fill="none"
             stroke="currentColor"
-            strokeWidth="2.2"
+            strokeWidth="1.9"
             strokeLinecap="round"
             strokeLinejoin="round"
           >
-            <path d="M5 12h14" />
-            <path d="M12 5l7 7-7 7" />
+            {META_ICONS[kind]}
           </svg>
-        </Link>
+        </span>
+        <p className="flex items-baseline gap-1.5">
+          <span className="font-sans text-[26px] font-bold leading-none tracking-tight text-white">
+            {value}
+          </span>
+          <span className="text-[14px] text-white/70">{label}</span>
+        </p>
       </div>
-    </article>
+    </div>
   );
 }
 
-function AddRoutineCardItem({ isDesktop = false, highlighted = false }) {
+function RoutineCard({ routine, interactive }) {
+  const exerciseCount = routine.exercises?.length || 0;
+
   return (
     <article
-      className={`group relative flex min-h-[290px] flex-col items-center justify-between overflow-hidden rounded-[28px] border-2 border-dashed border-teal/40 bg-deep/80 p-6 text-center transition-all duration-300 hover:border-teal hover:bg-deep ${
-        isDesktop ? "w-full" : "w-[84vw] max-w-[340px] shrink-0 snap-start"
-      } ${
-        highlighted
-          ? "ring-4 ring-teal ring-offset-2 ring-offset-bg scale-[1.02] shadow-[0_0_35px_rgba(63,169,188,0.5)]"
-          : ""
-      }`}
+      className="relative flex h-full w-full flex-col justify-between overflow-hidden rounded-[30px] p-6 shadow-[0_18px_44px_rgba(24,6,6,0.45)] sm:p-7"
+      style={{
+        background:
+          "linear-gradient(150deg, #C4402F 0%, #A8322A 42%, #6E1F1A 100%)",
+      }}
     >
-      {/* Animated Background Pulse Aura */}
+      {/* Decoración: círculo grande y barras, como el diseño */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 animate-pulse opacity-40 transition-opacity group-hover:opacity-75"
-        style={{
-          background:
-            "radial-gradient(circle at 50% 40%, rgba(63,169,188,0.3) 0%, transparent 65%)",
-        }}
+        className="pointer-events-none absolute -right-16 top-[34%] h-[290px] w-[290px] rounded-full border border-white/12"
       />
-
-      {/* Top badge */}
-      <div className="relative">
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-teal/30 bg-teal/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-teal2">
-          <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-teal opacity-75" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-teal" />
-          </span>
-          Sumar día
-        </span>
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute bottom-14 right-8 flex items-end gap-5"
+      >
+        <span className="h-[64px] w-[3px] rounded-full bg-[#FF7A4D]/70" />
+        <span className="h-[104px] w-[3px] rounded-full bg-[#FF7A4D]/80" />
+        <span className="h-[148px] w-[3px] rounded-full bg-[#FF7A4D]" />
       </div>
 
-      {/* Center: Animated Icon + Text */}
-      <div className="relative my-auto flex flex-col items-center py-2">
-        <div className="relative mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-tr from-teal via-teal2 to-cyan-200 text-onlight shadow-[0_0_24px_rgba(63,169,188,0.4)] transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_32px_rgba(63,169,188,0.6)]">
-          <svg
-            viewBox="0 0 24 24"
-            width="24"
-            height="24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.4"
-            strokeLinecap="round"
-          >
-            <path d="M12 5v14" />
-            <path d="M5 12h14" />
-          </svg>
-        </div>
-
-        <h3 className="font-display text-[24px] uppercase leading-none tracking-wide text-white">
-          Nueva rutina
+      <div className="relative flex items-start justify-between gap-3">
+        <h3 className="font-sans line-clamp-2 text-[30px] font-bold leading-[1.05] tracking-tight text-white sm:text-[34px]">
+          {routine.name}
         </h3>
-        <p className="mt-2 max-w-[210px] text-xs leading-snug text-white/70">
-          Agregá otra rutina para sumar un nuevo día o variante semanal.
-        </p>
-      </div>
-
-      {/* Bottom Action Button */}
-      <div className="relative w-full">
-        <Link
-          href="/rutinas/nueva"
-          className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-teal via-teal2 to-teal text-sm font-semibold text-onlight shadow-[0_4px_20px_rgba(63,169,188,0.35)] transition-all hover:opacity-95 active:scale-[0.98]"
+        <span
+          aria-hidden="true"
+          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/35 text-white"
         >
           <svg
             viewBox="0 0 24 24"
-            width="15"
-            height="15"
+            width="19"
+            height="19"
             fill="none"
             stroke="currentColor"
-            strokeWidth="2.2"
+            strokeWidth="2"
             strokeLinecap="round"
+            strokeLinejoin="round"
           >
-            <path d="M12 5v14" />
-            <path d="M5 12h14" />
+            <path d="M7 17L17 7" />
+            <path d="M9 7h8v8" />
           </svg>
-          Crear rutina extra
-        </Link>
+        </span>
+      </div>
+
+      <div className="relative flex flex-col gap-3.5">
+        <MetaRow
+          kind="exercises"
+          value={exerciseCount}
+          label={exerciseCount === 1 ? "ejercicio" : "ejercicios"}
+          accent
+        />
+        <MetaRow kind="sets" value={routine.totalSets || 0} label="series" accent withRule />
+        <MetaRow kind="minutes" value={routine.estimatedMinutes || 0} label="min" withRule />
+      </div>
+
+      <div className="relative flex flex-col items-start gap-3">
+        {routine.isAssigned && (
+          <span className="rounded-full border border-white/25 bg-white/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-white">
+            Asignada
+          </span>
+        )}
+        {interactive ? (
+          <Link
+            href={`/rutinas/${routine.id}`}
+            className="inline-flex h-12 items-center gap-2.5 rounded-full border border-white/60 px-6 text-[15px] font-semibold text-white transition hover:bg-white/10 active:scale-[0.98]"
+          >
+            Ver Rutina
+            <svg
+              viewBox="0 0 24 24"
+              width="16"
+              height="16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M9 6l6 6-6 6" />
+            </svg>
+          </Link>
+        ) : (
+          <span
+            aria-hidden="true"
+            className="inline-flex h-12 items-center gap-2.5 rounded-full border border-white/60 px-6 text-[15px] font-semibold text-white"
+          >
+            Ver Rutina
+          </span>
+        )}
       </div>
     </article>
   );
 }
 
 export default function RoutinesCarousel({ routines = [] }) {
-  const trackRef = useRef(null);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [addHighlighted, setAddHighlighted] = useState(false);
+  const [top, setTop] = useState(0);
+  const [dx, setDx] = useState(0);
+  const [flyingTo, setFlyingTo] = useState(null);
+  // Card que acaba de salir: vuelve al fondo del mazo sin animar el regreso.
+  const [noAnimId, setNoAnimId] = useState(null);
+  const dragging = useRef(false);
   const [isDragging, setIsDragging] = useState(false);
-  const startXRef = useRef(0);
-  const scrollLeftRef = useRef(0);
-  const dragDistanceRef = useRef(0);
+  const startX = useRef(0);
+  // El delta vive tambien en un ref: en un flick rapido el pointerup puede
+  // llegar antes del re-render y el estado todavia estaria en 0.
+  const dxRef = useRef(0);
 
-  const totalSlides = routines.length + 1;
+  const total = routines.length;
+  const canSwipe = total > 1;
+  // Derivado, no sincronizado: si borran rutinas el indice viejo sigue siendo valido.
+  const safeTop = total === 0 ? 0 : top % total;
+
+  const advance = (direction) => {
+    if (flyingTo) return;
+    setFlyingTo(direction);
+  };
+
+  const handleFlyEnd = () => {
+    if (!flyingTo) return;
+    // La card que sale vuelve al fondo: sin esto animaria de vuelta cruzando
+    // la pantalla, porque React reusa el nodo (misma key).
+    setNoAnimId(routines[safeTop]?.id ?? null);
+    setFlyingTo(null);
+    dxRef.current = 0;
+    setDx(0);
+    setTop((current) => (current + 1) % total);
+    requestAnimationFrame(() => requestAnimationFrame(() => setNoAnimId(null)));
+  };
 
   useEffect(() => {
-    const el = trackRef.current;
-    if (!el) return;
+    if (!flyingTo) return undefined;
+    const timer = setTimeout(() => handleFlyEnd(), 420);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [flyingTo, safeTop, total]);
 
-    let timeoutId;
-    const handleScroll = () => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        if (!el) return;
-        const scrollLeft = el.scrollLeft;
-        const cardWidth = el.firstElementChild?.offsetWidth || 300;
-        const gap = 14;
-        const newIndex = Math.round(scrollLeft / (cardWidth + gap));
-        setActiveIndex(Math.min(Math.max(newIndex, 0), totalSlides - 1));
-      }, 50);
-    };
-
-    el.addEventListener("scroll", handleScroll, { passive: true });
-    return () => {
-      clearTimeout(timeoutId);
-      el.removeEventListener("scroll", handleScroll);
-    };
-  }, [totalSlides]);
-
-  const scrollToIndex = (index) => {
-    if (!trackRef.current) return;
-    const children = trackRef.current.children;
-    if (children[index]) {
-      children[index].scrollIntoView({
-        behavior: "smooth",
-        block: "nearest",
-        inline: "start",
-      });
-      setActiveIndex(index);
-    }
-  };
-
-  const handleTriggerAddAnimation = () => {
-    scrollToIndex(routines.length);
-    setAddHighlighted(true);
-    setTimeout(() => {
-      setAddHighlighted(false);
-    }, 1500);
-  };
-
-  const handleMouseDown = (e) => {
-    if (!trackRef.current) return;
+  const onPointerDown = (event) => {
+    if (!canSwipe || flyingTo) return;
+    if (event.target.closest("a")) return;
+    dragging.current = true;
     setIsDragging(true);
-    startXRef.current = e.pageX - trackRef.current.offsetLeft;
-    scrollLeftRef.current = trackRef.current.scrollLeft;
-    dragDistanceRef.current = 0;
-  };
-
-  const handleMouseMove = (e) => {
-    if (!isDragging || !trackRef.current) return;
-    e.preventDefault();
-    const x = e.pageX - trackRef.current.offsetLeft;
-    const walk = (x - startXRef.current) * 1.3;
-    dragDistanceRef.current = Math.abs(walk);
-    trackRef.current.scrollLeft = scrollLeftRef.current - walk;
-  };
-
-  const handleMouseUpOrLeave = () => {
-    setIsDragging(false);
-  };
-
-  const handleCardClickCapture = (e) => {
-    if (dragDistanceRef.current > 10) {
-      e.preventDefault();
-      e.stopPropagation();
+    startX.current = event.clientX;
+    try {
+      event.currentTarget.setPointerCapture?.(event.pointerId);
+    } catch {
+      // Algunos navegadores tiran si el pointer ya no esta activo: el drag
+      // sigue funcionando igual sin capture.
     }
   };
 
-  if (routines.length === 0) {
+  const onPointerMove = (event) => {
+    if (!dragging.current) return;
+    const delta = event.clientX - startX.current;
+    if (Math.abs(delta) < DRAG_START_SLOP) return;
+    dxRef.current = delta;
+    setDx(delta);
+  };
+
+  const onPointerUp = () => {
+    if (!dragging.current) return;
+    dragging.current = false;
+    setIsDragging(false);
+    const delta = dxRef.current;
+    dxRef.current = 0;
+    if (Math.abs(delta) > SWIPE_THRESHOLD) {
+      advance(delta > 0 ? "right" : "left");
+    } else {
+      setDx(0);
+    }
+  };
+
+  if (total === 0) {
     return null;
   }
 
+  const visible = Array.from({ length: Math.min(VISIBLE_DEPTH, total) }, (_, depth) => ({
+    depth,
+    routine: routines[(safeTop + depth) % total],
+  }));
+
   return (
     <section aria-label="Tus rutinas" className="relative">
-      {/* Header bar with counter, add routine button and view all */}
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-orange-600">
+          <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#FF5524]">
             Tus Rutinas
           </p>
-          <span className="font-mono-digit rounded-md bg-black/[0.05] px-2 py-0.5 text-xs text-[#18120f]">
-            {routines.length}
+          <span className="rounded-md bg-white/10 px-2 py-0.5 text-xs font-semibold text-white">
+            {total}
           </span>
         </div>
-
-        <div className="flex items-center gap-2">
-          <Link
-            href="/rutinas/nueva"
-            className="flex h-7 items-center gap-1 rounded-full border border-orange-500/30 bg-orange-50 px-2.5 text-xs font-semibold text-orange-600 transition hover:border-orange-500 hover:bg-orange-100"
-          >
-            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
-              <path d="M12 5v14" />
-              <path d="M5 12h14" />
-            </svg>
-            <span>Nueva</span>
-          </Link>
-
-          <Link
-            href="/rutinas"
-            className="text-xs font-medium text-[#a39a91] transition hover:text-[#18120f]"
-          >
-            Ver todas
-          </Link>
-        </div>
-      </div>
-
-      {/* Desktop Web Layout: Clean 2-column Grid */}
-      <div className="hidden sm:grid sm:grid-cols-2 gap-4">
-        {routines.map((routine, index) => (
-          <RoutineCardItem
-            key={routine.id}
-            routine={routine}
-            index={index}
-            totalRoutines={routines.length}
-            isDesktop={true}
-          />
-        ))}
-        <AddRoutineCardItem isDesktop={true} highlighted={addHighlighted} />
-      </div>
-
-      {/* Mobile Layout: Horizontal Swipe Carousel */}
-      <div className="sm:hidden">
-        <div
-          ref={trackRef}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUpOrLeave}
-          onMouseLeave={handleMouseUpOrLeave}
-          onClickCapture={handleCardClickCapture}
-          className={`-mx-[18px] flex gap-3.5 overflow-x-auto px-[18px] py-1 scrollbar-none snap-x snap-mandatory scroll-smooth overscroll-x-contain ${
-            isDragging ? "cursor-grabbing select-none" : "cursor-grab"
-          }`}
-          style={{ WebkitOverflowScrolling: "touch" }}
+        <Link
+          href="/rutinas"
+          className="text-xs font-medium text-white/60 transition hover:text-white"
         >
-          {routines.map((routine, index) => (
-            <RoutineCardItem
-              key={routine.id}
-              routine={routine}
-              index={index}
-              totalRoutines={routines.length}
-              isDesktop={false}
-            />
-          ))}
-          <AddRoutineCardItem isDesktop={false} highlighted={addHighlighted} />
-        </div>
+          Ver todas
+        </Link>
+      </div>
 
-        {/* Mobile Pagination Dots */}
-        <div className="mt-3 flex items-center justify-center gap-1.5">
-          {Array.from({ length: totalSlides }).map((_, idx) => {
-            const isAddSlide = idx === routines.length;
-            const isActive = activeIndex === idx;
+      {/* Mazo: la card de adelante se desliza y pasa al fondo */}
+      <div className="relative mx-auto h-[430px] w-full max-w-[460px] pt-6">
+        {visible
+          .slice()
+          .reverse()
+          .map(({ depth, routine }) => {
+            const isFront = depth === 0;
+            const dragRotation = isFront ? dx / 22 : 0;
+            const flying = isFront && flyingTo;
+
+            const transform = flying
+              ? `translateX(${flyingTo === "right" ? 130 : -130}%) rotate(${
+                  flyingTo === "right" ? 16 : -16
+                }deg)`
+              : `translateX(${isFront ? dx : 0}px) translateY(-${depth * 18}px) scale(${
+                  1 - depth * 0.055
+                }) rotate(${dragRotation}deg)`;
 
             return (
-              <button
-                key={idx}
-                type="button"
-                onClick={() => scrollToIndex(idx)}
-                aria-label={`Ir a la tarjeta ${idx + 1}`}
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  isActive
-                    ? isAddSlide
-                      ? "w-6 bg-orange-500"
-                      : "w-6 bg-[#18120f]"
-                    : isAddSlide
-                    ? "w-2 bg-orange-500/30 hover:bg-orange-500/60"
-                    : "w-2 bg-black/15 hover:bg-black/30"
+              <div
+                key={routine.id}
+                className={`absolute inset-x-0 top-6 bottom-0 ${
+                  isFront ? "cursor-grab touch-pan-y active:cursor-grabbing" : "pointer-events-none"
                 }`}
-              />
+                style={{
+                  zIndex: VISIBLE_DEPTH - depth,
+                  transform,
+                  opacity: flying ? 0 : 1,
+                  // Las de atrás se aclaran y desaturan, como en el diseño.
+                  filter: isFront ? "none" : `brightness(${1 + depth * 0.55}) saturate(${1 - depth * 0.45})`,
+                  transition:
+                    routine.id === noAnimId || (isDragging && isFront && !flying)
+                      ? "none"
+                      : "transform 320ms cubic-bezier(0.22, 0.61, 0.36, 1), opacity 320ms ease",
+                }}
+                onPointerDown={isFront ? onPointerDown : undefined}
+                onPointerMove={isFront ? onPointerMove : undefined}
+                onPointerUp={isFront ? onPointerUp : undefined}
+                onPointerCancel={isFront ? onPointerUp : undefined}
+                onTransitionEnd={isFront ? handleFlyEnd : undefined}
+                aria-hidden={isFront ? undefined : "true"}
+              >
+                <RoutineCard routine={routine} interactive={isFront && !flying} />
+              </div>
             );
           })}
-        </div>
       </div>
+
+      {canSwipe && (
+        <div className="mt-4 flex items-center justify-center gap-3">
+          <button
+            type="button"
+            onClick={() => advance("right")}
+            aria-label="Rutina siguiente"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-white/25 text-white/80 transition hover:bg-white/10 active:scale-95"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="16"
+              height="16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M9 6l6 6-6 6" />
+            </svg>
+          </button>
+
+          <div className="flex items-center gap-1.5">
+            {routines.map((routine, index) => (
+              <span
+                key={routine.id}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  index === safeTop ? "w-6 bg-[#FF5524]" : "w-2 bg-white/25"
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </section>
   );
 }
