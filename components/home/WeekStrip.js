@@ -82,14 +82,14 @@ export default function WeekStrip({ trainedDates = [], streak = 0 }) {
   return (
     <section
       aria-label="Tu semana"
-      className="rounded-[26px] border border-black/[0.05] bg-surface p-3.5 shadow-[0_6px_20px_rgba(24,18,15,0.08)] sm:p-4"
+      className="rounded-[10px] border border-[#5A1215] bg-surface p-4 shadow-sm sm:p-5"
     >
-      <div className="flex items-center justify-between gap-2 px-1.5 pb-3.5">
+      <div className="flex items-center justify-between gap-2 pb-4">
         <button
           type="button"
           aria-label="Semana anterior"
           onClick={() => setWeekOffset((n) => n - 1)}
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] text-[#2E2B28] transition hover:bg-black/[0.05] active:scale-95"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[8px] text-[#3B0A0C] transition hover:bg-[#D9D3CA] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent active:scale-95"
         >
           <svg
             viewBox="0 0 24 24"
@@ -105,7 +105,10 @@ export default function WeekStrip({ trainedDates = [], streak = 0 }) {
           </svg>
         </button>
 
-        <p className="min-w-0 truncate text-center text-[13px] font-bold uppercase tracking-[0.12em] text-[#2E2B28]">
+        <p
+          aria-live="polite"
+          className="min-w-0 truncate text-center text-[13px] font-bold uppercase tracking-[0.12em] text-[#3B0A0C]"
+        >
           {rangeLabel(days[0].date, days[6].date)}
         </p>
 
@@ -113,7 +116,7 @@ export default function WeekStrip({ trainedDates = [], streak = 0 }) {
           type="button"
           aria-label="Semana siguiente"
           onClick={() => setWeekOffset((n) => n + 1)}
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] text-[#2E2B28] transition hover:bg-black/[0.05] active:scale-95"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[8px] text-[#3B0A0C] transition hover:bg-[#D9D3CA] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent active:scale-95"
         >
           <svg
             viewBox="0 0 24 24"
@@ -135,22 +138,22 @@ export default function WeekStrip({ trainedDates = [], streak = 0 }) {
           <div
             key={i}
             aria-current={day.isToday ? "date" : undefined}
-            className={`flex min-h-[92px] flex-col items-center justify-center gap-1.5 rounded-[16px] border py-3 transition sm:min-h-[104px] ${
+            className={`flex min-h-[72px] flex-col items-center justify-center gap-1.5 rounded-[8px] border py-2.5 transition sm:min-h-[84px] ${
               day.isToday
-                ? "border-transparent bg-[#FF5524] shadow-[0_6px_16px_rgba(255,85,36,0.35)]"
-                : "border-black/[0.04] bg-white"
+                ? "border-[#D94323] bg-accent shadow-[0_5px_14px_rgba(90,18,21,0.22)]"
+                : "border-[#D0C8BE] bg-[#F4F1EC]"
             }`}
           >
             <span
               className={`text-[10px] font-bold uppercase tracking-[0.06em] sm:text-[11px] ${
-                day.isToday ? "text-white/85" : "text-[#8C827A]"
+                day.isToday ? "text-[#3B0A0C]" : "text-[#645C55]"
               }`}
             >
               {day.label}
             </span>
             <span
               className={`font-sans text-[19px] font-bold leading-none sm:text-[22px] ${
-                day.isToday ? "text-white" : "text-[#2E2B28]"
+                day.isToday ? "text-[#3B0A0C]" : "text-[#2E2B28]"
               }`}
             >
               {day.date.getDate()}
@@ -160,8 +163,8 @@ export default function WeekStrip({ trainedDates = [], streak = 0 }) {
               className={`h-1.5 w-1.5 rounded-full ${
                 day.trained
                   ? day.isToday
-                    ? "bg-white"
-                    : "bg-[#FF5524]"
+                    ? "bg-[#3B0A0C]"
+                    : "bg-accent"
                   : "bg-transparent"
               }`}
             />
@@ -170,8 +173,8 @@ export default function WeekStrip({ trainedDates = [], streak = 0 }) {
       </div>
 
       {streak > 0 && (
-        <p className="pt-3 text-center text-[11px] font-semibold text-[#8C827A]">
-          <span className="text-[#FF5524]">{streak}</span>{" "}
+        <p className="pt-4 text-center text-[11px] font-semibold text-[#645C55]">
+          <span className="text-accent">{streak}</span>{" "}
           {streak === 1 ? "día seguido" : "días seguidos"} entrenando
         </p>
       )}

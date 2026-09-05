@@ -62,7 +62,12 @@ export default async function Home() {
 
   return (
     <div className="flex flex-col w-full bg-[#35080A] pb-28 md:pb-12">
-      {/* 1. TOP HALF: Panoramic Athletic Dumbbells Hero matching Image 1 & 2 */}
+      {/* 1. Calendario: primera lectura y acceso rapido a la semana */}
+      <div className="mx-auto w-full max-w-[1360px] px-4 pt-4 pb-4 sm:px-6 md:pt-20 lg:px-7">
+        <WeekStrip trainedDates={trainedDates} streak={streak} />
+      </div>
+
+      {/* 2. TOP HALF: Panoramic Athletic Dumbbells Hero matching Image 1 & 2 */}
       <HomeHero
         routineId={activeRoutine.id}
         routineName={activeRoutine.name}
@@ -75,12 +80,11 @@ export default async function Home() {
         accountEmail={user.email || null}
       />
 
-      {/* 2. Métricas */}
+      {/* 3. Métricas */}
       <HomeStats volumeKg={weekVolume > 0 ? weekVolume : 2040} setsCount={17} targetSets={26} />
 
-      {/* 3. Calendario semanal + rutinas */}
-      <div className="mx-auto flex w-full max-w-[1360px] flex-col gap-5 px-4 pb-4 sm:px-6 lg:px-7">
-        <WeekStrip trainedDates={trainedDates} streak={streak} />
+      {/* 4. Rutinas */}
+      <div className="mx-auto flex w-full max-w-[1360px] flex-col px-4 pb-4 sm:px-6 lg:px-7">
         <RoutinesCarousel routines={visibleRoutines} />
       </div>
     </div>
