@@ -2,10 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { isOwnTransformTransition, nextRoutineIndex } from "@/lib/routines/carousel";
 
 const SWIPE_THRESHOLD = 90;
 const DRAG_START_SLOP = 6;
 const VISIBLE_DEPTH = 3;
+const FLIGHT_FALLBACK_MS = 420;
 
 const META_ICONS = {
   exercises: (
@@ -162,41 +164,6 @@ function RoutineCard({ routine, interactive }) {
   );
 }
 
-function AddRoutineCard({ interactive }) {
-  return (
-    <article
-      className="relative flex h-full w-full flex-col items-start justify-between overflow-hidden rounded-[30px] border-2 border-dashed border-white/25 p-6 shadow-[0_18px_44px_rgba(24,6,6,0.45)] sm:p-7"
-      style={{ background: "linear-gradient(150deg, #4A130F 0%, #35080A 55%, #240607 100%)" }}
-    >
-      <h3 className="font-sans text-[30px] font-bold leading-[1.05] tracking-tight text-white sm:text-[34px]">
-        Nueva rutina
-      </h3>
-      <p className="max-w-[260px] text-[15px] leading-relaxed text-white/70">
-        Sumá otro día de entrenamiento o una variante de tu semana.
-      </p>
-      {interactive ? (
-        <Link
-          href="/rutinas/nueva"
-          className="inline-flex h-12 items-center gap-2.5 rounded-full bg-[#FF5524] px-6 text-[15px] font-semibold text-white transition hover:bg-[#F0491B] active:scale-[0.98]"
-        >
-          Crear rutina
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
-            <path d="M12 5v14" />
-            <path d="M5 12h14" />
-          </svg>
-        </Link>
-      ) : (
-        <span
-          aria-hidden="true"
-          className="inline-flex h-12 items-center rounded-full bg-[#FF5524] px-6 text-[15px] font-semibold text-white"
-        >
-          Crear rutina
-        </span>
-      )}
-    </article>
-  );
-}
-
 export default function RoutinesCarousel({ routines = [] }) {
   const [top, setTop] = useState(0);
   const [dx, setDx] = useState(0);
@@ -206,47 +173,50 @@ export default function RoutinesCarousel({ routines = [] }) {
   const dragging = useRef(false);
   const [isDragging, setIsDragging] = useState(false);
   const startX = useRef(0);
+  // Evita que transitionend y el fallback completen el mismo vuelo dos veces.
+  const flyingRef = useRef(false);
   // El delta vive tambien en un ref: en un flick rapido el pointerup puede
   // llegar antes del re-render y el estado todavia estaria en 0.
   const dxRef = useRef(0);
 
-  // La card de "nueva rutina" es parte del mazo: asi con una sola rutina el
-  // gesto de arrastre sigue teniendo a donde ir (antes no se movia nada).
-  const items = [
-    ...routines.map((routine) => ({ kind: "routine", id: routine.id, routine })),
-    { kind: "add", id: "__add__" },
-  ];
-  const total = items.length;
+  const total = routines.length;
   const canSwipe = total > 1;
   // Derivado, no sincronizado: si borran rutinas el indice viejo sigue siendo valido.
   const safeTop = total === 0 ? 0 : top % total;
 
   const advance = (direction) => {
-    if (flyingTo) return;
+    if (!canSwipe || flyingRef.current) return;
+    flyingRef.current = true;
     setFlyingTo(direction);
   };
 
   const handleFlyEnd = () => {
-    if (!flyingTo) return;
+    if (!flyingRef.current) return;
+    flyingRef.current = false;
     // La card que sale vuelve al fondo: sin esto animaria de vuelta cruzando
     // la pantalla, porque React reusa el nodo (misma key).
-    setNoAnimId(items[safeTop]?.id ?? null);
+    setNoAnimId(routines[safeTop]?.id ?? null);
     setFlyingTo(null);
     dxRef.current = 0;
     setDx(0);
-    setTop((current) => (current + 1) % total);
+    setTop((current) => nextRoutineIndex(current, total));
     requestAnimationFrame(() => requestAnimationFrame(() => setNoAnimId(null)));
+  };
+
+  const onFlightTransitionEnd = (event) => {
+    if (!isOwnTransformTransition(event)) return;
+    handleFlyEnd();
   };
 
   useEffect(() => {
     if (!flyingTo) return undefined;
-    const timer = setTimeout(() => handleFlyEnd(), 420);
+    const timer = setTimeout(() => handleFlyEnd(), FLIGHT_FALLBACK_MS);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flyingTo, safeTop, total]);
 
   const onPointerDown = (event) => {
-    if (!canSwipe || flyingTo) return;
+    if (!canSwipe || flyingRef.current) return;
     if (event.target.closest("a")) return;
     dragging.current = true;
     setIsDragging(true);
@@ -286,7 +256,7 @@ export default function RoutinesCarousel({ routines = [] }) {
 
   const visible = Array.from({ length: Math.min(VISIBLE_DEPTH, total) }, (_, depth) => ({
     depth,
-    item: items[(safeTop + depth) % total],
+    routine: routines[(safeTop + depth) % total],
   }));
 
   return (
@@ -313,7 +283,7 @@ export default function RoutinesCarousel({ routines = [] }) {
         {visible
           .slice()
           .reverse()
-          .map(({ depth, item }) => {
+          .map(({ depth, routine }) => {
             const isFront = depth === 0;
             const dragRotation = isFront ? dx / 22 : 0;
             const flying = isFront && flyingTo;
@@ -328,7 +298,7 @@ export default function RoutinesCarousel({ routines = [] }) {
 
             return (
               <div
-                key={item.id}
+                key={routine.id}
                 className={`absolute inset-x-0 top-6 bottom-0 select-none ${
                   isFront
                     ? canSwipe
@@ -343,7 +313,7 @@ export default function RoutinesCarousel({ routines = [] }) {
                   // Las de atrás se aclaran y desaturan, como en el diseño.
                   filter: isFront ? "none" : `brightness(${1 + depth * 0.55}) saturate(${1 - depth * 0.45})`,
                   transition:
-                    item.id === noAnimId || (isDragging && isFront && !flying)
+                    routine.id === noAnimId || (isDragging && isFront && !flying)
                       ? "none"
                       : "transform 320ms cubic-bezier(0.22, 0.61, 0.36, 1), opacity 320ms ease",
                 }}
@@ -351,14 +321,10 @@ export default function RoutinesCarousel({ routines = [] }) {
                 onPointerMove={isFront ? onPointerMove : undefined}
                 onPointerUp={isFront ? onPointerUp : undefined}
                 onPointerCancel={isFront ? onPointerUp : undefined}
-                onTransitionEnd={isFront ? handleFlyEnd : undefined}
+                onTransitionEnd={isFront ? onFlightTransitionEnd : undefined}
                 aria-hidden={isFront ? undefined : "true"}
               >
-                {item.kind === "add" ? (
-                  <AddRoutineCard interactive={isFront && !flying} />
-                ) : (
-                  <RoutineCard routine={item.routine} interactive={isFront && !flying} />
-                )}
+                <RoutineCard routine={routine} interactive={isFront && !flying} />
               </div>
             );
           })}
@@ -387,9 +353,9 @@ export default function RoutinesCarousel({ routines = [] }) {
           </button>
 
           <div className="flex items-center gap-1.5">
-            {items.map((item, index) => (
+            {routines.map((routine, index) => (
               <span
-                key={item.id}
+                key={routine.id}
                 className={`h-2 rounded-full transition-all duration-300 ${
                   index === safeTop ? "w-6 bg-[#FF5524]" : "w-2 bg-white/25"
                 }`}
