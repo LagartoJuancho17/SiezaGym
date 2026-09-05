@@ -4,7 +4,13 @@
 
 El mazo conserva el orden recibido desde la Home. Cada gesto o pulsación mueve exactamente la rutina frontal al final: `A → B → C → A`. La dirección del gesto cambia la dirección visual de salida, no el orden de la cola.
 
-La transición de `transform` del contenedor frontal es la única señal visual que puede completar el movimiento. Los eventos de `opacity`, las transiciones de elementos hijos y el temporizador de respaldo no pueden avanzar el índice una segunda vez.
+Solo las transiciones propias de `transform` u `opacity` del contenedor frontal pueden completar el movimiento. Las transiciones de elementos hijos y el temporizador de respaldo no pueden avanzar el índice una segunda vez.
+
+## Animación de promoción
+
+La tarjeta siguiente se expande desde el fondo mientras una capa clara desaturada desaparece para revelar el gradiente rojo principal. La transición usa únicamente `transform` y `opacity`, dura 260 ms y evita repintados de color cuadro a cuadro. La salida usa una curva `ease-out` fuerte y la promoción una curva `ease-in-out` fuerte.
+
+Con `prefers-reduced-motion`, el desplazamiento deja de animarse y se conserva una transición de opacidad de 150 ms para comunicar el cambio de estado sin movimiento espacial.
 
 ## Contenido
 
@@ -14,4 +20,4 @@ Con cero rutinas el bloque no se renderiza. Con una rutina se muestra la tarjeta
 
 ## Evidencia
 
-`tests/home-routines-carousel.test.js` comprueba el orden circular, el filtro del evento de transición y la ausencia de acciones de creación. La evaluación visual periódica está en `evals/home-routines-carousel.md`.
+`tests/home-routines-carousel.test.js` comprueba el orden circular, el filtro del evento de transición, la progresión de color y la ausencia de acciones de creación. La evaluación visual periódica está en `evals/home-routines-carousel.md`.

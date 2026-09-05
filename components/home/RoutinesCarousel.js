@@ -2,12 +2,16 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { isOwnTransformTransition, nextRoutineIndex } from "@/lib/routines/carousel";
+import {
+  isOwnFlightTransition,
+  nextRoutineIndex,
+  routineCardVeilOpacity,
+} from "@/lib/routines/carousel";
 
 const SWIPE_THRESHOLD = 90;
 const DRAG_START_SLOP = 6;
 const VISIBLE_DEPTH = 3;
-const FLIGHT_FALLBACK_MS = 420;
+const FLIGHT_FALLBACK_MS = 360;
 
 const META_ICONS = {
   exercises: (
@@ -66,8 +70,9 @@ function MetaRow({ kind, value, label, accent, withRule }) {
   );
 }
 
-function RoutineCard({ routine, interactive }) {
+function RoutineCard({ routine, interactive, depth }) {
   const exerciseCount = routine.exercises?.length || 0;
+  const colorVeilOpacity = routineCardVeilOpacity(depth);
 
   return (
     <article
@@ -77,6 +82,13 @@ function RoutineCard({ routine, interactive }) {
           "linear-gradient(150deg, #C4402F 0%, #A8322A 42%, #6E1F1A 100%)",
       }}
     >
+      {/* Las cards del fondo nacen en hueso y revelan el rojo al pasar al frente. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 bg-[#E2D8D0] transition-opacity duration-[260ms] ease-[cubic-bezier(0.77,0,0.175,1)] motion-reduce:duration-150 motion-reduce:ease-linear"
+        style={{ opacity: colorVeilOpacity }}
+      />
+
       {/* Decoración: círculo grande y barras, como el diseño */}
       <div
         aria-hidden="true"
@@ -204,7 +216,7 @@ export default function RoutinesCarousel({ routines = [] }) {
   };
 
   const onFlightTransitionEnd = (event) => {
-    if (!isOwnTransformTransition(event)) return;
+    if (!isOwnFlightTransition(event)) return;
     handleFlyEnd();
   };
 
@@ -287,6 +299,13 @@ export default function RoutinesCarousel({ routines = [] }) {
             const isFront = depth === 0;
             const dragRotation = isFront ? dx / 22 : 0;
             const flying = isFront && flyingTo;
+            const skipTransition =
+              routine.id === noAnimId || (isDragging && isFront && !flying);
+            const transitionClass = skipTransition
+              ? "transition-none"
+              : flying
+                ? "transition-[transform,opacity] duration-[260ms] ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:transition-opacity motion-reduce:duration-150 motion-reduce:ease-linear"
+                : "transition-[transform,opacity] duration-[260ms] ease-[cubic-bezier(0.77,0,0.175,1)] motion-reduce:transition-opacity motion-reduce:duration-150 motion-reduce:ease-linear";
 
             const transform = flying
               ? `translateX(${flyingTo === "right" ? 130 : -130}%) rotate(${
@@ -299,7 +318,7 @@ export default function RoutinesCarousel({ routines = [] }) {
             return (
               <div
                 key={routine.id}
-                className={`absolute inset-x-0 top-6 bottom-0 select-none ${
+                className={`absolute inset-x-0 top-6 bottom-0 origin-top select-none will-change-[transform,opacity] ${transitionClass} ${
                   isFront
                     ? canSwipe
                       ? "cursor-grab touch-pan-y active:cursor-grabbing"
@@ -310,12 +329,6 @@ export default function RoutinesCarousel({ routines = [] }) {
                   zIndex: VISIBLE_DEPTH - depth,
                   transform,
                   opacity: flying ? 0 : 1,
-                  // Las de atrás se aclaran y desaturan, como en el diseño.
-                  filter: isFront ? "none" : `brightness(${1 + depth * 0.55}) saturate(${1 - depth * 0.45})`,
-                  transition:
-                    routine.id === noAnimId || (isDragging && isFront && !flying)
-                      ? "none"
-                      : "transform 320ms cubic-bezier(0.22, 0.61, 0.36, 1), opacity 320ms ease",
                 }}
                 onPointerDown={isFront ? onPointerDown : undefined}
                 onPointerMove={isFront ? onPointerMove : undefined}
@@ -324,7 +337,11 @@ export default function RoutinesCarousel({ routines = [] }) {
                 onTransitionEnd={isFront ? onFlightTransitionEnd : undefined}
                 aria-hidden={isFront ? undefined : "true"}
               >
-                <RoutineCard routine={routine} interactive={isFront && !flying} />
+                <RoutineCard
+                  routine={routine}
+                  interactive={isFront && !flying}
+                  depth={depth}
+                />
               </div>
             );
           })}

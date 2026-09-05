@@ -1,8 +1,9 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
-  isOwnTransformTransition,
+  isOwnFlightTransition,
   nextRoutineIndex,
+  routineCardVeilOpacity,
 } from "../lib/routines/carousel";
 
 const carouselSource = readFileSync(
@@ -25,19 +26,32 @@ describe("mazo de rutinas de la Home", () => {
     expect(nextRoutineIndex(2, ROUTINES.length)).toBe(0);
   });
 
-  it("solo completa el vuelo con el transitionend propio de transform", () => {
+  it("solo completa el vuelo con transiciones propias de movimiento o salida", () => {
     const card = {};
     const child = {};
 
     expect(
-      isOwnTransformTransition({ target: card, currentTarget: card, propertyName: "transform" }),
+      isOwnFlightTransition({ target: card, currentTarget: card, propertyName: "transform" }),
     ).toBe(true);
     expect(
-      isOwnTransformTransition({ target: card, currentTarget: card, propertyName: "opacity" }),
+      isOwnFlightTransition({ target: card, currentTarget: card, propertyName: "opacity" }),
+    ).toBe(true);
+    expect(
+      isOwnFlightTransition({ target: card, currentTarget: card, propertyName: "filter" }),
     ).toBe(false);
     expect(
-      isOwnTransformTransition({ target: child, currentTarget: card, propertyName: "transform" }),
+      isOwnFlightTransition({ target: child, currentTarget: card, propertyName: "transform" }),
     ).toBe(false);
+  });
+
+  it("revela el color principal a medida que la tarjeta llega al frente", () => {
+    expect(routineCardVeilOpacity(0)).toBe(0);
+    expect(routineCardVeilOpacity(1)).toBeCloseTo(0.42);
+    expect(routineCardVeilOpacity(2)).toBeCloseTo(0.58);
+    expect(routineCardVeilOpacity(10)).toBe(0.68);
+    expect(carouselSource).toContain("transition-[transform,opacity]");
+    expect(carouselSource).toContain("transition-opacity duration-[260ms]");
+    expect(carouselSource).toContain("motion-reduce:transition-opacity");
   });
 
   it("muestra únicamente rutinas reales y no ofrece crear una desde la Home", () => {
