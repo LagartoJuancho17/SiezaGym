@@ -64,24 +64,22 @@ export default async function RutinasPage() {
   const months = groupByMonthAndWeek(allItems, toParts);
   const undated = itemsWithoutDate(allItems);
 
-  const todayKey = toLocalDayKey(new Date());
-  const [todayYear, todayMonth, todayDay] = todayKey.split("-").map(Number);
+  const [todayYear, todayMonth, todayDay] = toLocalDayKey(new Date()).split("-").map(Number);
   const currentMonthKey = `${todayYear}-${String(todayMonth).padStart(2, "0")}`;
   const currentWeek = weekOfMonth(todayDay);
 
-  const initial = (profile?.displayName || user.email || "T").charAt(0).toUpperCase();
+  const hero = {
+    title: "Rutinas",
+    accountInitial: (profile?.displayName || user.email || "T").charAt(0).toUpperCase(),
+    accountPhotoURL: profile?.photoURL || null,
+    accountEmail: user.email || null,
+  };
 
-  return (
-    <div className="flex w-full flex-col bg-[#35080A] pb-28 md:pb-12">
-      <RoutinesHero
-        title="Rutinas"
-        accountInitial={initial}
-        accountPhotoURL={profile?.photoURL || null}
-        accountEmail={user.email || null}
-      />
-
-      <div className="mx-auto flex w-full max-w-[1360px] flex-col gap-2 px-3 pt-3 sm:px-5">
-        {allItems.length === 0 ? (
+  if (allItems.length === 0) {
+    return (
+      <div className="flex w-full flex-col bg-[#35080A] pb-28 md:pb-12">
+        <RoutinesHero {...hero} />
+        <div className="mx-auto w-full max-w-[1360px] px-3 pt-3 sm:px-5">
           <div className="rounded-[14px] bg-surface p-8 text-center">
             <p className="text-sm font-medium text-[#6E665E]">
               Todavía no armaste ninguna rutina.
@@ -93,38 +91,38 @@ export default async function RutinasPage() {
               Crear la primera
             </Link>
           </div>
-        ) : (
-          <>
-            <RoutineSchedule
-              months={months}
-              currentMonthKey={currentMonthKey}
-              currentWeek={currentWeek}
-            />
-
-            {undated.length > 0 && (
-              <div className="mt-2 flex flex-col gap-2">
-                <p className="px-1 text-[13px] font-semibold text-white/70">Sin fecha</p>
-                {undated.map((item) => (
-                  <RoutineRow
-                    key={`${item.isAssigned ? "asg" : "own"}-${item.id}`}
-                    routine={item}
-                  />
-                ))}
-              </div>
-            )}
-
-            <Link
-              href="/rutinas/nueva"
-              className="mt-2 flex h-12 items-center justify-center gap-2 rounded-[14px] bg-[#FF5733] text-sm font-bold text-white transition hover:bg-[#E84D29] active:scale-[0.99]"
-            >
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true">
-                <path d="M12 5v14M5 12h14" />
-              </svg>
-              Nueva rutina
-            </Link>
-          </>
-        )}
+        </div>
       </div>
+    );
+  }
+
+  return (
+    <div className="flex w-full flex-col bg-[#35080A] pb-28 md:pb-12">
+      <RoutineSchedule
+        hero={hero}
+        months={months}
+        currentMonthKey={currentMonthKey}
+        currentWeek={currentWeek}
+      >
+        {undated.length > 0 && (
+          <div className="mt-2 flex flex-col gap-2">
+            <p className="px-1 text-[13px] font-semibold text-white/70">Sin fecha</p>
+            {undated.map((item) => (
+              <RoutineRow key={`${item.isAssigned ? "asg" : "own"}-${item.id}`} routine={item} />
+            ))}
+          </div>
+        )}
+
+        <Link
+          href="/rutinas/nueva"
+          className="mt-2 flex h-12 items-center justify-center gap-2 rounded-[14px] bg-[#FF5733] text-sm font-bold text-white transition hover:bg-[#E84D29] active:scale-[0.99]"
+        >
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+          Nueva rutina
+        </Link>
+      </RoutineSchedule>
     </div>
   );
 }
