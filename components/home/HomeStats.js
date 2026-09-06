@@ -53,7 +53,7 @@ export default function HomeStats({
         </div>
 
         <CaloriesGoalWidget calories={calories} className="order-7 col-span-6 lg:order-none lg:col-span-5" />
-        <WeekStrip trainedDates={trainedDates} streak={streak} className="order-8 col-span-6 lg:order-none lg:col-span-7" />
+        <WeekStrip trainedDates={trainedDates} streak={streak} className="hidden lg:col-span-7 lg:block" />
       </div>
     </section>
   );

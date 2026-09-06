@@ -15,11 +15,15 @@ const metricsSource = readFileSync(
 );
 
 describe("calendario de la pantalla principal", () => {
-  it("vive dentro de la grilla de métricas, no suelto en la página", () => {
-    // Antes estaba arriba de todo. Ahora es un widget mas de HomeStats.
-    expect(homePageSource).not.toContain("<WeekStrip");
-    expect(homePageSource).toContain("<HomeStats");
+  it("tiene una instancia por breakpoint: arriba de todo en mobile, en la grilla en escritorio", () => {
+    // En mobile va antes del hero; en escritorio vive dentro de HomeStats.
+    expect(homePageSource).toContain("<WeekStrip");
+    expect(homePageSource.indexOf("<WeekStrip")).toBeLessThan(
+      homePageSource.indexOf("<HomeHero"),
+    );
+    expect(homePageSource).toContain("lg:hidden");
     expect(metricsSource).toContain("<WeekStrip");
+    expect(metricsSource).toContain("hidden lg:col-span-7 lg:block");
   });
 
   it("el hero va antes que las métricas y las rutinas", () => {
