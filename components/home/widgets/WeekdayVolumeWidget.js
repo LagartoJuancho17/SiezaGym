@@ -13,7 +13,16 @@ export default function WeekdayVolumeWidget({ days, className }) {
       <div>
         <WidgetValue
           value={best.kg > 0 ? best.label : "—"}
-          status={best.kg > 0 ? `${best.kg.toLocaleString("es-AR")} kg` : "Sin datos"}
+          status={
+            best.kg > 0 ? (
+              // A 3 columnas en mobile no entra al lado del dia: se muestra desde sm.
+              <span className="hidden whitespace-nowrap sm:inline">
+                {best.kg.toLocaleString("es-AR")} kg
+              </span>
+            ) : (
+              "Sin datos"
+            )
+          }
           size="md"
         />
       </div>
@@ -39,7 +48,9 @@ export default function WeekdayVolumeWidget({ days, className }) {
             });
           })}
         </svg>
-        <div className="flex justify-between px-1 text-[10px] text-[#8C827A]">
+        {/* A 3 columnas en mobile los 7 nombres no entran: el valor grande
+            ya dice cual es el dia. */}
+        <div className="hidden justify-between px-1 text-[10px] text-[#8C827A] sm:flex">
           {days.map((d) => (
             <span key={d.label}>{d.label}</span>
           ))}

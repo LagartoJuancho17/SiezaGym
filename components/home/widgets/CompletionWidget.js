@@ -21,7 +21,7 @@ export default function CompletionWidget({ completion, className }) {
 
       <div className="mt-3">
         <WidgetMeter pct={completion.pct} marker={completion.hasData ? completion.label : null} />
-        <WidgetScale ticks={["0", "90", "95", "100"]} />
+        <WidgetScale ticks={["0", "90", "95", "100"]} compact />
       </div>
     </WidgetCard>
   );

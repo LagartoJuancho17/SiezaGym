@@ -4,7 +4,8 @@ import WidgetCard, { WidgetValue, CHART_LIGHT, CHART_DARK, CHART_ACCENT } from "
 // izquierda, tramos horizontales por serie y conectores verticales punteados.
 const LEVELS = ["Peak", "High", "Med", "Light"];
 const ROW_Y = [10, 34, 58, 82];
-const COLORS = [CHART_LIGHT, CHART_LIGHT, CHART_DARK, CHART_ACCENT];
+// light, med, high, peak
+const COLORS = [CHART_LIGHT, CHART_DARK, CHART_DARK, CHART_ACCENT];
 
 export default function IntensityZonesWidget({ zones, sequence, durationText, className }) {
   const steps = sequence.length > 0 ? sequence : [];

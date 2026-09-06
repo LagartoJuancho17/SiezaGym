@@ -16,7 +16,7 @@ export default function PushPullWidget({ balance, className }) {
       <div className="mt-3">
         {/* Sin datos la barra queda en gris: no insinuar un 50% que no existe. */}
         <WidgetMeter pct={balance.hasData ? balance.pct : 0} marker={balance.hasData ? balance.label : null} />
-        <WidgetScale ticks={["Tracción", "50", "Empuje"]} />
+        <WidgetScale ticks={["Tracción", "50", "Empuje"]} compact />
       </div>
     </WidgetCard>
   );

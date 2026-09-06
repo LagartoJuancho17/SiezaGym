@@ -28,7 +28,7 @@ export function WidgetValue({ value, unit, status, size = "lg" }) {
       <div className="flex items-baseline gap-1">
         <span
           className={`font-sans font-black tracking-tight text-[#141414] ${
-            size === "lg" ? "text-4xl" : "text-3xl"
+            size === "lg" ? "text-3xl sm:text-4xl" : "text-2xl sm:text-3xl"
           }`}
         >
           {value}
@@ -41,9 +41,14 @@ export function WidgetValue({ value, unit, status, size = "lg" }) {
 }
 
 /** Escala con marcas, como la de Hydration / Oxygen de la referencia. */
-export function WidgetScale({ ticks }) {
+// compact: a 3 columnas en mobile las marcas no entran, se muestran desde sm.
+export function WidgetScale({ ticks, compact = false }) {
   return (
-    <div className="mt-1 flex justify-between text-[10px] text-[#8C827A]">
+    <div
+      className={`mt-1 justify-between text-[10px] text-[#8C827A] ${
+        compact ? "hidden sm:flex" : "flex"
+      }`}
+    >
       {ticks.map((tick) => (
         <span key={tick}>{tick}</span>
       ))}
@@ -68,13 +73,14 @@ export function WidgetMeter({ pct, marker }) {
   return (
     <div>
       {marker && (
-        <div className="relative mb-1 h-4">
-          <span
-            className="absolute -translate-x-1/2 whitespace-nowrap text-[11px] text-[#575049]"
-            style={{ left: `${Math.min(92, Math.max(8, value))}%` }}
-          >
-            {marker}
-          </span>
+        // Alineada al lado del valor en vez de centrada sobre la marca: a 3
+        // columnas centrarla se salia de la card.
+        <div
+          className={`mb-1 flex text-[11px] text-[#575049] ${
+            value >= 50 ? "justify-end" : "justify-start"
+          }`}
+        >
+          <span className="truncate">{marker}</span>
         </div>
       )}
       <div className="relative h-[3px] w-full">
@@ -99,10 +105,10 @@ export function WidgetMeter({ pct, marker }) {
 export default function WidgetCard({ label, href, children, className = "" }) {
   return (
     <div
-      className={`flex flex-col justify-between rounded-[10px] border border-[#5A1215] bg-surface p-5 shadow-sm ${className}`}
+      className={`flex flex-col justify-between rounded-[10px] border border-[#5A1215] bg-surface p-3.5 shadow-sm sm:p-5 ${className}`}
     >
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-xs font-semibold text-[#6E665E]">{label}</span>
+      <div className="flex items-start justify-between gap-2">
+        <span className="text-xs font-semibold leading-tight text-[#6E665E]">{label}</span>
         {href ? (
           <a
             href={href}
