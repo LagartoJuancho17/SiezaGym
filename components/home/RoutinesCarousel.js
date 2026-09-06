@@ -39,17 +39,17 @@ const META_ICONS = {
 
 function MetaRow({ kind, value, label, accent, withRule }) {
   return (
-    <div className={withRule ? "border-t border-white/15 pt-3.5" : ""}>
-      <div className="flex items-center gap-3.5">
+    <div className={withRule ? "border-t border-white/15 pt-2.5" : ""}>
+      <div className="flex items-center gap-3">
         <span
-          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full border ${
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border ${
             accent ? "border-[#FF7A4D]/50 text-[#FF9068]" : "border-white/30 text-white"
           }`}
         >
           <svg
             viewBox="0 0 24 24"
-            width="19"
-            height="19"
+            width="17"
+            height="17"
             fill="none"
             stroke="currentColor"
             strokeWidth="1.9"
@@ -60,10 +60,10 @@ function MetaRow({ kind, value, label, accent, withRule }) {
           </svg>
         </span>
         <p className="flex items-baseline gap-1.5">
-          <span className="font-sans text-[26px] font-bold leading-none tracking-tight text-white">
+          <span className="font-sans text-[22px] font-bold leading-none tracking-tight text-white">
             {value}
           </span>
-          <span className="text-[14px] text-white/70">{label}</span>
+          <span className="text-[13px] text-white/70">{label}</span>
         </p>
       </div>
     </div>
@@ -76,7 +76,7 @@ function RoutineCard({ routine, interactive, depth }) {
 
   return (
     <article
-      className="relative flex h-full w-full flex-col justify-between overflow-hidden rounded-[30px] p-6 shadow-[0_18px_44px_rgba(24,6,6,0.45)] sm:p-7"
+      className="relative flex h-full w-full flex-col justify-between overflow-hidden rounded-[26px] p-5 shadow-[0_16px_38px_rgba(24,6,6,0.45)] sm:p-6"
       style={{
         background:
           "linear-gradient(150deg, #C4402F 0%, #A8322A 42%, #6E1F1A 100%)",
@@ -92,29 +92,29 @@ function RoutineCard({ routine, interactive, depth }) {
       {/* Decoración: círculo grande y barras, como el diseño */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -right-16 top-[34%] h-[290px] w-[290px] rounded-full border border-white/12"
+        className="pointer-events-none absolute -right-16 top-[34%] h-[250px] w-[250px] rounded-full border border-white/12"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute bottom-14 right-8 flex items-end gap-5"
+        className="pointer-events-none absolute bottom-12 right-7 flex items-end gap-4"
       >
-        <span className="h-[64px] w-[3px] rounded-full bg-[#FF7A4D]/70" />
-        <span className="h-[104px] w-[3px] rounded-full bg-[#FF7A4D]/80" />
-        <span className="h-[148px] w-[3px] rounded-full bg-[#FF7A4D]" />
+        <span className="h-[52px] w-[3px] rounded-full bg-[#FF7A4D]/70" />
+        <span className="h-[86px] w-[3px] rounded-full bg-[#FF7A4D]/80" />
+        <span className="h-[124px] w-[3px] rounded-full bg-[#FF7A4D]" />
       </div>
 
       <div className="relative flex items-start justify-between gap-3">
-        <h3 className="font-sans line-clamp-2 text-[30px] font-bold leading-[1.05] tracking-tight text-white sm:text-[34px]">
+        <h3 className="font-sans line-clamp-2 text-[26px] font-bold leading-[1.05] tracking-tight text-white sm:text-[29px]">
           {routine.name}
         </h3>
         <span
           aria-hidden="true"
-          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/35 text-white"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-white/35 text-white"
         >
           <svg
             viewBox="0 0 24 24"
-            width="19"
-            height="19"
+            width="17"
+            height="17"
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
@@ -127,7 +127,7 @@ function RoutineCard({ routine, interactive, depth }) {
         </span>
       </div>
 
-      <div className="relative flex flex-col gap-3.5">
+      <div className="relative flex flex-col gap-2.5">
         <MetaRow
           kind="exercises"
           value={exerciseCount}
@@ -147,7 +147,7 @@ function RoutineCard({ routine, interactive, depth }) {
         {interactive ? (
           <Link
             href={`/rutinas/${routine.id}`}
-            className="inline-flex h-12 items-center gap-2.5 rounded-full border border-white/60 px-6 text-[15px] font-semibold text-white transition hover:bg-white/10 active:scale-[0.98]"
+            className="inline-flex h-11 items-center gap-2.5 rounded-full border border-white/60 px-5 text-[14px] font-semibold text-white transition hover:bg-white/10 active:scale-[0.98]"
           >
             Ver Rutina
             <svg
@@ -166,7 +166,7 @@ function RoutineCard({ routine, interactive, depth }) {
         ) : (
           <span
             aria-hidden="true"
-            className="inline-flex h-12 items-center gap-2.5 rounded-full border border-white/60 px-6 text-[15px] font-semibold text-white"
+            className="inline-flex h-11 items-center gap-2.5 rounded-full border border-white/60 px-5 text-[14px] font-semibold text-white"
           >
             Ver Rutina
           </span>
@@ -291,7 +291,7 @@ export default function RoutinesCarousel({ routines = [] }) {
       </div>
 
       {/* Mazo: la card de adelante se desliza y pasa al fondo */}
-      <div className="relative mx-auto h-[430px] w-full max-w-[460px] pt-6">
+      <div className="relative mx-auto h-[366px] w-full max-w-[420px] pt-5">
         {visible
           .slice()
           .reverse()
