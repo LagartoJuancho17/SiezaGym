@@ -23,7 +23,6 @@ import {
 import HomeHero from "@/components/home/HomeHero";
 import HomeStats from "@/components/home/HomeStats";
 import RoutinesCarousel from "@/components/home/RoutinesCarousel";
-import WeekStrip from "@/components/home/WeekStrip";
 
 export const dynamic = "force-dynamic";
 
@@ -120,13 +119,6 @@ export default async function Home() {
 
   return (
     <div className="flex flex-col w-full bg-[#35080A] pb-28 md:pb-12">
-      {/* En mobile el calendario va arriba de todo. En escritorio vive dentro
-          de la grilla de metricas, asi que hay una instancia por breakpoint:
-          mismo patron que usa el resto de la Home para variantes mobile. */}
-      <div className="px-4 pb-4 pt-4 sm:px-6 lg:hidden">
-        <WeekStrip trainedDates={trainedDates} streak={streak} />
-      </div>
-
       {/* 1. TOP HALF: Panoramic Athletic Dumbbells Hero matching Image 1 & 2 */}
       <HomeHero
         routineId={activeRoutine.id}

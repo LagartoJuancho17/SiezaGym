@@ -15,15 +15,12 @@ const metricsSource = readFileSync(
 );
 
 describe("calendario de la pantalla principal", () => {
-  it("tiene una instancia por breakpoint: arriba de todo en mobile, en la grilla en escritorio", () => {
-    // En mobile va antes del hero; en escritorio vive dentro de HomeStats.
-    expect(homePageSource).toContain("<WeekStrip");
-    expect(homePageSource.indexOf("<WeekStrip")).toBeLessThan(
-      homePageSource.indexOf("<HomeHero"),
-    );
-    expect(homePageSource).toContain("lg:hidden");
+  it("va debajo del hero y primero de las métricas, con una sola instancia", () => {
+    expect(homePageSource).not.toContain("<WeekStrip");
     expect(metricsSource).toContain("<WeekStrip");
-    expect(metricsSource).toContain("hidden lg:col-span-7 lg:block");
+    // order-first lo pone antes de "Volumen por músculo" en mobile; en lg
+    // vuelve al orden del código, abajo a la derecha.
+    expect(metricsSource).toContain("order-first col-span-6 lg:order-none lg:col-span-7");
   });
 
   it("el hero va antes que las métricas y las rutinas", () => {
