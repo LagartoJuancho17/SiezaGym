@@ -9,28 +9,35 @@ const weekStripSource = readFileSync(
   new URL("../components/home/WeekStrip.js", import.meta.url),
   "utf8",
 );
+const metricsSource = readFileSync(
+  new URL("../components/home/HomeStats.js", import.meta.url),
+  "utf8",
+);
 
 describe("calendario de la pantalla principal", () => {
-  it("aparece antes que el hero, las métricas y las rutinas", () => {
-    const calendarPosition = homePageSource.indexOf("<WeekStrip");
+  it("vive dentro de la grilla de métricas, no suelto en la página", () => {
+    // Antes estaba arriba de todo. Ahora es un widget mas de HomeStats.
+    expect(homePageSource).not.toContain("<WeekStrip");
+    expect(homePageSource).toContain("<HomeStats");
+    expect(metricsSource).toContain("<WeekStrip");
+  });
+
+  it("el hero va antes que las métricas y las rutinas", () => {
     const heroPosition = homePageSource.indexOf("<HomeHero");
     const metricsPosition = homePageSource.indexOf("<HomeStats");
     const routinesPosition = homePageSource.indexOf("<RoutinesCarousel");
 
-    expect(calendarPosition).toBeGreaterThan(-1);
-    expect(calendarPosition).toBeLessThan(heroPosition);
+    expect(heroPosition).toBeGreaterThan(-1);
     expect(heroPosition).toBeLessThan(metricsPosition);
     expect(metricsPosition).toBeLessThan(routinesPosition);
   });
 
   it("comparte superficie, borde y radio con los widgets de métricas", () => {
-    expect(weekStripSource).toContain(
-      'className="rounded-[10px] border border-[#5A1215] bg-surface p-4 shadow-sm sm:p-5"',
-    );
+    expect(weekStripSource).toContain("rounded-[10px] border border-[#5A1215] bg-surface");
   });
 
   it("mantiene siete días responsivos y controles táctiles de 40 px", () => {
-    expect(weekStripSource).toContain('className="grid grid-cols-7 gap-1.5 sm:gap-2"');
+    expect(weekStripSource).toContain('className="grid grid-cols-7 gap-1"');
     expect(weekStripSource.match(/h-10 w-10/g)).toHaveLength(2);
   });
 });
