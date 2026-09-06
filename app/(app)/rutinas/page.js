@@ -80,13 +80,13 @@ export default async function RutinasPage() {
       <div className="flex w-full flex-col bg-[#35080A] pb-28 md:pb-12">
         <RoutinesHero {...hero} />
         <div className="mx-auto w-full max-w-[1360px] px-3 pt-3 sm:px-5">
-          <div className="rounded-[14px] bg-surface p-8 text-center">
+          <div className="rounded-[10px] border border-[#5A1215] bg-surface p-8 text-center">
             <p className="text-sm font-medium text-[#6E665E]">
               Todavía no armaste ninguna rutina.
             </p>
             <Link
               href="/rutinas/nueva"
-              className="mt-4 inline-flex h-11 items-center justify-center rounded-full bg-[#FF5733] px-5 text-xs font-bold text-white transition hover:bg-[#E84D29]"
+              className="mt-4 inline-flex h-11 items-center justify-center rounded-[10px] bg-[#FF5733] px-5 text-[13px] font-bold text-white shadow-[0_4px_14px_rgba(255,87,51,0.3)] transition hover:bg-[#E84D29]"
             >
               Crear la primera
             </Link>
@@ -106,16 +106,20 @@ export default async function RutinasPage() {
       >
         {undated.length > 0 && (
           <div className="mt-2 flex flex-col gap-2">
-            <p className="px-1 text-[13px] font-semibold text-white/70">Sin fecha</p>
-            {undated.map((item) => (
-              <RoutineRow key={`${item.isAssigned ? "asg" : "own"}-${item.id}`} routine={item} />
-            ))}
+            <p className="px-1 text-[12px] font-semibold uppercase tracking-[0.12em] text-white/60">
+              Sin fecha
+            </p>
+            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+              {undated.map((item) => (
+                <RoutineRow key={`${item.isAssigned ? "asg" : "own"}-${item.id}`} routine={item} />
+              ))}
+            </div>
           </div>
         )}
 
         <Link
           href="/rutinas/nueva"
-          className="mt-2 flex h-12 items-center justify-center gap-2 rounded-[14px] bg-[#FF5733] text-sm font-bold text-white transition hover:bg-[#E84D29] active:scale-[0.99]"
+          className="mt-2 flex h-11 items-center justify-center gap-2 self-start rounded-[10px] bg-[#FF5733] px-5 text-[13px] font-bold text-white shadow-[0_4px_14px_rgba(255,87,51,0.3)] transition hover:bg-[#E84D29] active:scale-[0.98]"
         >
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true">
             <path d="M12 5v14M5 12h14" />
