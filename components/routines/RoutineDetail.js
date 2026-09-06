@@ -386,7 +386,7 @@ export default function RoutineDetail({
   }
 
   return (
-    <div className="relative flex flex-col gap-6 px-[18px] pb-[110px] lg:px-0">
+    <div className="relative mx-auto flex max-w-[1360px] flex-col gap-6 px-4 pt-20 pb-28 sm:px-8 sm:pt-24 md:pb-16">
       {/* Mobile Active Workout Floating / Sticky Banner */}
       {workoutActive && (
         <div className="sticky top-2 z-40 mb-1 flex items-center justify-between gap-3 rounded-2xl border border-teal/40 bg-deep/95 p-3.5 shadow-[0_12px_32px_rgba(0,0,0,0.5)] backdrop-blur-md lg:hidden">
@@ -579,42 +579,42 @@ export default function RoutineDetail({
           ) : null}
 
           {/* Routine Title & Metrics */}
-          <div className="rounded-3xl border border-hair/80 bg-glass/60 p-4 sm:p-5 backdrop-blur-md">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-teal2">
+          <div className="rounded-3xl border border-[#6B1717] bg-[#EDE8E1] p-4 sm:p-5 shadow-sm text-[#141414]">
+            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#FF5733]">
               Rutina de entrenamiento
             </p>
-            <h1 className="font-display mt-1 text-[28px] sm:text-[32px] lg:text-[34px] uppercase leading-none tracking-wide text-white">
+            <h1 className="font-sans mt-1 text-[26px] sm:text-[30px] lg:text-[32px] font-extrabold leading-tight tracking-tight text-[#141414]">
               {routine.name}
             </h1>
             {routine.note ? (
-              <p className="mt-2.5 rounded-xl border border-hair/50 bg-white/[0.02] p-2.5 text-xs italic text-muted">
+              <p className="mt-2.5 rounded-xl border border-[#D5CEC4] bg-[#DFD8CE] p-2.5 text-xs italic text-[#756C65]">
                 {routine.note}
               </p>
             ) : null}
 
             {/* Quick Metrics Grid */}
             <div className="mt-4 grid grid-cols-3 gap-2">
-              <div className="flex flex-col items-center justify-center rounded-2xl border border-hair/70 bg-glass/80 py-2.5 px-2 text-center">
-                <span className="block text-[10px] font-semibold uppercase tracking-wider text-faint">
+              <div className="flex flex-col items-center justify-center rounded-2xl border border-[#D5CEC4] bg-[#E3DDD3] py-2.5 px-2 text-center">
+                <span className="block text-[10px] font-bold uppercase tracking-wider text-[#756C65]">
                   Ejercicios
                 </span>
-                <span className="font-mono-digit mt-1 block text-base sm:text-lg font-bold text-white">
+                <span className="font-sans mt-1 block text-base sm:text-lg font-extrabold text-[#141414]">
                   {exercisesList.length}
                 </span>
               </div>
-              <div className="flex flex-col items-center justify-center rounded-2xl border border-hair/70 bg-glass/80 py-2.5 px-2 text-center">
-                <span className="block text-[10px] font-semibold uppercase tracking-wider text-faint">
+              <div className="flex flex-col items-center justify-center rounded-2xl border border-[#D5CEC4] bg-[#E3DDD3] py-2.5 px-2 text-center">
+                <span className="block text-[10px] font-bold uppercase tracking-wider text-[#756C65]">
                   Duración
                 </span>
-                <span className="font-mono-digit mt-1 block text-base sm:text-lg font-bold text-teal2">
+                <span className="font-sans mt-1 block text-base sm:text-lg font-extrabold text-[#FF5733]">
                   ~{estimatedDurationMinutes(currentRoutineWithExercises, exerciseLookup)}m
                 </span>
               </div>
-              <div className="flex flex-col items-center justify-center rounded-2xl border border-hair/70 bg-glass/80 py-2.5 px-2 text-center">
-                <span className="block text-[10px] font-semibold uppercase tracking-wider text-faint">
+              <div className="flex flex-col items-center justify-center rounded-2xl border border-[#D5CEC4] bg-[#E3DDD3] py-2.5 px-2 text-center">
+                <span className="block text-[10px] font-bold uppercase tracking-wider text-[#756C65]">
                   Series
                 </span>
-                <span className="font-mono-digit mt-1 block text-base sm:text-lg font-bold text-white">
+                <span className="font-sans mt-1 block text-base sm:text-lg font-extrabold text-[#141414]">
                   {totalSets(currentRoutineWithExercises)}
                 </span>
               </div>
@@ -676,7 +676,7 @@ export default function RoutineDetail({
               <button
                 type="button"
                 onClick={handleStartWorkout}
-                className="flex h-[52px] w-full items-center justify-center gap-2.5 rounded-full bg-white text-[15.5px] font-semibold text-onlight shadow-[0_10px_28px_rgba(255,255,255,0.22)] transition-all hover:opacity-95 active:scale-[0.98]"
+                className="flex h-[52px] w-full items-center justify-center gap-2.5 rounded-full bg-[#FF5733] text-[15.5px] font-bold text-white shadow-[0_8px_24px_rgba(255,87,51,0.35)] transition-all hover:bg-[#E84D29] active:scale-[0.98]"
               >
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
                   <polygon points="5 3 19 12 5 21 5 3" />
@@ -1289,7 +1289,7 @@ export default function RoutineDetail({
               <button
                 type="button"
                 onClick={handleStartWorkout}
-                className="flex h-[54px] w-full sm:max-w-md sm:mx-auto items-center justify-center gap-2.5 rounded-full bg-white text-[16px] font-semibold text-onlight shadow-[0_8px_28px_rgba(255,255,255,0.22)] transition-all hover:opacity-95 active:scale-[0.98]"
+                className="flex h-[54px] w-full sm:max-w-md sm:mx-auto items-center justify-center gap-2.5 rounded-full bg-[#FF5733] text-[16px] font-bold text-white shadow-[0_8px_24px_rgba(255,87,51,0.35)] transition-all hover:bg-[#E84D29] active:scale-[0.98]"
               >
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
                   <polygon points="5 3 19 12 5 21 5 3" />

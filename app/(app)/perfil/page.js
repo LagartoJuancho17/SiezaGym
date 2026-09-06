@@ -28,16 +28,16 @@ export default async function PerfilPage() {
     : null;
 
   return (
-    <div className="flex flex-col gap-5 px-[18px] pb-[100px] lg:px-0">
+    <div className="mx-auto flex max-w-[1360px] flex-col gap-6 px-4 pt-20 pb-28 sm:px-8 sm:pt-24 md:pb-16">
       <header>
-        <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-faint">Perfil</p>
-        <h1 className="font-display mt-1 text-[26px] uppercase leading-none text-white">
+        <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#FF5733]">Perfil</p>
+        <h1 className="font-sans mt-0.5 text-3xl font-extrabold tracking-tight text-white">
           Tu cuenta
         </h1>
       </header>
 
-      <section className="flex items-center gap-4 rounded-[22px] border border-hair bg-glass p-[18px]">
-        <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border border-hair bg-glass2 text-xl font-semibold text-muted">
+      <section className="flex items-center gap-4 rounded-3xl border border-[#6B1717] bg-[#EDE8E1] p-5 shadow-sm">
+        <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#6B1717]/30 bg-[#DFD8CE] text-xl font-bold text-[#141414]">
           {profile?.photoURL ? (
             <Image
               src={profile.photoURL}
@@ -52,37 +52,37 @@ export default async function PerfilPage() {
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-base font-semibold text-text">
+          <p className="truncate font-sans text-lg font-bold text-[#141414]">
             {profile?.displayName || "Sin nombre"}
           </p>
-          <p className="truncate text-xs text-faint">{user.email}</p>
-          <p className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-teal2">
+          <p className="truncate text-xs text-[#756C65]">{user.email}</p>
+          <p className="mt-1 text-[11px] font-bold uppercase tracking-wide text-[#FF5733]">
             {profile?.isAdmin ? "Admin & Coach" : isCoach ? "Entrenador" : "Atleta"}
           </p>
         </div>
       </section>
 
-      <div className="grid grid-cols-3 gap-2.5">
-        <div className="rounded-[18px] border border-hair bg-glass p-[15px]">
-          <p className="text-[11px] font-medium uppercase tracking-wider text-faint">Sesiones</p>
-          <p className="font-mono-digit mt-1 text-2xl text-white">{sessions.length}</p>
+      <div className="grid grid-cols-3 gap-3">
+        <div className="rounded-2xl border border-[#6B1717] bg-[#EDE8E1] p-4 shadow-sm">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-[#756C65]">Sesiones</p>
+          <p className="font-sans mt-1 text-2xl font-extrabold text-[#141414]">{sessions.length}</p>
         </div>
         {isCoach ? (
-          <div className="rounded-[18px] border border-hair bg-glass p-[15px]">
-            <p className="text-[11px] font-medium uppercase tracking-wider text-faint">Alumnos</p>
-            <p className="font-mono-digit mt-1 text-2xl text-white">{studentCount}</p>
+          <div className="rounded-2xl border border-[#6B1717] bg-[#EDE8E1] p-4 shadow-sm">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-[#756C65]">Alumnos</p>
+            <p className="font-sans mt-1 text-2xl font-extrabold text-[#141414]">{studentCount}</p>
           </div>
         ) : (
-          <div className="rounded-[18px] border border-hair bg-glass p-[15px]">
-            <p className="text-[11px] font-medium uppercase tracking-wider text-faint">Entrenador</p>
-            <p className="mt-1 truncate text-sm font-semibold text-white">
+          <div className="rounded-2xl border border-[#6B1717] bg-[#EDE8E1] p-4 shadow-sm">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-[#756C65]">Entrenador</p>
+            <p className="mt-1 truncate font-sans text-sm font-bold text-[#141414]">
               {linkedCoach?.displayName || "Sin vincular"}
             </p>
           </div>
         )}
-        <div className="rounded-[18px] border border-hair bg-glass p-[15px]">
-          <p className="text-[11px] font-medium uppercase tracking-wider text-faint">Miembro desde</p>
-          <p className="mt-1 text-sm font-semibold text-white">{memberSince || "—"}</p>
+        <div className="rounded-2xl border border-[#6B1717] bg-[#EDE8E1] p-4 shadow-sm">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-[#756C65]">Miembro desde</p>
+          <p className="mt-1 font-sans text-sm font-bold text-[#141414]">{memberSince || "—"}</p>
         </div>
       </div>
 
@@ -91,7 +91,7 @@ export default async function PerfilPage() {
       <form action={logout}>
         <button
           type="submit"
-          className="flex h-11 w-full items-center justify-center gap-2 rounded-full border border-hair text-sm font-semibold text-faint transition hover:border-destructive/40 hover:text-destructive"
+          className="flex h-11 w-full items-center justify-center gap-2 rounded-full border border-white/20 bg-white/5 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
         >
           Cerrar sesión
         </button>
