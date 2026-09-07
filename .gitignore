@@ -38,3 +38,4 @@ next-env.d.ts
 # Pesan megas y el repo no es lugar para eso. Los .md de docs/design si van.
 docs/design/**/*.png
 docs/design/**/*.jpg
+assets/
