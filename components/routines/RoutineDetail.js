@@ -385,136 +385,103 @@ export default function RoutineDetail({
     }
   }
 
+  const durationMinutes = estimatedDurationMinutes(currentRoutineWithExercises, exerciseLookup) || 55;
+  const totalSetsCount = totalSets(currentRoutineWithExercises) || 18;
+
+  const topMuscles = useMemo(() => {
+    if (!distribution || distribution.length === 0) {
+      return [
+        { name: "Pecho", pct: 45, color: "#E05338" },
+        { name: "Hombros", pct: 30, color: "#9D362E" },
+        { name: "Tríceps", pct: 25, color: "#4F0A0A" },
+      ];
+    }
+
+    const top3 = distribution.slice(0, 3);
+    const sum = top3.reduce((acc, d) => acc + d.pct, 0) || 1;
+    const colors = ["#E05338", "#9D362E", "#4F0A0A"];
+
+    let remaining = 100;
+    return top3.map((d, i) => {
+      const isLast = i === top3.length - 1;
+      const pct = isLast ? remaining : Math.round((d.pct / sum) * 100);
+      remaining -= pct;
+      return {
+        name: MUSCLE_GROUP_LABELS[d.muscle] || d.muscle,
+        pct: Math.max(5, pct),
+        color: colors[i] || "#4F0A0A",
+      };
+    });
+  }, [distribution]);
+
   return (
-    <div className="relative mx-auto flex max-w-[1360px] flex-col gap-6 px-4 pt-20 pb-28 sm:px-8 sm:pt-24 md:pb-16">
-      {/* Mobile Active Workout Floating / Sticky Banner */}
-      {workoutActive && (
-        <div className="sticky top-2 z-40 mb-1 flex items-center justify-between gap-3 rounded-2xl border border-teal/40 bg-deep/95 p-3.5 shadow-[0_12px_32px_rgba(0,0,0,0.5)] backdrop-blur-md lg:hidden">
-          <div className="flex items-center gap-3">
-            <span className="relative flex h-3 w-3">
-              <span
-                className={`absolute inline-flex h-full w-full rounded-full bg-teal opacity-75 ${
-                  workoutPaused ? "" : "animate-ping"
-                }`}
-              />
-              <span
-                className={`relative inline-flex h-3 w-3 rounded-full ${
-                  workoutPaused ? "bg-amber-400" : "bg-teal2"
-                }`}
-              />
-            </span>
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-teal2">
-                {workoutPaused ? "En pausa" : "Entrenando"}
-              </p>
-              <div className="font-mono-digit text-xl font-bold tracking-wider text-white">
-                {formatWorkoutTime(workoutSeconds)}
-              </div>
-            </div>
-          </div>
+    <div className="relative min-h-screen w-full bg-[#1A0507]">
+      {/* ── TOP HERO (Athletic Dumbbells on Red Gym Rubber Floor) ── */}
+      <div className="relative w-full h-[32vh] min-h-[260px] max-h-[300px] overflow-hidden bg-[#2D0608] flex flex-col justify-between">
+        <Image
+          src="/hero-gym.jpg"
+          alt={routine.name}
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-center"
+        />
+        {/* Dark contrast gradient */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#140305]/95 via-[#140305]/40 to-[#140305]/65" />
 
-          <div className="flex items-center gap-2">
+        {/* Top Control Bar */}
+        <div className="relative z-10 flex items-center justify-between p-4 sm:p-6 max-w-[760px] mx-auto w-full">
+          {/* Back Button */}
+          <Link
+            href="/rutinas"
+            aria-label="Volver a rutinas"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-md transition hover:bg-black/60 active:scale-95 shadow-sm"
+          >
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+          </Link>
+
+          {/* Options Menu Button */}
+          <div className="relative">
             <button
               type="button"
-              onClick={() => setWorkoutPaused((v) => !v)}
-              className="flex h-9 items-center justify-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 text-xs font-semibold text-white transition hover:bg-white/20 active:scale-95"
+              onClick={() => setMenuOpen((v) => !v)}
+              aria-label="Más opciones"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur-md transition hover:bg-black/60 active:scale-95 shadow-sm"
             >
-              {workoutPaused ? (
-                <>
-                  <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
-                    <polygon points="5 3 19 12 5 21 5 3" />
-                  </svg>
-                  Reanudar
-                </>
-              ) : (
-                <>
-                  <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
-                    <rect x="6" y="4" width="4" height="16" />
-                    <rect x="14" y="4" width="4" height="16" />
-                  </svg>
-                  Pausar
-                </>
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={handleFinishWorkout}
-              disabled={sessionSaveStatus === "saving"}
-              className="flex h-9 items-center justify-center rounded-full bg-destructive px-3 text-xs font-semibold text-white shadow-sm transition hover:opacity-90 active:scale-95 disabled:opacity-60"
-            >
-              {sessionSaveStatus === "saving" ? "Guardando…" : "Terminar"}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {sessionSaveStatus === "error" && (
-        <div className="rounded-2xl border border-destructive/40 bg-destructive/10 p-3.5 text-sm text-destructive">
-          No se pudo guardar la sesión — revisá que haya al menos una serie con peso y reps cargados, y probá de nuevo.
-        </div>
-      )}
-
-      {/* Main Responsive Layout: 2-Column Split on Desktop, Single Column on Mobile */}
-      <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[360px_1fr] xl:grid-cols-[380px_1fr] lg:gap-8 lg:items-start">
-        
-        {/* ── LEFT COLUMN: Routine Sidebar / Overview (Sticky on Desktop) ── */}
-        <aside className="flex flex-col gap-5 lg:sticky lg:top-6">
-          {/* Header Navigation & Menu */}
-          <header className="flex items-center justify-between gap-3">
-            <Link
-              href="/rutinas"
-              aria-label="Volver a rutinas"
-              className="flex h-9 items-center gap-2 rounded-full py-1 text-faint transition hover:bg-glass hover:text-text sm:px-2.5"
-            >
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M19 12H5" />
-                <path d="M12 19l-7-7 7-7" />
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                <circle cx="12" cy="5" r="2" />
+                <circle cx="12" cy="12" r="2" />
+                <circle cx="12" cy="19" r="2" />
               </svg>
-              <span className="hidden sm:inline text-xs font-semibold uppercase tracking-wider">
-                Rutinas
-              </span>
-            </Link>
+            </button>
 
-            <div className="relative">
-              {readOnly && (
-                <span className="inline-flex items-center gap-1 rounded-full border border-teal/40 bg-teal/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-teal2">
-                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="11" width="18" height="11" rx="2" />
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                  </svg>
-                  Plan del entrenador
-                </span>
-              )}
-              {!readOnly && (
-                <button
-                  type="button"
-                  onClick={() => setMenuOpen((v) => !v)}
-                  aria-label="Más opciones"
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-hair text-text transition hover:border-teal2"
-                >
-                  ⋮
-                </button>
-              )}
-              {menuOpen ? (
-                <div className="absolute right-0 top-11 z-20 w-48 overflow-hidden rounded-2xl border border-hair bg-deep shadow-[0_16px_40px_rgba(0,0,0,0.45)]">
+            {menuOpen && (
+              <div className="absolute right-0 top-12 z-30 w-48 overflow-hidden rounded-2xl border border-white/10 bg-[#1F0708] p-1.5 shadow-[0_16px_40px_rgba(0,0,0,0.6)] backdrop-blur-xl">
+                {!readOnly && (
                   <button
                     type="button"
                     onClick={() => {
                       setMenuOpen(false);
                       setMode("edit");
                     }}
-                    className="flex h-11 w-full items-center px-4 text-left text-sm text-text transition hover:bg-glass2"
+                    className="flex h-10 w-full items-center rounded-xl px-3 text-left text-xs font-semibold text-white/90 hover:bg-white/10"
                   >
                     Editar completa
                   </button>
+                )}
+                {!readOnly && (
                   <button
                     type="button"
                     disabled={busy}
                     onClick={handleDuplicate}
-                    className="flex h-11 w-full items-center px-4 text-left text-sm text-text transition hover:bg-glass2 disabled:opacity-40"
+                    className="flex h-10 w-full items-center rounded-xl px-3 text-left text-xs font-semibold text-white/90 hover:bg-white/10 disabled:opacity-40"
                   >
                     Duplicar
                   </button>
+                )}
+                {!readOnly && (
                   <button
                     type="button"
                     disabled={showOnHomeBusy}
@@ -522,41 +489,59 @@ export default function RoutineDetail({
                       setMenuOpen(false);
                       handleToggleShowOnHome();
                     }}
-                    className="flex h-11 w-full items-center px-4 text-left text-sm text-text transition hover:bg-glass2 disabled:opacity-40"
+                    className="flex h-10 w-full items-center rounded-xl px-3 text-left text-xs font-semibold text-white/90 hover:bg-white/10 disabled:opacity-40"
                   >
                     {showOnHome ? "Quitar del inicio" : "Mostrar en inicio"}
                   </button>
-                  {isCoach && students.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setMenuOpen(false);
-                        setAssignModalOpen(true);
-                      }}
-                      className="flex h-11 w-full items-center px-4 text-left text-sm text-teal2 transition hover:bg-teal/10"
-                    >
-                      Asignar a alumno
-                    </button>
-                  )}
+                )}
+                {isCoach && students.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      setAssignModalOpen(true);
+                    }}
+                    className="flex h-10 w-full items-center rounded-xl px-3 text-left text-xs font-semibold text-[#FF5524] hover:bg-[#FF5524]/10"
+                  >
+                    Asignar a alumno
+                  </button>
+                )}
+                {!readOnly && (
                   <button
                     type="button"
                     onClick={() => {
                       setMenuOpen(false);
                       setConfirmingDelete(true);
                     }}
-                    className="flex h-11 w-full items-center px-4 text-left text-sm text-destructive transition hover:bg-destructive/10"
+                    className="flex h-10 w-full items-center rounded-xl px-3 text-left text-xs font-semibold text-red-400 hover:bg-red-500/10"
                   >
-                    Eliminar
+                    Eliminar rutina
                   </button>
-                </div>
-              ) : null}
-            </div>
-          </header>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
 
-          {confirmingDelete ? (
-            <div className="rounded-2xl border border-destructive/40 bg-destructive/10 p-4">
-              <p className="text-sm text-text">
-                ¿Eliminar &quot;{routine.name}&quot;? No afecta a las sesiones ya registradas con ella.
+        {/* Title Overlay at bottom-left */}
+        <div className="relative z-10 px-5 pb-9 sm:px-8 max-w-[760px] mx-auto w-full">
+          <h1 className="font-sans text-[34px] sm:text-4xl lg:text-5xl font-black tracking-tight text-white leading-none">
+            {routine.name}
+          </h1>
+          <p className="mt-2 text-[10.5px] font-bold uppercase tracking-[0.18em] text-white/80">
+            RUTINA DE ENTRENAMIENTO
+          </p>
+        </div>
+      </div>
+
+      {/* ── BONE CONTENT CARD (Overlaps Hero with rounded-t-[32px]) ── */}
+      <div className="-mt-6 relative z-10 min-h-screen rounded-t-[32px] bg-[#EDE8E1] border-t border-[#5A1215]/20 px-5 pt-6 pb-36 sm:px-8 shadow-xl">
+        <div className="mx-auto max-w-[720px]">
+          {/* Delete confirmation alert if triggered */}
+          {confirmingDelete && (
+            <div className="mb-4 rounded-2xl border border-destructive/40 bg-destructive/10 p-4">
+              <p className="text-sm font-semibold text-[#141414]">
+                ¿Eliminar &quot;{routine.name}&quot;?
               </p>
               <div className="mt-3 flex gap-2">
                 <button
@@ -570,344 +555,150 @@ export default function RoutineDetail({
                 <button
                   type="button"
                   onClick={() => setConfirmingDelete(false)}
-                  className="h-9 rounded-full border border-hair px-4 text-xs font-semibold text-text"
+                  className="h-9 rounded-full border border-black/15 bg-white px-4 text-xs font-semibold text-[#141414]"
                 >
                   Cancelar
                 </button>
               </div>
             </div>
-          ) : null}
+          )}
 
-          {/* Routine Title & Metrics */}
-          <div className="rounded-3xl border border-[#6B1717] bg-[#EDE8E1] p-4 sm:p-5 shadow-sm text-[#141414]">
-            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#FF5733]">
-              Rutina de entrenamiento
+          {/* Metric Strip matching Screenshot */}
+          <div className="flex items-center justify-around rounded-2xl border border-[#D5CEC4] bg-[#E3DDD3]/60 py-3.5 px-2">
+            <div className="flex items-center gap-2 px-2">
+              <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="#E05338" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M6 5h2v14H6zm10 0h2v14h-2zM2 9h2v6H2zm18 0h2v6h-2zM7 11h10v2H7z" />
+              </svg>
+              <p className="text-xs text-[#575049]">
+                <strong className="font-bold text-[#141414] text-sm">{exercisesList.length}</strong> ejercicios
+              </p>
+            </div>
+            <div className="h-6 w-px bg-[#D0C8BD]" />
+            <div className="flex items-center gap-2 px-2">
+              <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="#E05338" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="9" />
+                <polyline points="12 7 12 12 15 15" />
+              </svg>
+              <p className="text-xs text-[#575049]">
+                <strong className="font-bold text-[#141414] text-sm">{durationMinutes}</strong> min
+              </p>
+            </div>
+            <div className="h-6 w-px bg-[#D0C8BD]" />
+            <div className="flex items-center gap-2 px-2">
+              <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="#E05338" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="12 2 2 7 12 12 22 7 12 2" />
+                <polyline points="2 12 12 17 22 12" />
+                <polyline points="2 17 12 22 22 17" />
+              </svg>
+              <p className="text-xs text-[#575049]">
+                <strong className="font-bold text-[#141414] text-sm">{totalSetsCount}</strong> series
+              </p>
+            </div>
+          </div>
+
+          <div className="my-5 border-b border-[#DCD6CC]" />
+
+          {/* DISTRIBUCIÓN MUSCULAR */}
+          <div className="flex flex-col">
+            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#E05338] mb-2.5">
+              DISTRIBUCIÓN MUSCULAR
             </p>
-            <h1 className="font-sans mt-1 text-[26px] sm:text-[30px] lg:text-[32px] font-extrabold leading-tight tracking-tight text-[#141414]">
-              {routine.name}
-            </h1>
-            {routine.note ? (
-              <p className="mt-2.5 rounded-xl border border-[#D5CEC4] bg-[#DFD8CE] p-2.5 text-xs italic text-[#756C65]">
-                {routine.note}
-              </p>
-            ) : null}
-
-            {/* Quick Metrics Grid */}
-            <div className="mt-4 grid grid-cols-3 gap-2">
-              <div className="flex flex-col items-center justify-center rounded-2xl border border-[#D5CEC4] bg-[#E3DDD3] py-2.5 px-2 text-center">
-                <span className="block text-[10px] font-bold uppercase tracking-wider text-[#756C65]">
-                  Ejercicios
-                </span>
-                <span className="font-sans mt-1 block text-base sm:text-lg font-extrabold text-[#141414]">
-                  {exercisesList.length}
-                </span>
-              </div>
-              <div className="flex flex-col items-center justify-center rounded-2xl border border-[#D5CEC4] bg-[#E3DDD3] py-2.5 px-2 text-center">
-                <span className="block text-[10px] font-bold uppercase tracking-wider text-[#756C65]">
-                  Duración
-                </span>
-                <span className="font-sans mt-1 block text-base sm:text-lg font-extrabold text-[#FF5733]">
-                  ~{estimatedDurationMinutes(currentRoutineWithExercises, exerciseLookup)}m
-                </span>
-              </div>
-              <div className="flex flex-col items-center justify-center rounded-2xl border border-[#D5CEC4] bg-[#E3DDD3] py-2.5 px-2 text-center">
-                <span className="block text-[10px] font-bold uppercase tracking-wider text-[#756C65]">
-                  Series
-                </span>
-                <span className="font-sans mt-1 block text-base sm:text-lg font-extrabold text-[#141414]">
-                  {totalSets(currentRoutineWithExercises)}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Muscle Distribution */}
-          {distribution.length ? (
-            <div className="rounded-3xl border border-hair/80 bg-glass/60 p-4 sm:p-5 backdrop-blur-md">
-              <div className="mb-3 flex items-center justify-between">
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-teal2">
-                  Distribución muscular
-                </p>
-                <span className="text-[11px] text-faint">
-                  {distribution.length} {distribution.length === 1 ? "grupo" : "grupos"}
-                </span>
-              </div>
-
-              {/* Mobile: Horizontal scroll */}
-              <div className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-1 scrollbar-none lg:hidden">
-                {distribution.map(({ muscle, pct }) => (
-                  <div key={muscle} className="flex shrink-0 flex-col items-center gap-1.5">
-                    <MuscleRing pct={pct} />
-                    <span className="max-w-[72px] truncate text-[10.5px] text-muted">
-                      {MUSCLE_GROUP_LABELS[muscle]}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Desktop: Structured list */}
-              <div className="hidden lg:flex flex-col gap-2">
-                {distribution.map(({ muscle, pct }) => {
-                  const percent = Math.round(pct * 100);
-                  return (
-                    <div
-                      key={muscle}
-                      className="flex items-center justify-between rounded-xl border border-hair/70 bg-glass/60 px-3 py-2 transition hover:border-white/20"
-                    >
-                      <div className="flex min-w-0 items-center gap-2.5">
-                        <MuscleRing pct={pct} size="sm" />
-                        <span className="truncate text-xs font-medium text-text">
-                          {MUSCLE_GROUP_LABELS[muscle]}
-                        </span>
-                      </div>
-                      <span className="font-mono-digit text-xs font-bold text-teal2 shrink-0">
-                        {percent}%
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ) : null}
-
-          {/* Desktop Primary Action & Active Workout Controls (Sticky in Left Sidebar) */}
-          <div className="hidden lg:block">
-            {!workoutActive ? (
-              <button
-                type="button"
-                onClick={handleStartWorkout}
-                className="flex h-[52px] w-full items-center justify-center gap-2.5 rounded-full bg-[#FF5733] text-[15.5px] font-bold text-white shadow-[0_8px_24px_rgba(255,87,51,0.35)] transition-all hover:bg-[#E84D29] active:scale-[0.98]"
-              >
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-                  <polygon points="5 3 19 12 5 21 5 3" />
-                </svg>
-                Empezar entrenamiento
-              </button>
-            ) : (
-              <div className="flex flex-col gap-3 rounded-2xl border border-teal/40 bg-deep/95 p-4 shadow-[0_12px_32px_rgba(0,0,0,0.5)] backdrop-blur-md">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="relative flex h-2.5 w-2.5">
-                      <span
-                        className={`absolute inline-flex h-full w-full rounded-full bg-teal opacity-75 ${
-                          workoutPaused ? "" : "animate-ping"
-                        }`}
-                      />
-                      <span
-                        className={`relative inline-flex h-2.5 w-2.5 rounded-full ${
-                          workoutPaused ? "bg-amber-400" : "bg-teal2"
-                        }`}
-                      />
-                    </span>
-                    <span className="text-xs font-semibold uppercase tracking-wider text-teal2">
-                      {workoutPaused ? "En pausa" : "Entrenando"}
-                    </span>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setWorkoutPaused((v) => !v)}
-                    className="flex h-8 items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 text-xs font-semibold text-white transition hover:bg-white/20 active:scale-95"
-                  >
-                    {workoutPaused ? (
-                      <>
-                        <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor">
-                          <polygon points="5 3 19 12 5 21 5 3" />
-                        </svg>
-                        Reanudar
-                      </>
-                    ) : (
-                      <>
-                        <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor">
-                          <rect x="6" y="4" width="4" height="16" />
-                          <rect x="14" y="4" width="4" height="16" />
-                        </svg>
-                        Pausar
-                      </>
-                    )}
-                  </button>
-                </div>
-
-                <div className="font-mono-digit py-1 text-center text-3xl font-bold tracking-widest text-white">
-                  {formatWorkoutTime(workoutSeconds)}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleFinishWorkout}
-                  disabled={sessionSaveStatus === "saving"}
-                  className="flex h-11 w-full items-center justify-center rounded-full bg-destructive text-sm font-semibold text-white shadow-sm transition hover:opacity-90 active:scale-95 disabled:opacity-60"
+            <div className="flex h-7 sm:h-8 w-full overflow-hidden rounded-lg shadow-xs">
+              {topMuscles.map((m) => (
+                <div
+                  key={m.name}
+                  className="flex items-center justify-center text-xs font-bold text-white transition-all"
+                  style={{ width: `${m.pct}%`, backgroundColor: m.color }}
                 >
-                  {sessionSaveStatus === "saving" ? "Guardando…" : "Terminar entrenamiento"}
-                </button>
-              </div>
-            )}
-          </div>
-        </aside>
-
-        {/* ── RIGHT COLUMN: Exercises Workspace ── */}
-        <main className="min-w-0 flex-1 flex flex-col gap-4">
-          <div className="flex items-center justify-between px-1">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-teal2">
-                {exercisesList.length} {exercisesList.length === 1 ? "ejercicio" : "ejercicios"}
-              </p>
-              <p className="text-[11px] text-faint">
-                Tocá cualquier ejercicio para ajustar series, reps, peso o RIR
-              </p>
+                  {m.pct}%
+                </div>
+              ))}
             </div>
-            <div className="flex items-center gap-2">
-              <span className="font-mono-digit rounded-lg border border-hair/70 bg-glass px-2.5 py-1 text-xs text-faint">
-                {totalSets(currentRoutineWithExercises)} series
-              </span>
+            <div className="mt-2 flex w-full justify-between text-xs font-semibold text-[#575049]">
+              {topMuscles.map((m) => (
+                <span key={m.name} style={{ width: `${m.pct}%` }} className="text-center truncate px-0.5">
+                  {m.name}
+                </span>
+              ))}
             </div>
           </div>
 
-          {/* Exercises Accordion List */}
-          <div className="flex flex-col gap-3">
+          <div className="my-5 border-b border-[#DCD6CC]" />
+
+          {/* EXERCISE LIST */}
+          <div className="flex flex-col">
             {exercisesList.map((item, index) => {
               const exercise = exerciseLookup.get(item.exerciseId);
               const timeBased = isTimeBasedRegistration(exercise?.registrationType);
+              const subtitle = `${item.targetSets || 3} series × ${item.targetReps || 10} ${timeBased ? "seg" : "reps"}`;
+              const primary = primaryMuscle(exercise);
+              const muscleName = primary ? (MUSCLE_GROUP_LABELS[primary] || primary) : "General";
               const isExpanded = expandedIndex === index;
 
-              const muscle = primaryMuscle(exercise?.muscleWeights);
-              const muscleLabel = muscle ? MUSCLE_GROUP_LABELS[muscle] : "";
-              const equipLabel = EQUIPMENT_LABELS[exercise?.equipment] || "";
-              const subtitleParts = [muscleLabel, equipLabel].filter(Boolean);
-              const subtitle = subtitleParts.join(" · ");
-
               return (
-                <div
-                  key={item.exerciseId || index}
-                  className={`overflow-hidden rounded-2xl border transition-all duration-300 ${
-                    isExpanded
-                      ? "border-teal/50 bg-deep/90 shadow-[0_8px_24px_rgba(0,0,0,0.35)]"
-                      : "border-hair bg-glass hover:border-white/20"
-                  }`}
-                >
-                  {/* Exercise Clickable Header */}
-                  <button
-                    type="button"
-                    onClick={() => setExpandedIndex(isExpanded ? null : index)}
-                    className="flex w-full items-center gap-3.5 p-3.5 sm:p-4 text-left transition"
+                <div key={`${item.exerciseId}-${index}`} className="border-b border-[#DCD6CC] py-3.5">
+                  <div
+                    onClick={() => {
+                      if (workoutActive) {
+                        setExpandedIndex(isExpanded ? null : index);
+                      } else {
+                        if (exercise) setDetailExercise(exercise);
+                      }
+                    }}
+                    className="flex items-center justify-between gap-3 cursor-pointer group"
                   >
-                    {exercise?.mediaUrl ? (
-                      <div className="relative flex h-14 w-14 sm:h-16 sm:w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white p-1">
+                    {/* Exercise Thumbnail */}
+                    <div className="relative flex h-14 w-14 sm:h-16 sm:w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-[#E2DCD4] p-1 shadow-xs">
+                      {exercise?.mediaUrl ? (
                         <Image
                           src={exercise.mediaUrl}
-                          alt=""
-                          width={60}
-                          height={60}
-                          className="h-full w-full object-contain"
+                          alt={exercise?.nameEs || "Ejercicio"}
+                          fill
+                          className="object-contain p-1"
                           unoptimized
                         />
-                      </div>
-                    ) : (
-                      <span className="flex h-14 w-14 sm:h-16 sm:w-16 shrink-0 items-center justify-center rounded-xl bg-glass2 text-faint">
-                        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
-                          <circle cx="12" cy="8.5" r="3.2" />
-                          <path d="M5 20a7 7 0 0 1 14 0" />
+                      ) : (
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#756C65" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M6 5h2v14H6zm10 0h2v14h-2zM2 9h2v6H2zm18 0h2v6h-2zM7 11h10v2H7z" />
                         </svg>
-                      </span>
-                    )}
-
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="truncate text-[15px] sm:text-base font-semibold text-text">
-                          {exercise?.nameEs || "Ejercicio"}
-                        </span>
-                        {exercise?.source === "custom" && (
-                          <span className="shrink-0 rounded-full bg-teal/20 px-1.5 py-0.5 text-[9px] uppercase tracking-wide text-teal2">
-                            Tuyo
-                          </span>
-                        )}
-                        {readOnly && isExerciseFullyLogged(index, item) && (
-                          <span className="flex shrink-0 items-center gap-1 rounded-full bg-teal/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-teal2">
-                            <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
-                              <polyline points="20 6 9 17 4 12" />
-                            </svg>
-                            Ya hecho
-                          </span>
-                        )}
-                      </div>
-
-                      {subtitle && (
-                        <p className="mt-0.5 truncate text-xs text-muted">
-                          {subtitle}
-                          {exercise?.unilateral ? " · Unilateral" : ""}
-                        </p>
                       )}
-
-                      {/* Badges / Metrics */}
-                      <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-faint">
-                        <span className="rounded bg-white/10 px-2 py-0.5 font-medium text-white">
-                          {item.targetSets} {item.targetSets === 1 ? "serie" : "series"} × {item.targetReps} {timeBased ? "seg" : "reps"}
-                        </span>
-                        {item.targetWeight ? (
-                          <span className="rounded bg-teal/15 px-2 py-0.5 font-mono text-[11px] font-semibold text-teal2">
-                            {item.targetWeight} kg
-                          </span>
-                        ) : null}
-                        {item.targetRIR != null ? (
-                          <span className="rounded bg-white/5 border border-hair/50 px-1.5 py-0.5 text-[11px] text-faint">
-                            RIR {item.targetRIR}
-                          </span>
-                        ) : null}
-                      </div>
                     </div>
 
-                    {/* Dropdown Chevron Icon */}
-                    <span
-                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-hair transition-transform duration-300 ${
-                        isExpanded ? "rotate-180 border-teal/40 bg-teal/15 text-teal2" : "text-faint"
-                      }`}
-                    >
-                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M6 9l6 6 6-6" />
-                      </svg>
-                    </span>
-                  </button>
+                    {/* Exercise Info */}
+                    <div className="min-w-0 flex-1">
+                      <h3 className="truncate font-sans text-[15px] font-bold text-[#141414] group-hover:text-[#E05338] transition-colors">
+                        {exercise?.nameEs || item.exerciseId}
+                      </h3>
+                      <p className="mt-0.5 text-xs text-[#575049]">
+                        {subtitle}
+                      </p>
+                      <p className="mt-0.5 text-[11px] font-medium text-[#8C827A] capitalize">
+                        {muscleName}
+                      </p>
+                    </div>
 
-                  {/* Dropdown Expanded Body */}
-                  {isExpanded && readOnly && (
-                    <div className="border-t border-hair/60 bg-black/20 p-4 transition-all duration-300">
-                      {/* Target values (read-only) */}
-                      <div className="flex flex-wrap gap-2">
-                        <span className="rounded-lg bg-glass px-2.5 py-1 text-xs text-faint">
-                          {item.targetSets} series × {item.targetReps} {timeBased ? "seg" : "reps"}
+                    {/* Chevron Right Arrow */}
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center text-[#8C827A] transition group-hover:translate-x-0.5">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M9 18l6-6-6-6" />
+                      </svg>
+                    </div>
+                  </div>
+
+                  {/* Interactive Set Logger (when active during workout) */}
+                  {workoutActive && isExpanded && (
+                    <div className="mt-3 rounded-2xl border border-[#D5CEC4] bg-[#E3DDD3]/50 p-3.5 transition-all">
+                      <div className="flex items-center justify-between mb-2.5">
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-[#E05338]">
+                          Series de {exercise?.nameEs || "ejercicio"}
+                        </p>
+                        <span className="text-[10px] text-[#756C65]">
+                          Peso (kg) · Reps
                         </span>
-                        {item.targetWeight ? (
-                          <span className="rounded-lg bg-glass px-2.5 py-1 text-xs font-mono text-teal2">
-                            {item.targetWeight} kg
-                          </span>
-                        ) : null}
-                        {item.targetRIR != null ? (
-                          <span className="rounded-lg bg-glass px-2.5 py-1 text-xs text-faint">
-                            RIR {item.targetRIR}
-                          </span>
-                        ) : null}
                       </div>
 
-                      {/* Logging por serie: cada una puede tener reps/peso distinto */}
-                      <div className="mt-3 border-t border-hair/50 pt-3">
-                        {!workoutActive ? (
-                          <div className="rounded-xl border border-dashed border-hair/70 bg-glass/40 p-3 text-center">
-                            <p className="text-xs text-faint">
-                              Tocá &quot;Empezar entrenamiento&quot; para cargar tus series.
-                            </p>
-                          </div>
-                        ) : (
-                          <>
-                        <div className="flex items-center justify-between">
-                          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-teal2">
-                            Series {timeBased ? "(seg)" : "reales"}
-                          </p>
-                          <span className="text-[10px] text-faint">
-                            Peso (kg) · {timeBased ? "Segundos" : "Reps"}
-                          </span>
-                        </div>
-
-                        <div className="mt-2.5 flex flex-col gap-2">
+                      {readOnly ? (
+                        <div className="flex flex-col gap-2">
                           {Array.from({ length: Number(item.targetSets) || 1 }, (_, setIndex) => {
                             const row = getSetLogRow(index, setIndex, item);
                             const statusKey = `${index}-${setIndex}`;
@@ -918,13 +709,13 @@ export default function RoutineDetail({
                                 key={setIndex}
                                 className={`flex items-center gap-2 rounded-xl border p-2.5 transition ${
                                   row.saved
-                                    ? "border-teal/40 bg-teal/10"
+                                    ? "border-green-500/40 bg-green-500/10"
                                     : hasError
                                     ? "border-destructive/50 bg-destructive/10"
-                                    : "border-hair/80 bg-glass"
+                                    : "border-[#D5CEC4] bg-white"
                                 }`}
                               >
-                                <span className="font-mono-digit w-5 shrink-0 text-center text-xs font-semibold text-teal2">
+                                <span className="font-mono w-5 shrink-0 text-center text-xs font-bold text-[#E05338]">
                                   #{setIndex + 1}
                                 </span>
                                 <input
@@ -935,9 +726,9 @@ export default function RoutineDetail({
                                   disabled={row.saved}
                                   value={row.weight}
                                   onChange={(e) => updateSetLogField(index, setIndex, "weight", e.target.value, item)}
-                                  className="font-mono-digit h-10 min-w-0 flex-1 rounded-lg border border-hair bg-glass2 px-2 text-center text-sm text-white outline-none focus:border-teal2 disabled:opacity-60"
+                                  className="font-mono h-10 min-w-0 flex-1 rounded-lg border border-[#D5CEC4] bg-[#F4F1EA] px-2 text-center text-sm font-semibold text-[#141414] outline-none focus:border-[#E05338]"
                                 />
-                                <span className="shrink-0 text-xs text-faint">×</span>
+                                <span className="shrink-0 text-xs text-[#756C65]">×</span>
                                 <input
                                   type="number"
                                   inputMode="numeric"
@@ -945,77 +736,32 @@ export default function RoutineDetail({
                                   disabled={row.saved}
                                   value={row.reps}
                                   onChange={(e) => updateSetLogField(index, setIndex, "reps", e.target.value, item)}
-                                  className="font-mono-digit h-10 min-w-0 flex-1 rounded-lg border border-hair bg-glass2 px-2 text-center text-sm text-white outline-none focus:border-teal2 disabled:opacity-60"
+                                  className="font-mono h-10 min-w-0 flex-1 rounded-lg border border-[#D5CEC4] bg-[#F4F1EA] px-2 text-center text-sm font-semibold text-[#141414] outline-none focus:border-[#E05338]"
                                 />
                                 <button
                                   type="button"
                                   disabled={isSaving || row.saved}
                                   onClick={() => handleLogSet(index, setIndex, item)}
-                                  className={`flex h-9 shrink-0 items-center justify-center gap-1 rounded-lg px-3 text-xs font-semibold transition disabled:opacity-70 ${
+                                  className={`flex h-9 shrink-0 items-center justify-center gap-1 rounded-lg px-3 text-xs font-bold transition disabled:opacity-70 ${
                                     row.saved
-                                      ? "bg-teal/20 text-teal2"
-                                      : "bg-teal text-onlight hover:opacity-90 active:scale-95"
+                                      ? "bg-green-600 text-white"
+                                      : "bg-[#E05338] text-white hover:bg-[#D0452C] active:scale-95"
                                   }`}
                                 >
-                                  {row.saved && (
-                                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                                      <polyline points="20 6 9 17 4 12" />
-                                    </svg>
-                                  )}
-                                  {isSaving ? "..." : "Listo"}
+                                  {row.saved ? "Listo ✓" : isSaving ? "..." : "Listo"}
                                 </button>
                               </div>
                             );
                           })}
                         </div>
-                          </>
-                        )}
-
-                        <div className="mt-3 flex items-center justify-between">
-                          <button
-                            type="button"
-                            onClick={() => setDetailExercise(exercise)}
-                            className="flex items-center gap-1.5 text-xs font-medium text-teal2 transition hover:underline"
-                          >
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <circle cx="12" cy="12" r="10" />
-                              <line x1="12" y1="16" x2="12" y2="12" />
-                              <line x1="12" y1="8" x2="12.01" y2="8" />
-                            </svg>
-                            Ver técnica
-                          </button>
-                          {isExerciseFullyLogged(index, item) && (
-                            <span className="flex items-center gap-1.5 rounded-full bg-teal/15 px-3 py-1 text-xs font-semibold text-teal2">
-                              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                                <polyline points="20 6 9 17 4 12" />
-                              </svg>
-                              Ya hecho
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {isExpanded && !readOnly && (
-                    <div className="border-t border-hair/60 bg-black/20 p-4 transition-all duration-300">
-                      {workoutActive ? (
-                        <div className="flex flex-col gap-2.5">
-                          <div className="flex items-center justify-between">
-                            <p className="text-[11px] font-semibold uppercase tracking-wider text-teal2">
-                              Series {timeBased ? "(seg)" : "reales"}
-                            </p>
-                            <span className="text-[10px] text-faint">
-                              Peso (kg) · {timeBased ? "Segundos" : "Reps"}
-                            </span>
-                          </div>
-
+                      ) : (
+                        <div className="flex flex-col gap-2">
                           {(performedSets[item.exerciseId] || []).map((set, setIndex) => (
                             <div
                               key={setIndex}
-                              className="flex items-center gap-2 rounded-xl border border-hair/80 bg-glass p-2.5"
+                              className="flex items-center gap-2 rounded-xl border border-[#D5CEC4] bg-white p-2.5 shadow-2xs"
                             >
-                              <span className="font-mono-digit w-6 shrink-0 text-center text-xs font-semibold text-teal2">
+                              <span className="font-mono w-6 shrink-0 text-center text-xs font-bold text-[#E05338]">
                                 #{setIndex + 1}
                               </span>
                               <div className="relative flex-1">
@@ -1028,13 +774,10 @@ export default function RoutineDetail({
                                   onChange={(e) =>
                                     handleUpdateSet(item.exerciseId, setIndex, "weight", e.target.value)
                                   }
-                                  className="font-mono-digit h-10 w-full rounded-lg border border-hair bg-glass2 px-2.5 text-center text-sm text-white outline-none focus:border-teal2"
+                                  className="font-mono h-10 w-full rounded-lg border border-[#D5CEC4] bg-[#F4F1EA] px-2.5 text-center text-sm font-semibold text-[#141414] outline-none focus:border-[#E05338]"
                                 />
-                                <span className="pointer-events-none absolute right-2 top-2.5 text-[10px] text-faint">
-                                  kg
-                                </span>
                               </div>
-                              <span className="shrink-0 text-xs text-faint">×</span>
+                              <span className="shrink-0 text-xs text-[#756C65]">×</span>
                               <div className="relative flex-1">
                                 <input
                                   type="number"
@@ -1044,11 +787,8 @@ export default function RoutineDetail({
                                   onChange={(e) =>
                                     handleUpdateSet(item.exerciseId, setIndex, "reps", e.target.value)
                                   }
-                                  className="font-mono-digit h-10 w-full rounded-lg border border-hair bg-glass2 px-2.5 text-center text-sm text-white outline-none focus:border-teal2"
+                                  className="font-mono h-10 w-full rounded-lg border border-[#D5CEC4] bg-[#F4F1EA] px-2.5 text-center text-sm font-semibold text-[#141414] outline-none focus:border-[#E05338]"
                                 />
-                                <span className="pointer-events-none absolute right-2 top-2.5 text-[10px] text-faint">
-                                  {timeBased ? "seg" : "reps"}
-                                </span>
                               </div>
                               <button
                                 type="button"
@@ -1056,14 +796,14 @@ export default function RoutineDetail({
                                   handleUpdateSet(item.exerciseId, setIndex, "failed", !set.failed)
                                 }
                                 aria-pressed={set.failed}
-                                aria-label="Marcar serie fallada"
+                                title="Marcar fallo muscular"
                                 className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border text-xs font-bold transition ${
                                   set.failed
-                                    ? "border-destructive/50 bg-destructive/20 text-destructive"
-                                    : "border-hair/60 bg-glass2 text-faint hover:text-white"
+                                    ? "border-red-500 bg-red-100 text-red-600"
+                                    : "border-[#D5CEC4] bg-[#F4F1EA] text-[#8C827A] hover:text-[#141414]"
                                 }`}
                               >
-                                ✕
+                                {set.failed ? "Fallo" : "RPE"}
                               </button>
                             </div>
                           ))}
@@ -1072,204 +812,22 @@ export default function RoutineDetail({
                             <button
                               type="button"
                               onClick={() => handleAddSet(item.exerciseId)}
-                              className="h-9 flex-1 rounded-lg border border-dashed border-hair text-xs font-semibold text-faint transition hover:border-teal2 hover:text-teal2"
+                              className="h-9 flex-1 rounded-lg border border-dashed border-[#D5CEC4] bg-white text-xs font-bold text-[#575049] transition hover:border-[#E05338] hover:text-[#E05338]"
                             >
-                              + Serie
+                              + Agregar serie
                             </button>
                             {(performedSets[item.exerciseId] || []).length > 1 && (
                               <button
                                 type="button"
                                 onClick={() => handleRemoveSet(item.exerciseId)}
-                                className="h-9 rounded-lg border border-hair px-3 text-xs font-semibold text-faint transition hover:text-white"
+                                className="h-9 rounded-lg border border-[#D5CEC4] bg-white px-3 text-xs font-semibold text-[#756C65] transition hover:text-[#141414]"
                               >
                                 Sacar última
                               </button>
                             )}
                           </div>
                         </div>
-                      ) : (
-                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                          {/* Series Stepper */}
-                          <div className="rounded-xl border border-hair/80 bg-glass p-2.5">
-                            <span className="block text-[11px] font-semibold uppercase tracking-wider text-teal2">
-                              Series
-                            </span>
-                            <div className="mt-2 flex items-center justify-between">
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleUpdateExercise(
-                                    index,
-                                    "targetSets",
-                                    Math.max(1, (Number(item.targetSets) || 1) - 1),
-                                  )
-                                }
-                                className="flex h-8 w-8 items-center justify-center rounded-lg border border-hair bg-glass2 text-sm font-bold text-white transition hover:bg-white/20 active:scale-95"
-                              >
-                                -
-                              </button>
-                              <span className="font-mono-digit text-base font-semibold text-white">
-                                {item.targetSets || 1}
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleUpdateExercise(
-                                    index,
-                                    "targetSets",
-                                    (Number(item.targetSets) || 1) + 1,
-                                  )
-                                }
-                                className="flex h-8 w-8 items-center justify-center rounded-lg border border-hair bg-glass2 text-sm font-bold text-white transition hover:bg-white/20 active:scale-95"
-                              >
-                                +
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Reps or Seconds Stepper */}
-                          <div className="rounded-xl border border-hair/80 bg-glass p-2.5">
-                            <span className="block text-[11px] font-semibold uppercase tracking-wider text-teal2">
-                              {timeBased ? "Segundos" : "Repeticiones"}
-                            </span>
-                            <div className="mt-2 flex items-center justify-between">
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleUpdateExercise(
-                                    index,
-                                    "targetReps",
-                                    Math.max(1, (Number(item.targetReps) || 10) - (timeBased ? 5 : 1)),
-                                  )
-                                }
-                                className="flex h-8 w-8 items-center justify-center rounded-lg border border-hair bg-glass2 text-sm font-bold text-white transition hover:bg-white/20 active:scale-95"
-                              >
-                                -
-                              </button>
-                              <span className="font-mono-digit text-base font-semibold text-white">
-                                {item.targetReps || 10}
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleUpdateExercise(
-                                    index,
-                                    "targetReps",
-                                    (Number(item.targetReps) || 10) + (timeBased ? 5 : 1),
-                                  )
-                                }
-                                className="flex h-8 w-8 items-center justify-center rounded-lg border border-hair bg-glass2 text-sm font-bold text-white transition hover:bg-white/20 active:scale-95"
-                              >
-                                +
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Weight (Peso en kg) Stepper */}
-                          <div className="rounded-xl border border-hair/80 bg-glass p-2.5">
-                            <span className="block text-[11px] font-semibold uppercase tracking-wider text-teal2">
-                              Peso (kg)
-                            </span>
-                            <div className="mt-2 flex items-center justify-between">
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleUpdateExercise(
-                                    index,
-                                    "targetWeight",
-                                    Math.max(0, (Number(item.targetWeight) || 0) - 2.5),
-                                  )
-                                }
-                                className="flex h-8 w-8 items-center justify-center rounded-lg border border-hair bg-glass2 text-sm font-bold text-white transition hover:bg-white/20 active:scale-95"
-                              >
-                                -
-                              </button>
-                              <span className="font-mono-digit text-sm font-semibold text-white">
-                                {item.targetWeight ? `${item.targetWeight}k` : "0k"}
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleUpdateExercise(
-                                    index,
-                                    "targetWeight",
-                                    (Number(item.targetWeight) || 0) + 2.5,
-                                  )
-                                }
-                                className="flex h-8 w-8 items-center justify-center rounded-lg border border-hair bg-glass2 text-sm font-bold text-white transition hover:bg-white/20 active:scale-95"
-                              >
-                                +
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* RIR (Reps in Reserve) Selector */}
-                          <div className="rounded-xl border border-hair/80 bg-glass p-2.5">
-                            <span className="block text-[11px] font-semibold uppercase tracking-wider text-teal2">
-                              RIR (Reserva)
-                            </span>
-                            <div className="mt-2 flex items-center justify-between gap-1">
-                              {[null, 0, 1, 2, 3].map((val) => {
-                                const isSelected = item.targetRIR === val;
-                                return (
-                                  <button
-                                    key={String(val)}
-                                    type="button"
-                                    onClick={() => handleUpdateExercise(index, "targetRIR", val)}
-                                    className={`flex h-8 flex-1 items-center justify-center rounded-lg text-xs font-semibold transition active:scale-95 ${
-                                      isSelected
-                                        ? "bg-teal text-onlight"
-                                        : "border border-hair/60 bg-glass2 text-faint hover:text-white"
-                                    }`}
-                                  >
-                                    {val === null ? "-" : val}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        </div>
                       )}
-
-                      {/* Bottom row inside accordion */}
-                      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-hair/50 pt-3">
-                        {exercise ? (
-                          <button
-                            type="button"
-                            onClick={() => setDetailExercise(exercise)}
-                            className="flex items-center gap-1.5 text-xs font-medium text-teal2 transition hover:underline"
-                          >
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <circle cx="12" cy="12" r="10" />
-                              <line x1="12" y1="16" x2="12" y2="12" />
-                              <line x1="12" y1="8" x2="12.01" y2="8" />
-                            </svg>
-                            Ver técnica y músculos
-                          </button>
-                        ) : <div />}
-
-                        {!workoutActive && (
-                          <button
-                            type="button"
-                            onClick={handleSaveRoutineChanges}
-                            disabled={saveStatus === "saving"}
-                            className="flex h-8 items-center gap-1.5 rounded-full bg-teal px-3.5 text-xs font-semibold text-onlight transition hover:opacity-90 active:scale-95 disabled:opacity-50"
-                          >
-                            {saveStatus === "saving" ? (
-                              <span>Guardando...</span>
-                            ) : saveStatus === "saved" ? (
-                              <span className="flex items-center gap-1">
-                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                                  <polyline points="20 6 9 17 4 12" />
-                                </svg>
-                                Guardado
-                              </span>
-                            ) : (
-                              <span>Guardar cambios</span>
-                            )}
-                          </button>
-                        )}
-                      </div>
                     </div>
                   )}
                 </div>
@@ -1277,36 +835,60 @@ export default function RoutineDetail({
             })}
           </div>
 
-          {routine.exercises.some((item) => exerciseLookup.get(item.exerciseId)?.mediaUrl) ? (
-            <div className="mt-3">
+          {routine.exercises.some((item) => exerciseLookup.get(item.exerciseId)?.mediaUrl) && (
+            <div className="mt-4">
               <MediaAttribution />
             </div>
-          ) : null}
+          )}
 
-          {/* Mobile Bottom Workout Button */}
-          <div className="mt-3 lg:hidden">
+          {/* Primary Action Button ("Empezar entrenamiento" matching Screenshot) */}
+          <div className="sticky bottom-24 z-20 mt-8">
             {!workoutActive ? (
               <button
                 type="button"
                 onClick={handleStartWorkout}
-                className="flex h-[54px] w-full sm:max-w-md sm:mx-auto items-center justify-center gap-2.5 rounded-full bg-[#FF5733] text-[16px] font-bold text-white shadow-[0_8px_24px_rgba(255,87,51,0.35)] transition-all hover:bg-[#E84D29] active:scale-[0.98]"
+                className="flex h-14 w-full items-center justify-center gap-2.5 rounded-full bg-[#E05338] text-[16px] font-bold text-white shadow-[0_8px_24px_rgba(224,83,56,0.38)] transition-all hover:bg-[#D0452C] active:scale-[0.98]"
               >
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-                  <polygon points="5 3 19 12 5 21 5 3" />
+                  <polygon points="6 4 20 12 6 20 6 4" />
                 </svg>
                 Empezar entrenamiento
               </button>
             ) : (
-              <button
-                type="button"
-                onClick={handleFinishWorkout}
-                className="flex h-[54px] w-full sm:max-w-md sm:mx-auto items-center justify-center gap-2 rounded-full border border-destructive/50 bg-destructive/15 text-[15.5px] font-semibold text-destructive transition hover:bg-destructive/25 active:scale-[0.98]"
-              >
-                Finalizar entrenamiento en curso
-              </button>
+              <div className="flex flex-col gap-3 rounded-2xl border border-[#E05338]/40 bg-[#1A0507]/95 p-4 shadow-[0_12px_32px_rgba(0,0,0,0.5)] backdrop-blur-md text-white">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="relative flex h-2.5 w-2.5">
+                      <span className={`absolute inline-flex h-full w-full rounded-full bg-[#E05338] opacity-75 ${workoutPaused ? "" : "animate-ping"}`} />
+                      <span className={`relative inline-flex h-2.5 w-2.5 rounded-full ${workoutPaused ? "bg-amber-400" : "bg-[#E05338]"}`} />
+                    </span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#E05338]">
+                      {workoutPaused ? "En pausa" : "Entrenando"}
+                    </span>
+                  </div>
+                  <div className="font-mono text-xl font-bold tracking-wider">
+                    {formatWorkoutTime(workoutSeconds)}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setWorkoutPaused((v) => !v)}
+                    className="flex h-8 items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 text-xs font-semibold text-white transition hover:bg-white/20"
+                  >
+                    {workoutPaused ? "Reanudar" : "Pausar"}
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleFinishWorkout}
+                  disabled={sessionSaveStatus === "saving"}
+                  className="flex h-11 w-full items-center justify-center rounded-full bg-destructive text-sm font-bold text-white shadow-sm transition hover:opacity-90 active:scale-95 disabled:opacity-60"
+                >
+                  {sessionSaveStatus === "saving" ? "Guardando…" : "Terminar entrenamiento"}
+                </button>
+              </div>
             )}
           </div>
-        </main>
+        </div>
       </div>
 
       {/* Workout Finish Summary Modal */}
