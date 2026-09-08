@@ -202,13 +202,109 @@ export default function RoutineDetail({
     }
   };
 
+  const getExerciseSets = (item, exerciseIndex) => {
+    if (workoutActive) {
+      if (readOnly) {
+        const count = Number(item.targetSets) || 1;
+        return Array.from({ length: count }, (_, sIdx) => {
+          const row = getSetLogRow(exerciseIndex, sIdx, item);
+          return {
+            setNumber: sIdx + 1,
+            weight: row.weight,
+            reps: row.reps,
+            saved: row.saved,
+          };
+        });
+      }
+      const sets = performedSets[item.exerciseId] || [];
+      return sets.map((s, sIdx) => ({
+        setNumber: sIdx + 1,
+        weight: s.weight,
+        reps: s.reps,
+        failed: s.failed,
+      }));
+    }
+
+    if (Array.isArray(item.sets) && item.sets.length > 0) {
+      return item.sets.map((s, sIdx) => ({
+        setNumber: sIdx + 1,
+        weight: s.weight != null && s.weight !== "" ? String(s.weight) : (item.targetWeight != null ? String(item.targetWeight) : ""),
+        reps: s.reps != null && s.reps !== "" ? String(s.reps) : (item.targetReps != null ? String(item.targetReps) : "10"),
+        rir: s.rir ?? item.targetRIR,
+      }));
+    }
+
+    const count = Number(item.targetSets) || 3;
+    return Array.from({ length: count }, (_, sIdx) => ({
+      setNumber: sIdx + 1,
+      weight: item.targetWeight != null ? String(item.targetWeight) : "",
+      reps: item.targetReps != null ? String(item.targetReps) : "10",
+      rir: item.targetRIR,
+    }));
+  };
+
+  const handleUpdateSetField = (exerciseIndex, setIndex, field, value) => {
+    setExercisesList((prev) => {
+      const next = [...prev];
+      const targetItem = { ...next[exerciseIndex] };
+      const currentSets = getExerciseSets(targetItem, exerciseIndex);
+      const updatedSets = currentSets.map((s, idx) => {
+        if (idx === setIndex) {
+          return { ...s, [field]: value };
+        }
+        return s;
+      });
+      targetItem.sets = updatedSets;
+      targetItem.targetSets = updatedSets.length;
+      if (setIndex === 0) {
+        if (field === "weight") targetItem.targetWeight = value === "" ? null : Number(value);
+        if (field === "reps") targetItem.targetReps = value === "" ? 10 : Number(value);
+        if (field === "rir") targetItem.targetRIR = value === "" ? null : Number(value);
+      }
+      next[exerciseIndex] = targetItem;
+      return next;
+    });
+  };
+
+  const handleAddSetToExercise = (exerciseIndex) => {
+    setExercisesList((prev) => {
+      const next = [...prev];
+      const targetItem = { ...next[exerciseIndex] };
+      const currentSets = getExerciseSets(targetItem, exerciseIndex);
+      const last = currentSets[currentSets.length - 1];
+      const newSet = {
+        setNumber: currentSets.length + 1,
+        weight: last?.weight || "",
+        reps: last?.reps || "10",
+        rir: last?.rir ?? null,
+      };
+      targetItem.sets = [...currentSets, newSet];
+      targetItem.targetSets = targetItem.sets.length;
+      next[exerciseIndex] = targetItem;
+      return next;
+    });
+  };
+
+  const handleRemoveSetFromExercise = (exerciseIndex) => {
+    setExercisesList((prev) => {
+      const next = [...prev];
+      const targetItem = { ...next[exerciseIndex] };
+      const currentSets = getExerciseSets(targetItem, exerciseIndex);
+      if (currentSets.length <= 1) return prev;
+      targetItem.sets = currentSets.slice(0, -1);
+      targetItem.targetSets = targetItem.sets.length;
+      next[exerciseIndex] = targetItem;
+      return next;
+    });
+  };
+
   const handleStartWorkout = () => {
     const seeded = {};
-    for (const item of exercisesList) {
-      const setCount = Number(item.targetSets) || 1;
-      seeded[item.exerciseId] = Array.from({ length: setCount }, () => ({
-        weight: item.targetWeight != null ? String(item.targetWeight) : "",
-        reps: item.targetReps != null ? String(item.targetReps) : "",
+    for (const [i, item] of exercisesList.entries()) {
+      const sets = getExerciseSets(item, i);
+      seeded[item.exerciseId] = sets.map((s) => ({
+        weight: s.weight != null && s.weight !== "" ? String(s.weight) : (item.targetWeight != null ? String(item.targetWeight) : ""),
+        reps: s.reps != null && s.reps !== "" ? String(s.reps) : (item.targetReps != null ? String(item.targetReps) : "10"),
         failed: false,
       }));
     }
@@ -635,6 +731,8 @@ export default function RoutineDetail({
               const muscleName = primary ? (MUSCLE_GROUP_LABELS[primary] || primary) : "General";
               const isExpanded = expandedIndex === index;
 
+              const setsForExercise = getExerciseSets(item, index);
+
               return (
                 <div key={`${item.exerciseId}-${index}`} className="border-b border-[#DCD6CC] py-3.5">
                   <div
@@ -694,187 +792,215 @@ export default function RoutineDetail({
                     </div>
                   </div>
 
-                  {/* Dropdown Expanded Body: Series, Repes, Pesos, RIR */}
+                  {/* Dropdown Expanded Body: Fila por cada serie individual */}
                   {isExpanded && (
-                    <div className="mt-3 rounded-2xl border border-[#D5CEC4] bg-[#EAE5DC]/80 p-4 shadow-xs transition-all duration-200">
-                      {/* Metric Cards Grid: Series, Repes, Pesos, RIR */}
-                      {!readOnly && !workoutActive ? (
-                        /* Modo Edición / Configuración: Steppers interactivos */
-                        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-                          {/* Series */}
-                          <div className="flex flex-col justify-between rounded-xl border border-[#DCD6CC] bg-white p-2.5 shadow-2xs">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#756C65]">
-                              Series
-                            </span>
-                            <div className="mt-2 flex items-center justify-between">
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleUpdateExercise(index, "targetSets", Math.max(1, (Number(item.targetSets) || 1) - 1));
-                                }}
-                                className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#DCD6CC] bg-[#F4F1EA] text-sm font-bold text-[#141414] transition hover:bg-[#EAE4DC] active:scale-95"
-                              >
-                                −
-                              </button>
-                              <span className="font-mono text-base font-bold text-[#141414]">
-                                {item.targetSets || 1}
-                              </span>
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleUpdateExercise(index, "targetSets", (Number(item.targetSets) || 1) + 1);
-                                }}
-                                className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#DCD6CC] bg-[#F4F1EA] text-sm font-bold text-[#141414] transition hover:bg-[#EAE4DC] active:scale-95"
-                              >
-                                +
-                              </button>
-                            </div>
-                          </div>
+                    <div className="mt-3 rounded-2xl border border-[#D5CEC4] bg-[#EAE5DC]/85 p-3 sm:p-4 shadow-xs transition-all duration-200">
+                      {/* Sub-cabecera */}
+                      <div className="flex items-center justify-between px-1 pb-2 border-b border-[#DCD6CC]">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-[#E05338]">
+                            Series de {exercise?.nameEs || "ejercicio"}
+                          </span>
+                          <span className="rounded-full bg-[#E05338]/10 px-2 py-0.5 text-[10px] font-bold text-[#E05338]">
+                            {setsForExercise.length} {setsForExercise.length === 1 ? "serie" : "series"}
+                          </span>
+                        </div>
+                        <span className="text-[10px] font-medium text-[#756C65]">
+                          Peso individual · {timeBased ? "Segundos" : "Repeticiones"}
+                        </span>
+                      </div>
 
-                          {/* Repes / Segundos */}
-                          <div className="flex flex-col justify-between rounded-xl border border-[#DCD6CC] bg-white p-2.5 shadow-2xs">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#756C65]">
-                              {timeBased ? "Segundos" : "Repeticiones"}
-                            </span>
-                            <div className="mt-2 flex items-center justify-between">
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleUpdateExercise(index, "targetReps", Math.max(1, (Number(item.targetReps) || 10) - (timeBased ? 5 : 1)));
-                                }}
-                                className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#DCD6CC] bg-[#F4F1EA] text-sm font-bold text-[#141414] transition hover:bg-[#EAE4DC] active:scale-95"
-                              >
-                                −
-                              </button>
-                              <span className="font-mono text-base font-bold text-[#141414]">
-                                {item.targetReps || 10}
-                              </span>
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleUpdateExercise(index, "targetReps", (Number(item.targetReps) || 10) + (timeBased ? 5 : 1));
-                                }}
-                                className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#DCD6CC] bg-[#F4F1EA] text-sm font-bold text-[#141414] transition hover:bg-[#EAE4DC] active:scale-95"
-                              >
-                                +
-                              </button>
-                            </div>
-                          </div>
+                      {/* Header de columnas */}
+                      <div className="grid grid-cols-[36px_1fr_16px_1fr_auto] items-center gap-2 px-1 pt-2.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-[#756C65]">
+                        <span className="text-center">Set</span>
+                        <span className="text-center">Peso (kg)</span>
+                        <span />
+                        <span className="text-center">{timeBased ? "Tiempo (s)" : "Reps"}</span>
+                        <span className="text-right min-w-[70px]">{workoutActive ? (readOnly ? "Estado" : "Fallo") : "RIR"}</span>
+                      </div>
 
-                          {/* Pesos */}
-                          <div className="flex flex-col justify-between rounded-xl border border-[#DCD6CC] bg-white p-2.5 shadow-2xs">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#756C65]">
-                              Peso objetivo
-                            </span>
-                            <div className="mt-2 flex items-center justify-between">
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleUpdateExercise(index, "targetWeight", Math.max(0, (Number(item.targetWeight) || 0) - 2.5));
-                                }}
-                                className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#DCD6CC] bg-[#F4F1EA] text-sm font-bold text-[#141414] transition hover:bg-[#EAE4DC] active:scale-95"
-                              >
-                                −
-                              </button>
-                              <span className="font-mono text-sm font-bold text-[#141414]">
-                                {item.targetWeight ? `${item.targetWeight}k` : "0k"}
-                              </span>
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleUpdateExercise(index, "targetWeight", (Number(item.targetWeight) || 0) + 2.5);
-                                }}
-                                className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#DCD6CC] bg-[#F4F1EA] text-sm font-bold text-[#141414] transition hover:bg-[#EAE4DC] active:scale-95"
-                              >
-                                +
-                              </button>
-                            </div>
-                          </div>
+                      {/* Filas de series individuales: una fila por cada serie con su peso y repeticiones por separado */}
+                      <div className="mt-1 flex flex-col gap-2">
+                        {setsForExercise.map((setRow, setIndex) => {
+                          const isLogged = workoutActive && readOnly && setRow.saved;
+                          const statusKey = `${index}-${setIndex}`;
+                          const isSaving = logStatus?.key === statusKey && logStatus?.status === "saving";
+                          const hasError = logStatus?.key === statusKey && logStatus?.status === "error";
 
-                          {/* RIR */}
-                          <div className="flex flex-col justify-between rounded-xl border border-[#DCD6CC] bg-white p-2.5 shadow-2xs">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#756C65]">
-                              RIR (Reserva)
-                            </span>
-                            <div className="mt-2 flex items-center justify-between gap-1">
-                              {[null, 0, 1, 2, 3].map((val) => {
-                                const isSelected = item.targetRIR === val;
-                                return (
+                          return (
+                            <div
+                              key={setIndex}
+                              className={`grid grid-cols-[36px_1fr_16px_1fr_auto] items-center gap-2 rounded-xl border p-2 shadow-2xs transition ${
+                                isLogged
+                                  ? "border-green-600/40 bg-green-500/10"
+                                  : hasError
+                                  ? "border-red-500/50 bg-red-50"
+                                  : "border-[#DCD6CC] bg-white"
+                              }`}
+                            >
+                              {/* Número de serie */}
+                              <span className="font-mono text-center text-xs font-bold text-[#E05338]">
+                                #{setIndex + 1}
+                              </span>
+
+                              {/* Peso (kg) */}
+                              <div className="relative flex items-center">
+                                <input
+                                  type="number"
+                                  inputMode="decimal"
+                                  step="0.5"
+                                  placeholder="0"
+                                  disabled={readOnly && (!workoutActive || isLogged)}
+                                  value={setRow.weight ?? ""}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    if (workoutActive) {
+                                      if (readOnly) {
+                                        updateSetLogField(index, setIndex, "weight", val, item);
+                                      } else {
+                                        handleUpdateSet(item.exerciseId, setIndex, "weight", val);
+                                      }
+                                    } else {
+                                      handleUpdateSetField(index, setIndex, "weight", val);
+                                    }
+                                  }}
+                                  className="font-mono h-10 w-full rounded-lg border border-[#D5CEC4] bg-[#F4F1EA] px-2 text-center text-sm font-bold text-[#141414] outline-none transition focus:border-[#E05338] focus:bg-white disabled:opacity-75 disabled:bg-gray-100"
+                                />
+                                <span className="pointer-events-none absolute right-2 text-[10px] font-semibold text-[#8C827A]">
+                                  kg
+                                </span>
+                              </div>
+
+                              {/* Separador × */}
+                              <span className="text-center text-xs font-bold text-[#8C827A]">
+                                ×
+                              </span>
+
+                              {/* Repeticiones o Segundos */}
+                              <div className="relative flex items-center">
+                                <input
+                                  type="number"
+                                  inputMode="numeric"
+                                  placeholder={timeBased ? "seg" : "reps"}
+                                  disabled={readOnly && (!workoutActive || isLogged)}
+                                  value={setRow.reps ?? ""}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    if (workoutActive) {
+                                      if (readOnly) {
+                                        updateSetLogField(index, setIndex, "reps", val, item);
+                                      } else {
+                                        handleUpdateSet(item.exerciseId, setIndex, "reps", val);
+                                      }
+                                    } else {
+                                      handleUpdateSetField(index, setIndex, "reps", val);
+                                    }
+                                  }}
+                                  className="font-mono h-10 w-full rounded-lg border border-[#D5CEC4] bg-[#F4F1EA] px-2 text-center text-sm font-bold text-[#141414] outline-none transition focus:border-[#E05338] focus:bg-white disabled:opacity-75 disabled:bg-gray-100"
+                                />
+                                <span className="pointer-events-none absolute right-2 text-[10px] font-semibold text-[#8C827A]">
+                                  {timeBased ? "s" : "r"}
+                                </span>
+                              </div>
+
+                              {/* Columna de Acción o RIR */}
+                              {workoutActive ? (
+                                readOnly ? (
                                   <button
-                                    key={String(val)}
                                     type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleUpdateExercise(index, "targetRIR", val);
-                                    }}
-                                    className={`flex h-7 flex-1 items-center justify-center rounded-lg text-[11px] font-bold transition active:scale-95 ${
-                                      isSelected
-                                        ? "bg-[#E05338] text-white shadow-xs"
-                                        : "border border-[#DCD6CC] bg-[#F4F1EA] text-[#756C65] hover:text-[#141414]"
+                                    disabled={isSaving || isLogged}
+                                    onClick={() => handleLogSet(index, setIndex, item)}
+                                    className={`flex h-10 min-w-[70px] items-center justify-center rounded-lg px-2 text-xs font-bold transition disabled:opacity-70 ${
+                                      isLogged
+                                        ? "bg-green-600 text-white shadow-xs"
+                                        : "bg-[#E05338] text-white hover:bg-[#D0452C] active:scale-95"
                                     }`}
                                   >
-                                    {val === null ? "-" : val}
+                                    {isLogged ? "Listo ✓" : isSaving ? "..." : "Listo"}
                                   </button>
-                                );
-                              })}
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleUpdateSet(item.exerciseId, setIndex, "failed", !setRow.failed)}
+                                    className={`flex h-10 min-w-[60px] items-center justify-center rounded-lg border text-xs font-bold transition ${
+                                      setRow.failed
+                                        ? "border-red-500 bg-red-100 text-red-600"
+                                        : "border-[#DCD6CC] bg-[#F4F1EA] text-[#8C827A] hover:text-[#141414]"
+                                    }`}
+                                  >
+                                    {setRow.failed ? "Fallo" : "RPE"}
+                                  </button>
+                                )
+                              ) : (
+                                <div className="flex items-center justify-end min-w-[70px]">
+                                  {!readOnly ? (
+                                    <select
+                                      value={setRow.rir ?? ""}
+                                      onChange={(e) => {
+                                        const val = e.target.value === "" ? null : Number(e.target.value);
+                                        handleUpdateSetField(index, setIndex, "rir", val);
+                                      }}
+                                      className="font-mono h-10 rounded-lg border border-[#D5CEC4] bg-[#F4F1EA] px-2 text-xs font-bold text-[#141414] outline-none focus:border-[#E05338]"
+                                    >
+                                      <option value="">RIR —</option>
+                                      <option value="0">RIR 0</option>
+                                      <option value="1">RIR 1</option>
+                                      <option value="2">RIR 2</option>
+                                      <option value="3">RIR 3</option>
+                                    </select>
+                                  ) : (
+                                    <span className="font-mono rounded-lg border border-[#DCD6CC] bg-[#F4F1EA] px-2.5 py-2 text-xs font-bold text-[#575049]">
+                                      {setRow.rir != null ? `RIR ${setRow.rir}` : "RIR —"}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
                             </div>
-                          </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Botonera inferior de la serie */}
+                      <div className="mt-3.5 flex flex-wrap items-center justify-between gap-2 border-t border-[#DCD6CC] pt-3">
+                        <div className="flex items-center gap-2">
+                          {(!readOnly || workoutActive) && (
+                            <>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (workoutActive) {
+                                    handleAddSet(item.exerciseId);
+                                  } else {
+                                    handleAddSetToExercise(index);
+                                  }
+                                }}
+                                className="flex h-8 items-center gap-1 rounded-lg border border-dashed border-[#DCD6CC] bg-white px-2.5 text-xs font-bold text-[#575049] transition hover:border-[#E05338] hover:text-[#E05338]"
+                              >
+                                + Agregar serie
+                              </button>
+                              {setsForExercise.length > 1 && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (workoutActive) {
+                                      handleRemoveSet(item.exerciseId);
+                                    } else {
+                                      handleRemoveSetFromExercise(index);
+                                    }
+                                  }}
+                                  className="flex h-8 items-center rounded-lg border border-[#DCD6CC] bg-white px-2.5 text-xs font-semibold text-[#8C827A] transition hover:text-[#141414]"
+                                >
+                                  Sacar última
+                                </button>
+                              )}
+                            </>
+                          )}
                         </div>
-                      ) : (
-                        /* Modo Lectura / Objetivos de la rutina */
-                        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-                          {/* Series */}
-                          <div className="rounded-xl border border-[#DCD6CC] bg-white p-3 shadow-2xs">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#756C65]">
-                              Series
-                            </span>
-                            <div className="mt-1 font-mono text-lg font-bold text-[#141414]">
-                              {item.targetSets || 3} <span className="text-xs font-normal text-[#756C65]">series</span>
-                            </div>
-                          </div>
 
-                          {/* Repes */}
-                          <div className="rounded-xl border border-[#DCD6CC] bg-white p-3 shadow-2xs">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#756C65]">
-                              {timeBased ? "Segundos" : "Repeticiones"}
-                            </span>
-                            <div className="mt-1 font-mono text-lg font-bold text-[#141414]">
-                              {item.targetReps || 10} <span className="text-xs font-normal text-[#756C65]">{timeBased ? "seg" : "reps"}</span>
-                            </div>
-                          </div>
-
-                          {/* Pesos */}
-                          <div className="rounded-xl border border-[#DCD6CC] bg-white p-3 shadow-2xs">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#756C65]">
-                              Peso objetivo
-                            </span>
-                            <div className="mt-1 font-mono text-lg font-bold text-[#141414]">
-                              {item.targetWeight ? `${item.targetWeight} kg` : "Corporal"}
-                            </div>
-                          </div>
-
-                          {/* RIR */}
-                          <div className="rounded-xl border border-[#DCD6CC] bg-white p-3 shadow-2xs">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#756C65]">
-                              RIR (Reserva)
-                            </span>
-                            <div className="mt-1 font-mono text-lg font-bold text-[#141414]">
-                              {item.targetRIR != null ? `RIR ${item.targetRIR}` : "Libre"}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Botonera inferior / Acciones de rutina */}
-                      {!workoutActive ? (
-                        <div className="mt-3.5 flex flex-wrap items-center justify-between gap-2 border-t border-[#DCD6CC] pt-3">
-                          {exercise ? (
+                        <div className="flex items-center gap-2">
+                          {exercise && (
                             <button
                               type="button"
                               onClick={(e) => {
@@ -883,16 +1009,16 @@ export default function RoutineDetail({
                               }}
                               className="flex items-center gap-1.5 text-xs font-bold text-[#E05338] hover:underline"
                             >
-                              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                                 <circle cx="12" cy="12" r="10" />
                                 <line x1="12" y1="16" x2="12" y2="12" />
                                 <line x1="12" y1="8" x2="12.01" y2="8" />
                               </svg>
-                              Ver técnica y músculos
+                              Ver técnica
                             </button>
-                          ) : <div />}
+                          )}
 
-                          {!readOnly && (
+                          {!readOnly && !workoutActive && (
                             <button
                               type="button"
                               onClick={(e) => {
@@ -917,171 +1043,7 @@ export default function RoutineDetail({
                             </button>
                           )}
                         </div>
-                      ) : (
-                        /* Durante entrenamiento activo: Registro interactivo de series */
-                        <div className="mt-3.5 border-t border-[#DCD6CC] pt-3">
-                          <div className="flex items-center justify-between mb-2.5">
-                            <p className="text-[11px] font-bold uppercase tracking-wider text-[#E05338]">
-                              Registro de series de {exercise?.nameEs || "ejercicio"}
-                            </p>
-                            <span className="text-[10px] text-[#756C65]">
-                              Peso (kg) · Reps
-                            </span>
-                          </div>
-
-                          {readOnly ? (
-                            <div className="flex flex-col gap-2">
-                              {Array.from({ length: Number(item.targetSets) || 1 }, (_, setIndex) => {
-                                const row = getSetLogRow(index, setIndex, item);
-                                const statusKey = `${index}-${setIndex}`;
-                                const isSaving = logStatus?.key === statusKey && logStatus?.status === "saving";
-                                const hasError = logStatus?.key === statusKey && logStatus?.status === "error";
-                                return (
-                                  <div
-                                    key={setIndex}
-                                    className={`flex items-center gap-2 rounded-xl border p-2.5 transition ${
-                                      row.saved
-                                        ? "border-green-500/40 bg-green-500/10"
-                                        : hasError
-                                        ? "border-destructive/50 bg-destructive/10"
-                                        : "border-[#D5CEC4] bg-white"
-                                    }`}
-                                  >
-                                    <span className="font-mono w-5 shrink-0 text-center text-xs font-bold text-[#E05338]">
-                                      #{setIndex + 1}
-                                    </span>
-                                    <input
-                                      type="number"
-                                      inputMode="decimal"
-                                      step="0.5"
-                                      placeholder="kg"
-                                      disabled={row.saved}
-                                      value={row.weight}
-                                      onChange={(e) => updateSetLogField(index, setIndex, "weight", e.target.value, item)}
-                                      className="font-mono h-10 min-w-0 flex-1 rounded-lg border border-[#D5CEC4] bg-[#F4F1EA] px-2 text-center text-sm font-semibold text-[#141414] outline-none focus:border-[#E05338]"
-                                    />
-                                    <span className="shrink-0 text-xs text-[#756C65]">×</span>
-                                    <input
-                                      type="number"
-                                      inputMode="numeric"
-                                      placeholder={timeBased ? "seg" : "reps"}
-                                      disabled={row.saved}
-                                      value={row.reps}
-                                      onChange={(e) => updateSetLogField(index, setIndex, "reps", e.target.value, item)}
-                                      className="font-mono h-10 min-w-0 flex-1 rounded-lg border border-[#D5CEC4] bg-[#F4F1EA] px-2 text-center text-sm font-semibold text-[#141414] outline-none focus:border-[#E05338]"
-                                    />
-                                    <button
-                                      type="button"
-                                      disabled={isSaving || row.saved}
-                                      onClick={() => handleLogSet(index, setIndex, item)}
-                                      className={`flex h-9 shrink-0 items-center justify-center gap-1 rounded-lg px-3 text-xs font-bold transition disabled:opacity-70 ${
-                                        row.saved
-                                          ? "bg-green-600 text-white"
-                                          : "bg-[#E05338] text-white hover:bg-[#D0452C] active:scale-95"
-                                      }`}
-                                    >
-                                      {row.saved ? "Listo ✓" : isSaving ? "..." : "Listo"}
-                                    </button>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          ) : (
-                            <div className="flex flex-col gap-2">
-                              {(performedSets[item.exerciseId] || []).map((set, setIndex) => (
-                                <div
-                                  key={setIndex}
-                                  className="flex items-center gap-2 rounded-xl border border-[#D5CEC4] bg-white p-2.5 shadow-2xs"
-                                >
-                                  <span className="font-mono w-6 shrink-0 text-center text-xs font-bold text-[#E05338]">
-                                    #{setIndex + 1}
-                                  </span>
-                                  <div className="relative flex-1">
-                                    <input
-                                      type="number"
-                                      inputMode="decimal"
-                                      step="0.5"
-                                      placeholder="kg"
-                                      value={set.weight}
-                                      onChange={(e) =>
-                                        handleUpdateSet(item.exerciseId, setIndex, "weight", e.target.value)
-                                      }
-                                      className="font-mono h-10 w-full rounded-lg border border-[#D5CEC4] bg-[#F4F1EA] px-2.5 text-center text-sm font-semibold text-[#141414] outline-none focus:border-[#E05338]"
-                                    />
-                                  </div>
-                                  <span className="shrink-0 text-xs text-[#756C65]">×</span>
-                                  <div className="relative flex-1">
-                                    <input
-                                      type="number"
-                                      inputMode="numeric"
-                                      placeholder={timeBased ? "seg" : "reps"}
-                                      value={set.reps}
-                                      onChange={(e) =>
-                                        handleUpdateSet(item.exerciseId, setIndex, "reps", e.target.value)
-                                      }
-                                      className="font-mono h-10 w-full rounded-lg border border-[#D5CEC4] bg-[#F4F1EA] px-2.5 text-center text-sm font-semibold text-[#141414] outline-none focus:border-[#E05338]"
-                                    />
-                                  </div>
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      handleUpdateSet(item.exerciseId, setIndex, "failed", !set.failed)
-                                    }
-                                    aria-pressed={set.failed}
-                                    title="Marcar fallo muscular"
-                                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border text-xs font-bold transition ${
-                                      set.failed
-                                        ? "border-red-500 bg-red-100 text-red-600"
-                                        : "border-[#D5CEC4] bg-[#F4F1EA] text-[#8C827A] hover:text-[#141414]"
-                                    }`}
-                                  >
-                                    {set.failed ? "Fallo" : "RPE"}
-                                  </button>
-                                </div>
-                              ))}
-
-                              <div className="flex gap-2 pt-1">
-                                <button
-                                  type="button"
-                                  onClick={() => handleAddSet(item.exerciseId)}
-                                  className="h-9 flex-1 rounded-lg border border-dashed border-[#D5CEC4] bg-white text-xs font-bold text-[#575049] transition hover:border-[#E05338] hover:text-[#E05338]"
-                                >
-                                  + Agregar serie
-                                </button>
-                                {(performedSets[item.exerciseId] || []).length > 1 && (
-                                  <button
-                                    type="button"
-                                    onClick={() => handleRemoveSet(item.exerciseId)}
-                                    className="h-9 rounded-lg border border-[#D5CEC4] bg-white px-3 text-xs font-semibold text-[#756C65] transition hover:text-[#141414]"
-                                  >
-                                    Sacar última
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                          )}
-
-                          <div className="mt-3 flex items-center justify-between pt-2 border-t border-[#DCD6CC]">
-                            {exercise && (
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setDetailExercise(exercise);
-                                }}
-                                className="flex items-center gap-1.5 text-xs font-bold text-[#E05338] hover:underline"
-                              >
-                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                                  <circle cx="12" cy="12" r="10" />
-                                  <line x1="12" y1="16" x2="12" y2="12" />
-                                  <line x1="12" y1="8" x2="12.01" y2="8" />
-                                </svg>
-                                Ver técnica y músculos
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      )}
+                      </div>
                     </div>
                   )}
                 </div>

@@ -97,7 +97,7 @@ export default function BottomNav() {
     <div className="pointer-events-none fixed bottom-6 left-0 right-0 z-50 flex justify-center px-4 md:hidden">
       <nav
         aria-label="Navegación móvil"
-        className="pointer-events-auto flex items-center p-1 rounded-[20px] bg-[#B9B4B4] shadow-[0_8px_30px_rgba(0,0,0,0.18)]"
+        className="pointer-events-auto flex items-center p-1 rounded-[10px] bg-[#B9B4B4] shadow-[0_8px_30px_rgba(0,0,0,0.18)]"
         style={{
           width: "292px",
           height: "60px",
@@ -114,7 +114,7 @@ export default function BottomNav() {
                 aria-current={item.isActive ? "page" : undefined}
                 className={`flex-1 h-full flex items-center justify-center transition-all duration-200 active:scale-95 ${
                   item.isActive
-                    ? "rounded-[14px] bg-[#F1602F] text-white shadow-sm"
+                    ? "rounded-[10px] bg-[#F1602F] text-white shadow-sm"
                     : "text-white hover:bg-black/[0.04]"
                 }`}
               >
