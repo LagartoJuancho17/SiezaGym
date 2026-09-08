@@ -648,13 +648,13 @@ export default function RoutineDetail({
                     className="flex items-center justify-between gap-3 cursor-pointer group"
                   >
                     {/* Exercise Thumbnail */}
-                    <div className="relative flex h-14 w-14 sm:h-16 sm:w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-[#E2DCD4] p-1 shadow-xs">
+                    <div className="relative flex h-14 w-14 sm:h-16 sm:w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white border border-[#DCD6CC] shadow-xs">
                       {exercise?.mediaUrl ? (
                         <Image
                           src={exercise.mediaUrl}
                           alt={exercise?.nameEs || "Ejercicio"}
                           fill
-                          className="object-contain p-1"
+                          className="object-contain p-1.5"
                           unoptimized
                         />
                       ) : (
