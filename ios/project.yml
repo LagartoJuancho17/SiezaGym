@@ -10,6 +10,10 @@ packages:
     url: https://github.com/firebase/firebase-ios-sdk
     minVersion: "11.0.0"
     maxVersion: "13.0.0"
+  GoogleSignIn:
+    url: https://github.com/google/GoogleSignIn-iOS
+    minVersion: "8.0.0"
+    maxVersion: "10.0.0"
 
 settings:
   base:
@@ -28,22 +32,43 @@ targets:
     platform: iOS
     sources:
       - path: SiezaGym
+    # GENERATE_INFOPLIST_FILE no puede declarar CFBundleURLTypes (es un array de
+    # diccionarios) y sin el esquema de URL iOS no sabe a quien devolverle el
+    # callback de Google, asi que hace falta un Info.plist de verdad.
+    info:
+      path: SiezaGym/Info.plist
+      properties:
+        CFBundleDisplayName: SiezaGym
+        # La app esta escrita en castellano. Sin declararlo, iOS resuelve los
+        # bundles embebidos (el del SDK de Google, entre otros) contra el idioma
+        # de desarrollo y el boton sale "Sign in with Google".
+        CFBundleDevelopmentRegion: es
+        CFBundleLocalizations: [es]
+        UILaunchScreen: {}
+        UIStatusBarStyle: UIStatusBarStyleLightContent
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        # Es el REVERSED_CLIENT_ID del GoogleService-Info.plist. A diferencia de
+        # la API key, un client id de OAuth para iOS es publico por diseno:
+        # viaja en el binario y se lee de cualquier IPA. No tiene client secret.
+        CFBundleURLTypes:
+          - CFBundleTypeRole: Editor
+            CFBundleURLSchemes:
+              - com.googleusercontent.apps.172935039970-q91msrp5od5vkgd5mohj9bo5fcg8e59v
     dependencies:
       - package: Firebase
         product: FirebaseAuth
       - package: Firebase
         product: FirebaseFirestore
+      - package: GoogleSignIn
+        product: GoogleSignIn
+      - package: GoogleSignIn
+        product: GoogleSignInSwift
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.siezagym.app
         PRODUCT_NAME: SiezaGym
         MARKETING_VERSION: "1.0"
         CURRENT_PROJECT_VERSION: "1"
-        GENERATE_INFOPLIST_FILE: YES
-        INFOPLIST_KEY_CFBundleDisplayName: SiezaGym
-        INFOPLIST_KEY_UILaunchScreen_Generation: YES
-        INFOPLIST_KEY_UIStatusBarStyle: UIStatusBarStyleLightContent
-        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         ENABLE_USER_SCRIPT_SANDBOXING: YES

@@ -14,8 +14,10 @@
 		247BCD7B21B034FB7AFAC3BA /* HomeWidgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C915DD4541B5907FDF5B3A6 /* HomeWidgets.swift */; };
 		256AEA707CE2910A60D78CC5 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E67F3CD2D19C5C9646C24949 /* LoginView.swift */; };
 		33B26F6C05D0104187580F48 /* UserProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD844D5CFED5C704AFB9FB7C /* UserProfile.swift */; };
+		3ED38C40F86AC7AB401503E0 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 42B0F2A63D3FA74AD0786D4A /* GoogleSignInSwift */; };
 		5373D4EB6072C359DAF582D1 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E9E6EDDD5616A0DD6344E35 /* HomeView.swift */; };
 		66699FE98C2D7712D367AC7E /* FirestoreValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0090F07F6E3B43CEC19FD58E /* FirestoreValue.swift */; };
+		6B2DAFBC29A68301EDD8482D /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = E77BECE04CF1B1A2871A1889 /* GoogleSignIn */; };
 		71B55B68CDDE96E4D0457893 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = B25E860F7C4AE7A29211C87F /* GoogleService-Info.plist */; };
 		721BE8F99880C16D784852C1 /* RoutineSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCA4F2347BCE2A9D4BDB6CF /* RoutineSummary.swift */; };
 		765B33F0C6E2CA822388FC44 /* Epley.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DA99ABA4DD2DEF013186323 /* Epley.swift */; };
@@ -32,6 +34,7 @@
 		AF336CD92774B1244EA236A7 /* GymRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = C274E2BEAA284A87E09CB167 /* GymRepository.swift */; };
 		B0271AE82DCF679E96BE2A0D /* HomeMetricsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 722FB1B611252D2E0EC76157 /* HomeMetricsTests.swift */; };
 		B0A9F9186BE9C2FEAF90DC7D /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84C7BEEEDBE9E6F40E889EF2 /* ProfileView.swift */; };
+		B0B297E0FDAA904D85B665BE /* AuthMessageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61A8217EE572685B2AF5F08A /* AuthMessageTests.swift */; };
 		B0EA2CE5E685D1FC164705BC /* HomeMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = D23EED55AC67DF9CAA4DB093 /* HomeMetrics.swift */; };
 		B1B3AA68F97836D037C4F264 /* TrainingCalendarTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00CB416B92890D19B623F38A /* TrainingCalendarTests.swift */; };
 		C0283CF3A0439D767EF2D6CD /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = F83202DC4E3A3E212094214A /* FirebaseAuth */; };
@@ -65,6 +68,7 @@
 		3C1FC286E71B9F59206318CA /* HeroImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeroImage.swift; sourceTree = "<group>"; };
 		4DA99ABA4DD2DEF013186323 /* Epley.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Epley.swift; sourceTree = "<group>"; };
 		6050D5EE6B1267B77E113FA9 /* Routine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Routine.swift; sourceTree = "<group>"; };
+		61A8217EE572685B2AF5F08A /* AuthMessageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthMessageTests.swift; sourceTree = "<group>"; };
 		63CD15615E2748C04233185B /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
 		6B0A282C126119F3E98FE7B2 /* SiezaGym.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = SiezaGym.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		722FB1B611252D2E0EC76157 /* HomeMetricsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeMetricsTests.swift; sourceTree = "<group>"; };
@@ -84,6 +88,7 @@
 		F177C0263E8465A708ACC210 /* TrainingCalendar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainingCalendar.swift; sourceTree = "<group>"; };
 		F2B15FA48EB2129CD2F242D0 /* RoutinesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoutinesView.swift; sourceTree = "<group>"; };
 		F3EA1A8C682800BC7D50005F /* WorkoutSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutSession.swift; sourceTree = "<group>"; };
+		F9F6A2EBFC13CEDC7984B640 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -93,6 +98,8 @@
 			files = (
 				C0283CF3A0439D767EF2D6CD /* FirebaseAuth in Frameworks */,
 				770004E47AA749F0F6F998B2 /* FirebaseFirestore in Frameworks */,
+				6B2DAFBC29A68301EDD8482D /* GoogleSignIn in Frameworks */,
+				3ED38C40F86AC7AB401503E0 /* GoogleSignInSwift in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -219,6 +226,7 @@
 		C3F0463828C12475FCA92D2E /* SiezaGym */ = {
 			isa = PBXGroup;
 			children = (
+				F9F6A2EBFC13CEDC7984B640 /* Info.plist */,
 				0DDA47487C90F2CFC08882C9 /* SiezaGymApp.swift */,
 				379FCB97390D30EBDC4ACFE3 /* DesignSystem */,
 				3E5CBFCC6A703612FA8EC959 /* Domain */,
@@ -251,6 +259,7 @@
 		E8CFB2971497B4CB3F568CB4 /* SiezaGymTests */ = {
 			isa = PBXGroup;
 			children = (
+				61A8217EE572685B2AF5F08A /* AuthMessageTests.swift */,
 				722FB1B611252D2E0EC76157 /* HomeMetricsTests.swift */,
 				00CB416B92890D19B623F38A /* TrainingCalendarTests.swift */,
 			);
@@ -310,6 +319,8 @@
 			packageProductDependencies = (
 				F83202DC4E3A3E212094214A /* FirebaseAuth */,
 				612CAF8B0BE6DAFE16A5E7F3 /* FirebaseFirestore */,
+				E77BECE04CF1B1A2871A1889 /* GoogleSignIn */,
+				42B0F2A63D3FA74AD0786D4A /* GoogleSignInSwift */,
 			);
 			productName = SiezaGym;
 			productReference = 6B0A282C126119F3E98FE7B2 /* SiezaGym.app */;
@@ -345,6 +356,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				66D3C87957210AEC03F42830 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				649707AB10024941FD933CD9 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 53A94C3F8F42DC761303E246 /* Products */;
@@ -407,6 +419,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B0B297E0FDAA904D85B665BE /* AuthMessageTests.swift in Sources */,
 				B0271AE82DCF679E96BE2A0D /* HomeMetricsTests.swift in Sources */,
 				B1B3AA68F97836D037C4F264 /* TrainingCalendarTests.swift in Sources */,
 			);
@@ -492,11 +505,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = SiezaGym;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleLightContent;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_FILE = SiezaGym/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -534,11 +543,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = SiezaGym;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleLightContent;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_FILE = SiezaGym/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -669,6 +674,15 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		649707AB10024941FD933CD9 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = versionRange;
+				maximumVersion = 10.0.0;
+				minimumVersion = 8.0.0;
+			};
+		};
 		66D3C87957210AEC03F42830 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
@@ -681,10 +695,20 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		42B0F2A63D3FA74AD0786D4A /* GoogleSignInSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 649707AB10024941FD933CD9 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignInSwift;
+		};
 		612CAF8B0BE6DAFE16A5E7F3 /* FirebaseFirestore */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 66D3C87957210AEC03F42830 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseFirestore;
+		};
+		E77BECE04CF1B1A2871A1889 /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 649707AB10024941FD933CD9 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
 		};
 		F83202DC4E3A3E212094214A /* FirebaseAuth */ = {
 			isa = XCSwiftPackageProductDependency;

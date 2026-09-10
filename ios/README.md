@@ -5,8 +5,11 @@ que la web**: lo que registrás en el gimnasio aparece en `sieza-gym.vercel.app`
 al revés. No hay una segunda base de datos ni sincronización que mantener.
 
 - Xcode 26, iOS 18+, Swift 6 (concurrencia estricta, main actor por defecto)
-- Firebase iOS SDK 12 (Auth + Firestore) por Swift Package Manager
+- Firebase iOS SDK 12 (Auth + Firestore) + GoogleSignIn 9, por Swift Package Manager
 - Bundle id `com.siezagym.app`
+
+Login con email/contraseña o con Google. Entrar con Google cae en la **misma
+cuenta de Firebase** que la web: mismo uid, mismas rutinas.
 
 ## Poner a andar el proyecto
 
@@ -78,6 +81,27 @@ estima a partir de las series.
 **La hora es la de Argentina, no la del teléfono.** Un entrenamiento a las 22:00
 en Buenos Aires es de ese día aunque el dispositivo esté en otra zona.
 
+## Login con Google
+
+El `CLIENT_ID` sale del `GoogleService-Info.plist`, así que no hay nada que
+configurar a mano: Firebase creó el cliente OAuth de iOS solo al registrar la
+app. Lo que sí está en `project.yml`, porque tiene que estar en el bundle:
+
+- `CFBundleURLTypes` con el `REVERSED_CLIENT_ID`, para que iOS sepa a quién
+  devolverle el callback. Ese valor **no** es secreto como la API key: un client
+  id de OAuth para iOS viaja en el binario y no tiene client secret.
+- `CFBundleDevelopmentRegion: es` y `CFBundleLocalizations: [es]`. Sin eso el
+  botón del SDK sale en inglés, porque iOS resuelve los bundles embebidos contra
+  el idioma de desarrollo de la app.
+
+La app crea el perfil en `users/` con los mismos campos que hace el servidor de
+la web en `app/api/session/login/route.js`: `createdAt` y `provider` solo se
+escriben la primera vez, después únicamente se refrescan `photoURL`,
+`displayName`, `updatedAt` y `lastLoginAt`.
+
+Cerrar sesión también cierra la de Google. Si no, el siguiente login entra solo
+con la misma cuenta y no deja elegir otra.
+
 ## Tests
 
 ```bash
@@ -85,7 +109,8 @@ xcodebuild test -project SiezaGym.xcodeproj -scheme SiezaGym \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 ```
 
-43 tests sobre `Domain/`: son funciones puras, no tocan Firestore ni la red.
+48 tests: la matemática de `Domain/` y la traducción de errores de login. Son
+funciones puras, no tocan Firestore ni la red.
 
 ## El proyecto de Xcode
 

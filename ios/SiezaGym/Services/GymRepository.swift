@@ -38,12 +38,37 @@ nonisolated struct GymRepository: Sendable {
         return UserProfile(id: uid, data: data)
     }
 
-    func ensureProfile(uid: String, email: String?, displayName: String?) async throws {
-        try await db.collection("users").document(uid).setData([
-            "email": email as Any,
-            "displayName": displayName as Any,
-            "provider": "password",
-            "createdAt": FieldValue.serverTimestamp(),
+    /// Mismo comportamiento que `ensureUserProfile` en la web: la primera vez
+    /// escribe el perfil entero; despues solo refresca los datos del proveedor y
+    /// las fechas de acceso. `createdAt` y `provider` no se pisan nunca -- si se
+    /// pisaran, cada login diria que la cuenta se creo hoy.
+    func ensureProfile(
+        uid: String,
+        email: String?,
+        displayName: String?,
+        photoURL: String? = nil,
+        provider: String = "password"
+    ) async throws {
+        let document = db.collection("users").document(uid)
+        let existing = try await document.getDocument().data()
+
+        guard let existing else {
+            try await document.setData([
+                "email": email as Any,
+                "displayName": displayName as Any,
+                "photoURL": photoURL as Any,
+                "provider": provider,
+                "createdAt": FieldValue.serverTimestamp(),
+                "updatedAt": FieldValue.serverTimestamp(),
+                "lastLoginAt": FieldValue.serverTimestamp(),
+            ])
+            return
+        }
+
+        try await document.setData([
+            "email": email ?? existing["email"] as Any,
+            "displayName": displayName ?? existing["displayName"] as Any,
+            "photoURL": photoURL ?? existing["photoURL"] as Any,
             "updatedAt": FieldValue.serverTimestamp(),
             "lastLoginAt": FieldValue.serverTimestamp(),
         ], merge: true)

@@ -1,4 +1,5 @@
 import FirebaseCore
+import GoogleSignIn
 import SwiftUI
 
 @main
@@ -31,6 +32,8 @@ struct SiezaGymApp: App {
                     MissingConfigView()
                 }
             }
+            // Google vuelve del navegador por el esquema de URL de la app.
+            .onOpenURL { GIDSignIn.sharedInstance.handle($0) }
             // La app es bordo siempre: no tiene modo claro alternativo.
             .preferredColorScheme(.dark)
             .tint(Theme.accent)

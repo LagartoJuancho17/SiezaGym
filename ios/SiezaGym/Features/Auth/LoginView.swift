@@ -1,3 +1,4 @@
+import GoogleSignInSwift
 import SwiftUI
 
 struct LoginView: View {
@@ -49,6 +50,17 @@ struct LoginView: View {
                         if auth.isWorking { ProgressView().tint(.white) }
                     }
 
+                separator
+
+                // Boton oficial del SDK: el logo y el texto los pone Google, ya
+                // localizados. Dibujar la G a mano viola las guias de marca.
+                GoogleSignInButton(viewModel: googleButton) {
+                    Task { await auth.signInWithGoogle() }
+                }
+                .disabled(auth.isWorking)
+                .frame(height: 50)
+                .clipShape(.rect(cornerRadius: Theme.radius))
+
                 Button {
                     withAnimation(.smooth(duration: 0.25)) {
                         mode = mode == .signIn ? .signUp : .signIn
@@ -65,6 +77,28 @@ struct LoginView: View {
         }
         .scrollDismissesKeyboard(.interactively)
         .animation(.smooth(duration: 0.25), value: auth.errorMessage)
+    }
+
+    private var googleButton: GoogleSignInButtonViewModel {
+        GoogleSignInButtonViewModel(scheme: .light, style: .wide, state: .normal)
+    }
+
+    /// "o" entre el login por email y el de Google.
+    private var separator: some View {
+        HStack(spacing: 12) {
+            line
+            Text("o")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(Theme.onDarkFaint)
+            line
+        }
+        .padding(.vertical, 2)
+    }
+
+    private var line: some View {
+        Rectangle()
+            .fill(.white.opacity(0.14))
+            .frame(height: 1)
     }
 
     private var header: some View {
