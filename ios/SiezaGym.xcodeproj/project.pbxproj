@@ -1,0 +1,697 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		09BF360C5D608AA8940A33AD /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEC42CD9901F9007C6EF6E4C /* RootView.swift */; };
+		106C3B5F379773A98FB4C5C5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3BF9C538E6A757304EFC3144 /* Assets.xcassets */; };
+		1E828F64186F2A6C8F8536BF /* RoutineDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 342407F2A5FA9309DB2F9F1C /* RoutineDetailView.swift */; };
+		1ED7D12CC8CCEBACE1B9E63C /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = B437C24DD1E137D90F5709E3 /* Theme.swift */; };
+		247BCD7B21B034FB7AFAC3BA /* HomeWidgets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C915DD4541B5907FDF5B3A6 /* HomeWidgets.swift */; };
+		256AEA707CE2910A60D78CC5 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E67F3CD2D19C5C9646C24949 /* LoginView.swift */; };
+		33B26F6C05D0104187580F48 /* UserProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD844D5CFED5C704AFB9FB7C /* UserProfile.swift */; };
+		5373D4EB6072C359DAF582D1 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E9E6EDDD5616A0DD6344E35 /* HomeView.swift */; };
+		66699FE98C2D7712D367AC7E /* FirestoreValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0090F07F6E3B43CEC19FD58E /* FirestoreValue.swift */; };
+		71B55B68CDDE96E4D0457893 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = B25E860F7C4AE7A29211C87F /* GoogleService-Info.plist */; };
+		721BE8F99880C16D784852C1 /* RoutineSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCA4F2347BCE2A9D4BDB6CF /* RoutineSummary.swift */; };
+		765B33F0C6E2CA822388FC44 /* Epley.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DA99ABA4DD2DEF013186323 /* Epley.swift */; };
+		770004E47AA749F0F6F998B2 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 612CAF8B0BE6DAFE16A5E7F3 /* FirebaseFirestore */; };
+		7750AF83B91BCB93392BBB76 /* WorkoutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1701F084780BFE7958223925 /* WorkoutView.swift */; };
+		7B61A31D26EE3864C702E889 /* RoutinesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2B15FA48EB2129CD2F242D0 /* RoutinesView.swift */; };
+		7E739AEF5A7A60A1D36CCB94 /* SiezaGymApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DDA47487C90F2CFC08882C9 /* SiezaGymApp.swift */; };
+		83C100CB50D292C042F372BA /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63CD15615E2748C04233185B /* HistoryView.swift */; };
+		8D087CEFB48437FF6FEECA76 /* Exercise.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7E47E5DACFE6DA5281E7768 /* Exercise.swift */; };
+		9068279C51F35720BFA0F85B /* WorkoutDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B20CDD344068C731A037D44 /* WorkoutDraft.swift */; };
+		9A7659413F1FC6EDEB2C21D2 /* GymStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00831C4B5DF350BB44E6270 /* GymStore.swift */; };
+		9E4BBA874C23DB14C229B6F3 /* HeroImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C1FC286E71B9F59206318CA /* HeroImage.swift */; };
+		A626D9D7CD7E1DFF6E594B2A /* TrainingCalendar.swift in Sources */ = {isa = PBXBuildFile; fileRef = F177C0263E8465A708ACC210 /* TrainingCalendar.swift */; };
+		AF336CD92774B1244EA236A7 /* GymRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = C274E2BEAA284A87E09CB167 /* GymRepository.swift */; };
+		B0271AE82DCF679E96BE2A0D /* HomeMetricsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 722FB1B611252D2E0EC76157 /* HomeMetricsTests.swift */; };
+		B0A9F9186BE9C2FEAF90DC7D /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84C7BEEEDBE9E6F40E889EF2 /* ProfileView.swift */; };
+		B0EA2CE5E685D1FC164705BC /* HomeMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = D23EED55AC67DF9CAA4DB093 /* HomeMetrics.swift */; };
+		B1B3AA68F97836D037C4F264 /* TrainingCalendarTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00CB416B92890D19B623F38A /* TrainingCalendarTests.swift */; };
+		C0283CF3A0439D767EF2D6CD /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = F83202DC4E3A3E212094214A /* FirebaseAuth */; };
+		C287FE9BAF2970770A93748F /* WorkoutSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3EA1A8C682800BC7D50005F /* WorkoutSession.swift */; };
+		D9F80FBFC6018FC60BD5CA5F /* Routine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6050D5EE6B1267B77E113FA9 /* Routine.swift */; };
+		DE44A41DE6B533874B948B4F /* ProgressScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B9A5A06B85393FC8A0FD251 /* ProgressScreen.swift */; };
+		E7DBF80474A41676D85B7E86 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BC67D543EEAF3E15E9493B2 /* AuthService.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		B4E0F42847523831FD2FB3B1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A76404AE05B37A995D8E9A00 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F20F78B3CF80B1C35E335459;
+			remoteInfo = SiezaGym;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		0090F07F6E3B43CEC19FD58E /* FirestoreValue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirestoreValue.swift; sourceTree = "<group>"; };
+		00CB416B92890D19B623F38A /* TrainingCalendarTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainingCalendarTests.swift; sourceTree = "<group>"; };
+		0DDA47487C90F2CFC08882C9 /* SiezaGymApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SiezaGymApp.swift; sourceTree = "<group>"; };
+		1701F084780BFE7958223925 /* WorkoutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutView.swift; sourceTree = "<group>"; };
+		1E9E6EDDD5616A0DD6344E35 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		2BCA4F2347BCE2A9D4BDB6CF /* RoutineSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoutineSummary.swift; sourceTree = "<group>"; };
+		2C915DD4541B5907FDF5B3A6 /* HomeWidgets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeWidgets.swift; sourceTree = "<group>"; };
+		342407F2A5FA9309DB2F9F1C /* RoutineDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoutineDetailView.swift; sourceTree = "<group>"; };
+		3B9A5A06B85393FC8A0FD251 /* ProgressScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressScreen.swift; sourceTree = "<group>"; };
+		3BF9C538E6A757304EFC3144 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		3C1FC286E71B9F59206318CA /* HeroImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeroImage.swift; sourceTree = "<group>"; };
+		4DA99ABA4DD2DEF013186323 /* Epley.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Epley.swift; sourceTree = "<group>"; };
+		6050D5EE6B1267B77E113FA9 /* Routine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Routine.swift; sourceTree = "<group>"; };
+		63CD15615E2748C04233185B /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
+		6B0A282C126119F3E98FE7B2 /* SiezaGym.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = SiezaGym.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		722FB1B611252D2E0EC76157 /* HomeMetricsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeMetricsTests.swift; sourceTree = "<group>"; };
+		84C7BEEEDBE9E6F40E889EF2 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		9B20CDD344068C731A037D44 /* WorkoutDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutDraft.swift; sourceTree = "<group>"; };
+		9BC67D543EEAF3E15E9493B2 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
+		AB8208682EA38DFD34D98929 /* SiezaGymTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = SiezaGymTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		B00831C4B5DF350BB44E6270 /* GymStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GymStore.swift; sourceTree = "<group>"; };
+		B25E860F7C4AE7A29211C87F /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		B437C24DD1E137D90F5709E3 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		C274E2BEAA284A87E09CB167 /* GymRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GymRepository.swift; sourceTree = "<group>"; };
+		CEC42CD9901F9007C6EF6E4C /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		D23EED55AC67DF9CAA4DB093 /* HomeMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeMetrics.swift; sourceTree = "<group>"; };
+		DD844D5CFED5C704AFB9FB7C /* UserProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfile.swift; sourceTree = "<group>"; };
+		E67F3CD2D19C5C9646C24949 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		E7E47E5DACFE6DA5281E7768 /* Exercise.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Exercise.swift; sourceTree = "<group>"; };
+		F177C0263E8465A708ACC210 /* TrainingCalendar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainingCalendar.swift; sourceTree = "<group>"; };
+		F2B15FA48EB2129CD2F242D0 /* RoutinesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoutinesView.swift; sourceTree = "<group>"; };
+		F3EA1A8C682800BC7D50005F /* WorkoutSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutSession.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		CCFA2F364E3237E87E346E19 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C0283CF3A0439D767EF2D6CD /* FirebaseAuth in Frameworks */,
+				770004E47AA749F0F6F998B2 /* FirebaseFirestore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		379FCB97390D30EBDC4ACFE3 /* DesignSystem */ = {
+			isa = PBXGroup;
+			children = (
+				B437C24DD1E137D90F5709E3 /* Theme.swift */,
+			);
+			path = DesignSystem;
+			sourceTree = "<group>";
+		};
+		3E4B95A518A90CAA727ED032 /* Workout */ = {
+			isa = PBXGroup;
+			children = (
+				9B20CDD344068C731A037D44 /* WorkoutDraft.swift */,
+				1701F084780BFE7958223925 /* WorkoutView.swift */,
+			);
+			path = Workout;
+			sourceTree = "<group>";
+		};
+		3E5CBFCC6A703612FA8EC959 /* Domain */ = {
+			isa = PBXGroup;
+			children = (
+				4DA99ABA4DD2DEF013186323 /* Epley.swift */,
+				D23EED55AC67DF9CAA4DB093 /* HomeMetrics.swift */,
+				2BCA4F2347BCE2A9D4BDB6CF /* RoutineSummary.swift */,
+				F177C0263E8465A708ACC210 /* TrainingCalendar.swift */,
+			);
+			path = Domain;
+			sourceTree = "<group>";
+		};
+		494184929E4ED63CDBA6DCCD /* History */ = {
+			isa = PBXGroup;
+			children = (
+				63CD15615E2748C04233185B /* HistoryView.swift */,
+			);
+			path = History;
+			sourceTree = "<group>";
+		};
+		53A94C3F8F42DC761303E246 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				6B0A282C126119F3E98FE7B2 /* SiezaGym.app */,
+				AB8208682EA38DFD34D98929 /* SiezaGymTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		5D959080D31662EF8F69CD0E = {
+			isa = PBXGroup;
+			children = (
+				C3F0463828C12475FCA92D2E /* SiezaGym */,
+				E8CFB2971497B4CB3F568CB4 /* SiezaGymTests */,
+				53A94C3F8F42DC761303E246 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		9AEE51E15CA81CDB8574508F /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				3C1FC286E71B9F59206318CA /* HeroImage.swift */,
+				CEC42CD9901F9007C6EF6E4C /* RootView.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		9CE769D28181B3208E9AA2C7 /* Profile */ = {
+			isa = PBXGroup;
+			children = (
+				84C7BEEEDBE9E6F40E889EF2 /* ProfileView.swift */,
+			);
+			path = Profile;
+			sourceTree = "<group>";
+		};
+		A40BE1562AC97B36FFAAB542 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				3BF9C538E6A757304EFC3144 /* Assets.xcassets */,
+				B25E860F7C4AE7A29211C87F /* GoogleService-Info.plist */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		A63D0BB77412D9AF6B37A524 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				E7E47E5DACFE6DA5281E7768 /* Exercise.swift */,
+				6050D5EE6B1267B77E113FA9 /* Routine.swift */,
+				DD844D5CFED5C704AFB9FB7C /* UserProfile.swift */,
+				F3EA1A8C682800BC7D50005F /* WorkoutSession.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		B28F50520EFE52D95366DAC0 /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				F278A40AC0A5C800BD62D206 /* Auth */,
+				494184929E4ED63CDBA6DCCD /* History */,
+				CFF9134CB377F9A368EEDCD9 /* Home */,
+				9CE769D28181B3208E9AA2C7 /* Profile */,
+				F293637D89A782B7F81C97E5 /* Progress */,
+				E0D219A690B52623756AF401 /* Routines */,
+				9AEE51E15CA81CDB8574508F /* Shared */,
+				3E4B95A518A90CAA727ED032 /* Workout */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		B923CA78C0436DDFF70DE07C /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				9BC67D543EEAF3E15E9493B2 /* AuthService.swift */,
+				0090F07F6E3B43CEC19FD58E /* FirestoreValue.swift */,
+				C274E2BEAA284A87E09CB167 /* GymRepository.swift */,
+				B00831C4B5DF350BB44E6270 /* GymStore.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		C3F0463828C12475FCA92D2E /* SiezaGym */ = {
+			isa = PBXGroup;
+			children = (
+				0DDA47487C90F2CFC08882C9 /* SiezaGymApp.swift */,
+				379FCB97390D30EBDC4ACFE3 /* DesignSystem */,
+				3E5CBFCC6A703612FA8EC959 /* Domain */,
+				B28F50520EFE52D95366DAC0 /* Features */,
+				A63D0BB77412D9AF6B37A524 /* Models */,
+				A40BE1562AC97B36FFAAB542 /* Resources */,
+				B923CA78C0436DDFF70DE07C /* Services */,
+			);
+			path = SiezaGym;
+			sourceTree = "<group>";
+		};
+		CFF9134CB377F9A368EEDCD9 /* Home */ = {
+			isa = PBXGroup;
+			children = (
+				1E9E6EDDD5616A0DD6344E35 /* HomeView.swift */,
+				2C915DD4541B5907FDF5B3A6 /* HomeWidgets.swift */,
+			);
+			path = Home;
+			sourceTree = "<group>";
+		};
+		E0D219A690B52623756AF401 /* Routines */ = {
+			isa = PBXGroup;
+			children = (
+				342407F2A5FA9309DB2F9F1C /* RoutineDetailView.swift */,
+				F2B15FA48EB2129CD2F242D0 /* RoutinesView.swift */,
+			);
+			path = Routines;
+			sourceTree = "<group>";
+		};
+		E8CFB2971497B4CB3F568CB4 /* SiezaGymTests */ = {
+			isa = PBXGroup;
+			children = (
+				722FB1B611252D2E0EC76157 /* HomeMetricsTests.swift */,
+				00CB416B92890D19B623F38A /* TrainingCalendarTests.swift */,
+			);
+			path = SiezaGymTests;
+			sourceTree = "<group>";
+		};
+		F278A40AC0A5C800BD62D206 /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				E67F3CD2D19C5C9646C24949 /* LoginView.swift */,
+			);
+			path = Auth;
+			sourceTree = "<group>";
+		};
+		F293637D89A782B7F81C97E5 /* Progress */ = {
+			isa = PBXGroup;
+			children = (
+				3B9A5A06B85393FC8A0FD251 /* ProgressScreen.swift */,
+			);
+			path = Progress;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		79B38AF0743C4484C8B9C501 /* SiezaGymTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 81E4C675E6B4EAC2CDC2F71E /* Build configuration list for PBXNativeTarget "SiezaGymTests" */;
+			buildPhases = (
+				FF1422790CA62D224248E8BE /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				6FBFCE7EE9402CF8A430D579 /* PBXTargetDependency */,
+			);
+			name = SiezaGymTests;
+			packageProductDependencies = (
+			);
+			productName = SiezaGymTests;
+			productReference = AB8208682EA38DFD34D98929 /* SiezaGymTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		F20F78B3CF80B1C35E335459 /* SiezaGym */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 12ED8B02F076434B793641E5 /* Build configuration list for PBXNativeTarget "SiezaGym" */;
+			buildPhases = (
+				518AFED676483E94C9C0080B /* Sources */,
+				E7B24AAF8E6CFAFA266EAEB5 /* Resources */,
+				CCFA2F364E3237E87E346E19 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SiezaGym;
+			packageProductDependencies = (
+				F83202DC4E3A3E212094214A /* FirebaseAuth */,
+				612CAF8B0BE6DAFE16A5E7F3 /* FirebaseFirestore */,
+			);
+			productName = SiezaGym;
+			productReference = 6B0A282C126119F3E98FE7B2 /* SiezaGym.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A76404AE05B37A995D8E9A00 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					79B38AF0743C4484C8B9C501 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+					F20F78B3CF80B1C35E335459 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 5597A4C877696534506C413E /* Build configuration list for PBXProject "SiezaGym" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 5D959080D31662EF8F69CD0E;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				66D3C87957210AEC03F42830 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 53A94C3F8F42DC761303E246 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				F20F78B3CF80B1C35E335459 /* SiezaGym */,
+				79B38AF0743C4484C8B9C501 /* SiezaGymTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		E7B24AAF8E6CFAFA266EAEB5 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				106C3B5F379773A98FB4C5C5 /* Assets.xcassets in Resources */,
+				71B55B68CDDE96E4D0457893 /* GoogleService-Info.plist in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		518AFED676483E94C9C0080B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E7DBF80474A41676D85B7E86 /* AuthService.swift in Sources */,
+				765B33F0C6E2CA822388FC44 /* Epley.swift in Sources */,
+				8D087CEFB48437FF6FEECA76 /* Exercise.swift in Sources */,
+				66699FE98C2D7712D367AC7E /* FirestoreValue.swift in Sources */,
+				AF336CD92774B1244EA236A7 /* GymRepository.swift in Sources */,
+				9A7659413F1FC6EDEB2C21D2 /* GymStore.swift in Sources */,
+				9E4BBA874C23DB14C229B6F3 /* HeroImage.swift in Sources */,
+				83C100CB50D292C042F372BA /* HistoryView.swift in Sources */,
+				B0EA2CE5E685D1FC164705BC /* HomeMetrics.swift in Sources */,
+				5373D4EB6072C359DAF582D1 /* HomeView.swift in Sources */,
+				247BCD7B21B034FB7AFAC3BA /* HomeWidgets.swift in Sources */,
+				256AEA707CE2910A60D78CC5 /* LoginView.swift in Sources */,
+				B0A9F9186BE9C2FEAF90DC7D /* ProfileView.swift in Sources */,
+				DE44A41DE6B533874B948B4F /* ProgressScreen.swift in Sources */,
+				09BF360C5D608AA8940A33AD /* RootView.swift in Sources */,
+				D9F80FBFC6018FC60BD5CA5F /* Routine.swift in Sources */,
+				1E828F64186F2A6C8F8536BF /* RoutineDetailView.swift in Sources */,
+				721BE8F99880C16D784852C1 /* RoutineSummary.swift in Sources */,
+				7B61A31D26EE3864C702E889 /* RoutinesView.swift in Sources */,
+				7E739AEF5A7A60A1D36CCB94 /* SiezaGymApp.swift in Sources */,
+				1ED7D12CC8CCEBACE1B9E63C /* Theme.swift in Sources */,
+				A626D9D7CD7E1DFF6E594B2A /* TrainingCalendar.swift in Sources */,
+				33B26F6C05D0104187580F48 /* UserProfile.swift in Sources */,
+				9068279C51F35720BFA0F85B /* WorkoutDraft.swift in Sources */,
+				C287FE9BAF2970770A93748F /* WorkoutSession.swift in Sources */,
+				7750AF83B91BCB93392BBB76 /* WorkoutView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FF1422790CA62D224248E8BE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B0271AE82DCF679E96BE2A0D /* HomeMetricsTests.swift in Sources */,
+				B1B3AA68F97836D037C4F264 /* TrainingCalendarTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		6FBFCE7EE9402CF8A430D579 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F20F78B3CF80B1C35E335459 /* SiezaGym */;
+			targetProxy = B4E0F42847523831FD2FB3B1 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		04764DE4336904985F4049C2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		23201C07FD5CE59E3D51D184 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = SiezaGym;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleLightContent;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.siezagym.app;
+				PRODUCT_NAME = SiezaGym;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		27AA397A798F94ED9888DF8E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.siezagym.SiezaGymTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SiezaGym.app/SiezaGym";
+			};
+			name = Debug;
+		};
+		A2B59A8E3BA7011682F69483 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = SiezaGym;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleLightContent;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.siezagym.app;
+				PRODUCT_NAME = SiezaGym;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		E8EFFF526AE14B882A3DD6E2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.siezagym.SiezaGymTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SiezaGym.app/SiezaGym";
+			};
+			name = Release;
+		};
+		FC6682134BF5D75535C2BAE4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		12ED8B02F076434B793641E5 /* Build configuration list for PBXNativeTarget "SiezaGym" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A2B59A8E3BA7011682F69483 /* Debug */,
+				23201C07FD5CE59E3D51D184 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		5597A4C877696534506C413E /* Build configuration list for PBXProject "SiezaGym" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FC6682134BF5D75535C2BAE4 /* Debug */,
+				04764DE4336904985F4049C2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		81E4C675E6B4EAC2CDC2F71E /* Build configuration list for PBXNativeTarget "SiezaGymTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				27AA397A798F94ED9888DF8E /* Debug */,
+				E8EFFF526AE14B882A3DD6E2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		66D3C87957210AEC03F42830 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = versionRange;
+				maximumVersion = 13.0.0;
+				minimumVersion = 11.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		612CAF8B0BE6DAFE16A5E7F3 /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 66D3C87957210AEC03F42830 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+		F83202DC4E3A3E212094214A /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 66D3C87957210AEC03F42830 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = A76404AE05B37A995D8E9A00 /* Project object */;
+}

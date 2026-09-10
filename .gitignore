@@ -39,3 +39,12 @@ next-env.d.ts
 docs/design/**/*.png
 docs/design/**/*.jpg
 assets/
+
+# iOS
+ios/build/
+ios/SiezaGym.xcodeproj/project.xcworkspace/xcuserdata/
+ios/SiezaGym.xcodeproj/xcuserdata/
+ios/**/.DS_Store
+# Config de cliente de Firebase: este repo es publico, se regenera con
+# ios/scripts/fetch-google-service-info.mjs
+ios/SiezaGym/Resources/GoogleService-Info.plist

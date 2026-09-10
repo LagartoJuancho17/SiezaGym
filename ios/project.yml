@@ -1,0 +1,74 @@
+name: SiezaGym
+options:
+  bundleIdPrefix: com.siezagym
+  deploymentTarget:
+    iOS: "18.0"
+  createIntermediateGroups: true
+
+packages:
+  Firebase:
+    url: https://github.com/firebase/firebase-ios-sdk
+    minVersion: "11.0.0"
+    maxVersion: "13.0.0"
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    # Concurrencia "aproachable": el codigo arranca en el main actor y solo se
+    # sale de ahi a proposito. Es lo que recomienda Swift 6.2 en adelante.
+    SWIFT_APPROACHABLE_CONCURRENCY: YES
+    SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
+    SWIFT_STRICT_CONCURRENCY: complete
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
+
+targets:
+  SiezaGym:
+    type: application
+    platform: iOS
+    sources:
+      - path: SiezaGym
+    dependencies:
+      - package: Firebase
+        product: FirebaseAuth
+      - package: Firebase
+        product: FirebaseFirestore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.siezagym.app
+        PRODUCT_NAME: SiezaGym
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: SiezaGym
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UIStatusBarStyle: UIStatusBarStyleLightContent
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        ENABLE_USER_SCRIPT_SANDBOXING: YES
+        TARGETED_DEVICE_FAMILY: "1"
+
+  SiezaGymTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: SiezaGymTests
+    dependencies:
+      - target: SiezaGym
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+
+schemes:
+  SiezaGym:
+    build:
+      targets:
+        SiezaGym: all
+        SiezaGymTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - SiezaGymTests
