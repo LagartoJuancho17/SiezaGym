@@ -1,0 +1,7 @@
+// Firma de código. Este archivo sí va al repo; el Team ID no.
+//
+// El "#include?" con signo de pregunta es opcional: si Local.xcconfig no existe
+// el proyecto compila igual (el simulador no necesita firma). Poné tu Team ID
+// ahí para poder instalar en un iPhone de verdad, copiando Local.example.xcconfig.
+DEVELOPMENT_TEAM =
+#include? "Local.xcconfig"

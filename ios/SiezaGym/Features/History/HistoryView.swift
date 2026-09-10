@@ -28,6 +28,7 @@ struct HistoryView: View {
                 .padding(12)
             }
             .background(Theme.background)
+            .bottomNavInset()
             .scrollIndicators(.hidden)
             .navigationTitle("Historial")
             .refreshable { await store.load() }

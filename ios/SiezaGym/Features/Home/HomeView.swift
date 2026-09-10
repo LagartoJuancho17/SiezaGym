@@ -45,6 +45,7 @@ struct HomeView: View {
                 .padding(.bottom, 24)
             }
             .background(Theme.background)
+            .bottomNavInset()
             .scrollIndicators(.hidden)
             .refreshable { await store.load() }
             .navigationDestination(item: $workout) { target in

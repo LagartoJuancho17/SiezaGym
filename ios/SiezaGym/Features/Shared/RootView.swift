@@ -28,29 +28,38 @@ struct MainTabView: View {
     /// pagariamos las mismas lecturas cinco veces y podrian mostrar numeros
     /// distintos entre si.
     @State private var store: GymStore
+    @State private var tab: AppTab = .home
 
     init(store: GymStore) {
         _store = State(initialValue: store)
     }
 
     var body: some View {
-        TabView {
-            Tab("Home", systemImage: "house.fill") {
-                HomeView(store: store)
-            }
-            Tab("Rutinas", systemImage: "list.bullet.rectangle.fill") {
-                RoutinesView(store: store)
-            }
-            Tab("Historial", systemImage: "clock.arrow.circlepath") {
-                HistoryView(store: store)
-            }
-            Tab("Progreso", systemImage: "chart.line.uptrend.xyaxis") {
-                ProgressScreen(store: store)
-            }
-            Tab("Perfil", systemImage: "person.fill") {
-                ProfileView(store: store)
-            }
+        // TabView y no un switch: asi cada seccion conserva su pila de
+        // navegacion al ir y volver. La barra del sistema se esconde porque la
+        // de la app es la de `BottomNav`, igual a la de la web.
+        TabView(selection: $tab) {
+            HomeView(store: store)
+                .tag(AppTab.home)
+                .toolbar(.hidden, for: .tabBar)
+            RoutinesView(store: store)
+                .tag(AppTab.routines)
+                .toolbar(.hidden, for: .tabBar)
+            HistoryView(store: store)
+                .tag(AppTab.history)
+                .toolbar(.hidden, for: .tabBar)
+            ProgressScreen(store: store)
+                .tag(AppTab.progress)
+                .toolbar(.hidden, for: .tabBar)
+            ProfileView(store: store)
+                .tag(AppTab.profile)
+                .toolbar(.hidden, for: .tabBar)
         }
+        .overlay(alignment: .bottom) {
+            BottomNav(selection: $tab)
+                .padding(.bottom, BottomNav.bottomGap)
+        }
+        .ignoresSafeArea(.keyboard, edges: .bottom)
         .task { if !store.hasLoaded { await store.load() } }
     }
 }

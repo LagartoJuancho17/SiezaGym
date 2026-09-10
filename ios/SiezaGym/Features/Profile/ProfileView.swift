@@ -81,6 +81,7 @@ struct ProfileView: View {
                 .padding(12)
             }
             .background(Theme.background)
+            .bottomNavInset()
             .scrollIndicators(.hidden)
             .scrollDismissesKeyboard(.interactively)
             .navigationTitle("Perfil")

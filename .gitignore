@@ -48,3 +48,5 @@ ios/**/.DS_Store
 # Config de cliente de Firebase: este repo es publico, se regenera con
 # ios/scripts/fetch-google-service-info.mjs
 ios/SiezaGym/Resources/GoogleService-Info.plist
+ios/build-device/
+ios/Local.xcconfig

@@ -102,6 +102,27 @@ escriben la primera vez, después únicamente se refrescan `photoURL`,
 Cerrar sesión también cierra la de Google. Si no, el siguiente login entra solo
 con la misma cuenta y no deja elegir otra.
 
+## Instalar en un iPhone de verdad
+
+```bash
+cp Local.example.xcconfig Local.xcconfig   # una sola vez: poné tu Team ID
+./scripts/run-on-device.sh
+```
+
+Compila, instala y abre la app en el primer iPhone conectado por cable. La
+primera vez el teléfono se niega a abrirla hasta que confíes en el perfil:
+
+> Ajustes › General › VPN y gestión de dispositivos › Apps de desarrollador
+> › Apple Development: *tu email* › Confiar
+
+**Con una cuenta de desarrollador gratuita el perfil dura 7 días.** Cuando la
+app deje de abrir, volvé a correr el script. Con una cuenta paga (99 USD al año)
+el perfil dura un año y esto deja de pasar.
+
+El `Local.xcconfig` no va al repo: el Team ID es de la cuenta de cada uno.
+`Signing.xcconfig` lo incluye con `#include?`, que es opcional, así que quien
+clone sin ese archivo compila igual para el simulador.
+
 ## Tests
 
 ```bash

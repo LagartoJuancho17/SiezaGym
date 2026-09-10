@@ -42,6 +42,7 @@
 		D9F80FBFC6018FC60BD5CA5F /* Routine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6050D5EE6B1267B77E113FA9 /* Routine.swift */; };
 		DE44A41DE6B533874B948B4F /* ProgressScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B9A5A06B85393FC8A0FD251 /* ProgressScreen.swift */; };
 		E7DBF80474A41676D85B7E86 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BC67D543EEAF3E15E9493B2 /* AuthService.swift */; };
+		F6E8391204D78ABD2F93C2DD /* BottomNav.swift in Sources */ = {isa = PBXBuildFile; fileRef = F59182899A1B9BF47AA4539C /* BottomNav.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -88,7 +89,9 @@
 		F177C0263E8465A708ACC210 /* TrainingCalendar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainingCalendar.swift; sourceTree = "<group>"; };
 		F2B15FA48EB2129CD2F242D0 /* RoutinesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoutinesView.swift; sourceTree = "<group>"; };
 		F3EA1A8C682800BC7D50005F /* WorkoutSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutSession.swift; sourceTree = "<group>"; };
+		F59182899A1B9BF47AA4539C /* BottomNav.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomNav.swift; sourceTree = "<group>"; };
 		F9F6A2EBFC13CEDC7984B640 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		"TEMP_D3B264AC-0929-48D1-9C85-28BBB533348F" /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -163,6 +166,7 @@
 		9AEE51E15CA81CDB8574508F /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				F59182899A1B9BF47AA4539C /* BottomNav.swift */,
 				3C1FC286E71B9F59206318CA /* HeroImage.swift */,
 				CEC42CD9901F9007C6EF6E4C /* RootView.swift */,
 			);
@@ -282,6 +286,14 @@
 			path = Progress;
 			sourceTree = "<group>";
 		};
+		"TEMP_E96978B6-564E-4488-BCDF-516FD62665DE" /* ios */ = {
+			isa = PBXGroup;
+			children = (
+				"TEMP_D3B264AC-0929-48D1-9C85-28BBB533348F" /* Signing.xcconfig */,
+			);
+			path = ios;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -387,6 +399,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E7DBF80474A41676D85B7E86 /* AuthService.swift in Sources */,
+				F6E8391204D78ABD2F93C2DD /* BottomNav.swift in Sources */,
 				765B33F0C6E2CA822388FC44 /* Epley.swift in Sources */,
 				8D087CEFB48437FF6FEECA76 /* Exercise.swift in Sources */,
 				66699FE98C2D7712D367AC7E /* FirestoreValue.swift in Sources */,
@@ -438,6 +451,7 @@
 /* Begin XCBuildConfiguration section */
 		04764DE4336904985F4049C2 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = "TEMP_D3B264AC-0929-48D1-9C85-28BBB533348F" /* Signing.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -472,7 +486,6 @@
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = "";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -575,6 +588,7 @@
 		};
 		FC6682134BF5D75535C2BAE4 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = "TEMP_D3B264AC-0929-48D1-9C85-28BBB533348F" /* Signing.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -609,7 +623,6 @@
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = "";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;

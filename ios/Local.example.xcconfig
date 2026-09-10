@@ -1,0 +1,7 @@
+// Copiar a Local.xcconfig (que está en .gitignore) y completar con tu Team ID.
+// Solo hace falta para instalar en un iPhone de verdad; el simulador no firma.
+//
+// El Team ID sale de:
+//   security find-identity -v -p codesigning
+// y después el campo OU del certificado, o de Xcode > Settings > Accounts.
+DEVELOPMENT_TEAM = 

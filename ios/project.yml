@@ -23,8 +23,14 @@ settings:
     SWIFT_APPROACHABLE_CONCURRENCY: YES
     SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
     SWIFT_STRICT_CONCURRENCY: complete
-    DEVELOPMENT_TEAM: ""
     CODE_SIGN_STYLE: Automatic
+
+# El Team ID no va al repo: es de la cuenta de cada uno y este repositorio es
+# publico. Se pone en Local.xcconfig (copiar Local.example.xcconfig). Sin el
+# archivo se compila igual para el simulador; solo el dispositivo pide firma.
+configFiles:
+  Debug: Signing.xcconfig
+  Release: Signing.xcconfig
 
 targets:
   SiezaGym:

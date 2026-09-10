@@ -64,6 +64,7 @@ struct ProgressScreen: View {
                 .padding(12)
             }
             .background(Theme.background)
+            .bottomNavInset()
             .scrollIndicators(.hidden)
             .navigationTitle("Progreso")
             .refreshable { await store.load() }
