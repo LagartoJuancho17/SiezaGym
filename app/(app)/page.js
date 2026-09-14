@@ -7,6 +7,7 @@ import { listExercises } from "@/lib/exercises/exercises";
 import { weeklyVolumeKg, listTrainedDates, listUserSessions } from "@/lib/sessions/sessions";
 import { computeStreak, toLocalDayKey } from "@/lib/sessions/streak";
 import { totalSets, estimatedDurationMinutes } from "@/lib/routines/summary";
+import { listCoachStudents } from "@/lib/coach/students";
 import {
   volumeByMuscleGroup,
   pushPullBalance,
@@ -23,6 +24,8 @@ import {
 import HomeHero from "@/components/home/HomeHero";
 import HomeStats from "@/components/home/HomeStats";
 import RoutinesCarousel from "@/components/home/RoutinesCarousel";
+import CoachHomeSection from "@/components/coach/CoachHomeSection";
+import LinkCoachSection from "@/components/home/LinkCoachSection";
 
 export const dynamic = "force-dynamic";
 
@@ -58,6 +61,9 @@ export default async function Home() {
       listUserSessions(user.uid, { limitCount: 50 }),
       listExercises(),
     ]);
+
+  const isCoach = !!profile?.isCoach || !!profile?.isAdmin;
+  const students = isCoach ? await listCoachStudents(user.uid) : [];
 
   const streak = computeStreak(trainedDates);
   const exerciseById = new Map(exercises.map((exercise) => [exercise.id, exercise]));
@@ -138,6 +144,15 @@ export default async function Home() {
       {/* 3. Rutinas */}
       <div className="mx-auto flex w-full max-w-[1360px] flex-col px-4 pb-4 sm:px-6 lg:px-7">
         <RoutinesCarousel routines={visibleRoutines} />
+      </div>
+
+      {/* 4. Panel del coach / vinculación con entrenador */}
+      <div className="mx-auto flex w-full max-w-[1360px] flex-col px-4 pb-4 sm:px-6 lg:px-7">
+        {isCoach ? (
+          <CoachHomeSection students={students} isAdmin={!!profile?.isAdmin} />
+        ) : (
+          <LinkCoachSection />
+        )}
       </div>
     </div>
   );

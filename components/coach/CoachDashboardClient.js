@@ -25,12 +25,12 @@ export default function CoachDashboardClient({ students, profile, recentActivity
     profile?.displayName?.trim().split(/\s+/)[0] || "Entrenador";
 
   return (
-    <main className="min-h-screen bg-bg text-text">
+    <main className="min-h-screen bg-[#35080A] text-white">
       <div className="mx-auto flex min-h-screen max-w-md flex-col pt-[52px]">
         <header className="flex items-center gap-3 px-[18px] pb-4">
           <Link
             href="/"
-            className="flex h-[42px] w-[42px] items-center justify-center rounded-full border border-hair bg-glass text-faint transition hover:text-text"
+            className="flex h-[42px] w-[42px] items-center justify-center rounded-full border border-white/20 bg-white/5 text-white/70 transition hover:bg-white/10 hover:text-white"
           >
             <svg
               viewBox="0 0 24 24"
@@ -46,10 +46,10 @@ export default function CoachDashboardClient({ students, profile, recentActivity
             </svg>
           </Link>
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-faint">
+            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#FF5733]">
               {profile?.isCoach ? "Panel del entrenador" : "Panel del entrenador · vista admin"}
             </p>
-            <h1 className="font-display mt-1 text-[23px] uppercase leading-none tracking-[0.005em]">
+            <h1 className="font-sans mt-1 text-[23px] font-extrabold uppercase leading-none tracking-tight text-white">
               {firstName}
             </h1>
           </div>
@@ -57,18 +57,18 @@ export default function CoachDashboardClient({ students, profile, recentActivity
 
         <div className="flex flex-col gap-3 px-[18px] pb-[100px]">
           <section className="grid grid-cols-2 gap-2.5">
-            <div className="flex min-h-[100px] flex-col justify-between rounded-[22px] border border-hair bg-glass p-[15px]">
-              <span className="text-[13px] font-semibold tracking-[-0.01em]">
+            <div className="flex min-h-[100px] flex-col justify-between rounded-3xl border border-[#6B1717] bg-[#EDE8E1] p-[15px] shadow-sm">
+              <span className="text-[13px] font-bold tracking-[-0.01em] text-[#141414]">
                 Alumnos
               </span>
-              <div className="font-mono-digit text-2xl tracking-wide text-teal2">
+              <div className="font-sans text-2xl font-extrabold text-[#FF5733]">
                 {students.length}
               </div>
             </div>
             <button
               type="button"
               onClick={() => setModalOpen(true)}
-              className="flex min-h-[100px] flex-col items-center justify-center gap-2 rounded-[22px] border border-dashed border-teal/40 bg-teal/10 p-[15px] text-center transition hover:bg-teal/20"
+              className="flex min-h-[100px] flex-col items-center justify-center gap-2 rounded-3xl border-2 border-dashed border-[#FF5733]/40 bg-[#FF5733]/10 p-[15px] text-center transition hover:bg-[#FF5733]/20 active:scale-95"
             >
               <svg
                 viewBox="0 0 24 24"
@@ -78,12 +78,12 @@ export default function CoachDashboardClient({ students, profile, recentActivity
                 stroke="currentColor"
                 strokeWidth="1.7"
                 strokeLinecap="round"
-                className="text-teal2"
+                className="text-[#FF5733]"
               >
                 <path d="M12 5v14" />
                 <path d="M5 12h14" />
               </svg>
-              <span className="text-[13px] font-semibold text-teal2">
+              <span className="text-[13px] font-bold text-[#FF5733]">
                 Agregar alumno
               </span>
             </button>
@@ -93,24 +93,24 @@ export default function CoachDashboardClient({ students, profile, recentActivity
 
           {recentActivity.length > 0 && (
             <section className="mt-2">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-teal2">
+              <p className="mb-2 text-xs font-bold uppercase tracking-[0.14em] text-[#FF5733]">
                 Actividad reciente
               </p>
               <div className="flex flex-col gap-2">
                 {recentActivity.map((activity) => (
                   <div
                     key={activity.id}
-                    className="flex items-center justify-between gap-3 rounded-2xl border border-hair bg-glass px-4 py-3"
+                    className="flex items-center justify-between gap-3 rounded-2xl border border-[#6B1717] bg-[#EDE8E1] px-4 py-3 shadow-sm"
                   >
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-text">
+                      <p className="truncate text-sm font-bold text-[#141414]">
                         {activity.studentName}
                       </p>
-                      <p className="truncate text-xs text-faint">
+                      <p className="truncate text-xs text-[#756C65]">
                         {activity.routineName} · {formatActivityDate(activity.completedAt)}
                       </p>
                     </div>
-                    <span className="font-mono-digit shrink-0 text-sm text-teal2">
+                    <span className="font-mono-digit shrink-0 text-sm font-bold text-[#FF5733]">
                       {formatActivityDuration(activity.durationSeconds)}
                     </span>
                   </div>

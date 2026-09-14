@@ -171,7 +171,7 @@ export default function ProgresoContent({
                   </div>
                 </div>
                 <Link
-                  href={`/coach/alumnos/${s.uid}`}
+                  href={`/dashboard/coach/alumnos/${s.studentId}`}
                   className="rounded-full bg-[#141414] px-4 py-1.5 text-xs font-bold text-white transition hover:bg-[#2A0608]"
                 >
                   Ver progreso
