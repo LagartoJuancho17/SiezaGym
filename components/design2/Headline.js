@@ -16,7 +16,7 @@ export default function Headline({ lead, emphasis, href }) {
       <Link
         href={href}
         aria-label="Nueva rutina"
-        className="mt-1 flex h-[58px] w-[58px] shrink-0 items-center justify-center rounded-full bg-[var(--d2-ink)] text-white shadow-[0_10px_26px_rgba(17,19,21,0.35)] transition active:scale-95"
+        className="mt-1 flex h-[58px] w-[58px] shrink-0 items-center justify-center rounded-full bg-[var(--d2-ink)] text-[var(--d2-on-ink)] shadow-[var(--d2-ink-shadow)] transition active:scale-95"
       >
         <PlusIcon size={24} width={2} />
       </Link>

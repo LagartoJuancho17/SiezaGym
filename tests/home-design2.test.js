@@ -5,12 +5,12 @@ const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf
 
 const homeSource = read("app/(app)/page.js");
 const chromeSource = read("components/nav/LegacyChrome.js");
-const activitySource = read("components/design2/ActivitySection.js");
+const activitySource = read("components/design2/SearchAndActivity.js");
 const ringSource = read("components/design2/Ring.js");
 
 describe("Home del rediseño", () => {
   it("usa los componentes de design2 y ninguno de la Home vieja", () => {
-    for (const component of ["<Backdrop", "<Header", "<Headline", "<GoalRail", "<ActivitySection", "<TabBar"]) {
+    for (const component of ["<Backdrop", "<Header", "<Headline", "<GoalRail", "<SearchAndActivity", "<TabBar"]) {
       expect(homeSource).toContain(component);
     }
     for (const legacy of ["<HomeHero", "<HomeStats", "<RoutinesCarousel", "<WeekStrip"]) {

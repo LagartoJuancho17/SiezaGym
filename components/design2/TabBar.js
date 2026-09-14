@@ -39,14 +39,14 @@ export default function TabBar() {
               aria-current={isActive ? "page" : undefined}
               className={
                 isActive
-                  ? "flex h-[54px] min-w-0 flex-1 items-center gap-2 rounded-full bg-[var(--d2-ink)] py-1.5 pl-4 pr-1.5 text-white shadow-[0_10px_30px_rgba(17,19,21,0.4)]"
+                  ? "flex h-[54px] min-w-0 flex-1 items-center gap-2 rounded-full bg-[var(--d2-ink)] py-1.5 pl-4 pr-1.5 text-[var(--d2-on-ink)] shadow-[var(--d2-ink-shadow)]"
                   : "d2-glass flex h-[54px] w-[54px] shrink-0 items-center justify-center rounded-full transition active:scale-95"
               }
             >
               {isActive ? (
                 <>
                   <span className="min-w-0 flex-1 truncate text-[14px] font-semibold">{label}</span>
-                  <span className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-full bg-white text-[var(--d2-ink)]">
+                  <span className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-full bg-[var(--d2-on-ink)] text-[var(--d2-ink)]">
                     <Icon size={20} width={1.9} />
                   </span>
                 </>

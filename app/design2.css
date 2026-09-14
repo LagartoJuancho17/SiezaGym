@@ -1,75 +1,289 @@
 /*
- * design2 — rediseño desde cero: vidrio esmerilado monocromo.
+ * design2 — sistema de diseño del rediseño.
  *
- * Todo vive bajo `.d2` a propósito. Las pantallas que todavía no se rediseñaron
- * siguen usando la paleta bordo de globals.css, y los dos sistemas conviven sin
- * pisarse hasta que el rediseño llegue al resto.
+ * Todo sale de variables: color, vidrio (opacidad, desenfoque, saturación),
+ * textura, sombras y radios. Cambiar un tema es cambiar este bloque de
+ * variables, no tocar componentes.
+ *
+ * Los temas se eligen con `data-d2-theme` sobre el contenedor `.d2`.
+ * El default es "noche". Para fijar otro sin pasar por el selector, cambiá
+ * DEFAULT_THEME en components/design2/themes.js.
+ *
+ * Vive todo bajo `.d2` a propósito: las pantallas que todavía no se
+ * rediseñaron siguen con la paleta bordo de globals.css y no se pisan.
  */
 
 .d2 {
-  --d2-ink: #111315;
+  /* ---- forma ---- */
+  --d2-radius: 26px;
+  --d2-radius-lg: 30px;
+  --d2-radius-sm: 18px;
+
+  /* ---- vidrio ----
+     El vidrio no tiene color propio: es blanco (o negro) translúcido y el color
+     se lo da el fondo que difumina. Por eso los niveles son la misma tinta a
+     distinta opacidad, y lo que cambia entre temas es sobre qué se apoya. */
+  --d2-glass-tint: 255, 255, 255;
+  --d2-glass-1: 0.13;
+  --d2-glass-2: 0.19;
+  --d2-glass-3: 0.28;
+  /* El filtro va entero en una variable y no como blur(var(--x)): Lightning
+     CSS, el compilador de Tailwind v4, no sabe parsear una var() adentro de
+     blur() y descarta la declaracion completa en silencio. El vidrio se queda
+     sin esmerilar y no hay ningun error que lo avise. */
+  --d2-glass-filter: blur(22px) saturate(140%);
+  --d2-glass-filter-strong: blur(26px) saturate(140%);
+
+  /* Canto de cristal: luz arriba, sombra abajo. Sin esto el vidrio se ve como
+     un rectángulo translúcido y pierde el volumen. */
+  --d2-edge-top: rgba(255, 255, 255, 0.28);
+  --d2-edge-bottom: rgba(0, 0, 0, 0.06);
+  --d2-border: rgba(255, 255, 255, 0.16);
+  --d2-border-strong: rgba(255, 255, 255, 0.3);
+  --d2-shadow: 0 8px 28px rgba(31, 38, 48, 0.12);
+  --d2-shadow-strong: 0 10px 34px rgba(31, 38, 48, 0.14);
+
+  /* ---- texto ---- */
   --d2-text: #ffffff;
   --d2-text-2: rgba(255, 255, 255, 0.74);
   --d2-text-3: rgba(255, 255, 255, 0.52);
 
-  /* El vidrio es blanco translúcido: el color se lo da el fondo que tiene
-     detrás, no el relleno. Por eso los tres niveles son el mismo blanco a
-     distinta opacidad. */
-  --d2-glass: rgba(255, 255, 255, 0.13);
-  --d2-glass-2: rgba(255, 255, 255, 0.19);
-  --d2-glass-3: rgba(255, 255, 255, 0.28);
-  --d2-hair: rgba(255, 255, 255, 0.3);
-  --d2-hair-soft: rgba(255, 255, 255, 0.16);
+  /* ---- elemento sólido (FAB, pastilla activa de la barra) ----
+     En temas claros es negro sobre claro; en temas oscuros se invierte, porque
+     un botón negro sobre fondo negro desaparece. */
+  --d2-ink: #111315;
+  --d2-on-ink: #ffffff;
+  --d2-ink-shadow: 0 10px 26px rgba(17, 19, 21, 0.35);
 
-  --d2-radius: 26px;
-  --d2-radius-lg: 30px;
+  /* ---- anillos de progreso ---- */
+  --d2-ring-track: rgba(255, 255, 255, 0.28);
+  --d2-ring-fill: #15181b;
+  --d2-ring-core: rgba(255, 255, 255, 0.25);
+  --d2-ring-core-border: rgba(255, 255, 255, 0.35);
+
+  /* ---- fondo ---- */
+  --d2-bg-a: #d9dde3;
+  --d2-bg-b: #c4c9d1;
+  --d2-bg-c: #9ba2ad;
+  --d2-bg-grad: linear-gradient(168deg, #c3c8d0 0%, #aeb4bd 46%, #c9ced5 100%);
+
+  /* Las manchas son lo que le da algo que difuminar al vidrio: sobre un color
+     plano el backdrop-filter no se percibe. */
+  --d2-blob-1: rgba(122, 131, 145, 0.55);
+  --d2-blob-2: rgba(232, 236, 241, 0.6);
+  --d2-blob-3: rgba(104, 112, 126, 0.5);
+  --d2-blob-filter: blur(70px);
+
+  /* ---- textura ---- */
+  --d2-noise-opacity: 0;
+  --d2-noise-blend: overlay;
 
   font-family: var(--font-d2), "Plus Jakarta Sans", system-ui, sans-serif;
   color: var(--d2-text);
 }
 
-/* Superficie de vidrio. El borde claro arriba y el oscuro abajo son lo que le
-   da el canto de cristal; sin eso se ve como un rectángulo translúcido. */
+/* ============================================================
+   TEMAS
+   ============================================================ */
+
+/* Noche — negro con degradado. Es el default. */
+.d2[data-d2-theme="noche"] {
+  --d2-glass-1: 0.07;
+  --d2-glass-2: 0.11;
+  --d2-glass-3: 0.16;
+  --d2-glass-filter: blur(26px) saturate(120%);
+  --d2-glass-filter-strong: blur(32px) saturate(120%);
+
+  --d2-edge-top: rgba(255, 255, 255, 0.16);
+  --d2-edge-bottom: rgba(0, 0, 0, 0.45);
+  --d2-border: rgba(255, 255, 255, 0.11);
+  --d2-border-strong: rgba(255, 255, 255, 0.2);
+  --d2-shadow: 0 10px 34px rgba(0, 0, 0, 0.5);
+  --d2-shadow-strong: 0 14px 44px rgba(0, 0, 0, 0.6);
+
+  --d2-text: #ffffff;
+  --d2-text-2: rgba(255, 255, 255, 0.66);
+  --d2-text-3: rgba(255, 255, 255, 0.42);
+
+  /* Invertido: el sólido es claro sobre el fondo negro. */
+  --d2-ink: #f4f5f7;
+  --d2-on-ink: #0b0c0e;
+  --d2-ink-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+
+  --d2-ring-track: rgba(255, 255, 255, 0.14);
+  --d2-ring-fill: #ffffff;
+  --d2-ring-core: rgba(255, 255, 255, 0.09);
+  --d2-ring-core-border: rgba(255, 255, 255, 0.16);
+
+  --d2-bg-a: #23262c;
+  --d2-bg-b: #16181c;
+  --d2-bg-c: #000000;
+  --d2-bg-grad: linear-gradient(168deg, #1a1d22 0%, #0b0c0e 52%, #000000 100%);
+
+  --d2-blob-1: rgba(96, 108, 128, 0.5);
+  --d2-blob-2: rgba(210, 220, 236, 0.12);
+  --d2-blob-3: rgba(20, 22, 27, 0.9);
+  --d2-blob-filter: blur(84px);
+
+  --d2-noise-opacity: 0.05;
+  --d2-noise-blend: overlay;
+}
+
+/* Plata — calcado de la imagen de referencia.
+   El fondo de la referencia es un degradado vertical de poco contraste, más
+   claro arriba y con el punto más oscuro abajo del centro, velado en diagonal
+   desde arriba a la izquierda. El vidrio apenas se despega del fondo: lo que
+   separa las tarjetas es el canto claro del borde, no el relleno. */
+.d2[data-d2-theme="plata"] {
+  --d2-glass-1: 0.1;
+  --d2-glass-2: 0.16;
+  --d2-glass-3: 0.24;
+  --d2-glass-filter: blur(20px) saturate(115%);
+  --d2-glass-filter-strong: blur(24px) saturate(115%);
+
+  --d2-edge-top: rgba(255, 255, 255, 0.3);
+  --d2-edge-bottom: rgba(0, 0, 0, 0.04);
+  --d2-border: rgba(255, 255, 255, 0.22);
+  --d2-border-strong: rgba(255, 255, 255, 0.34);
+  --d2-shadow: 0 6px 22px rgba(70, 78, 90, 0.1);
+  --d2-shadow-strong: 0 8px 26px rgba(70, 78, 90, 0.12);
+
+  /* En la referencia el blanco del texto no es puro: está apenas bajado para
+     que no vibre sobre el gris. */
+  --d2-text: rgba(255, 255, 255, 0.96);
+  --d2-text-2: rgba(255, 255, 255, 0.62);
+  --d2-text-3: rgba(255, 255, 255, 0.44);
+
+  --d2-ink: #0d0e10;
+  --d2-on-ink: #ffffff;
+  --d2-ink-shadow: 0 8px 22px rgba(13, 14, 16, 0.3);
+
+  --d2-ring-track: rgba(255, 255, 255, 0.32);
+  --d2-ring-fill: #17191c;
+  --d2-ring-core: rgba(255, 255, 255, 0.2);
+  --d2-ring-core-border: rgba(255, 255, 255, 0.3);
+
+  --d2-bg-a: rgba(214, 218, 224, 0.85);
+  --d2-bg-b: rgba(176, 182, 191, 0.6);
+  --d2-bg-c: rgba(150, 157, 167, 0.75);
+  --d2-bg-grad: linear-gradient(180deg, #bcc1c9 0%, #a8aeb7 45%, #9ea4ad 72%, #a9aeb6 100%);
+
+  --d2-blob-1: rgba(226, 230, 236, 0.45);
+  --d2-blob-2: rgba(238, 241, 245, 0.35);
+  --d2-blob-3: rgba(138, 146, 158, 0.45);
+  --d2-blob-filter: blur(90px);
+
+  --d2-noise-opacity: 0.03;
+  --d2-noise-blend: soft-light;
+}
+
+/* Brasa — el bordo de SiezaGym, para que el rediseño pueda seguir siendo la
+   misma marca que la web actual. */
+.d2[data-d2-theme="brasa"] {
+  --d2-glass-1: 0.09;
+  --d2-glass-2: 0.14;
+  --d2-glass-3: 0.2;
+  --d2-glass-filter: blur(24px) saturate(130%);
+  --d2-glass-filter-strong: blur(28px) saturate(130%);
+
+  --d2-edge-top: rgba(255, 255, 255, 0.2);
+  --d2-edge-bottom: rgba(0, 0, 0, 0.35);
+  --d2-border: rgba(255, 255, 255, 0.13);
+  --d2-border-strong: rgba(255, 176, 150, 0.28);
+  --d2-shadow: 0 10px 34px rgba(30, 4, 6, 0.5);
+  --d2-shadow-strong: 0 14px 44px rgba(30, 4, 6, 0.6);
+
+  --d2-text-2: rgba(255, 236, 232, 0.7);
+  --d2-text-3: rgba(255, 236, 232, 0.45);
+
+  --d2-ink: #ff5733;
+  --d2-on-ink: #ffffff;
+  --d2-ink-shadow: 0 10px 30px rgba(255, 87, 51, 0.4);
+
+  --d2-ring-track: rgba(255, 255, 255, 0.16);
+  --d2-ring-fill: #ff5733;
+  --d2-ring-core: rgba(255, 255, 255, 0.1);
+  --d2-ring-core-border: rgba(255, 255, 255, 0.18);
+
+  --d2-bg-a: #520f13;
+  --d2-bg-b: #2c0709;
+  --d2-bg-c: #120203;
+  --d2-bg-grad: linear-gradient(168deg, #3b0a0c 0%, #1e0405 55%, #0b0102 100%);
+
+  --d2-blob-1: rgba(255, 87, 51, 0.24);
+  --d2-blob-2: rgba(255, 190, 170, 0.1);
+  --d2-blob-3: rgba(60, 10, 13, 0.85);
+  --d2-blob-filter: blur(80px);
+
+  --d2-noise-opacity: 0.05;
+  --d2-noise-blend: overlay;
+}
+
+/* ============================================================
+   PIEZAS
+   ============================================================ */
+
 .d2-glass {
-  background: var(--d2-glass);
-  border: 1px solid var(--d2-hair-soft);
-  backdrop-filter: blur(22px) saturate(140%);
-  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  background: rgba(var(--d2-glass-tint), var(--d2-glass-1));
+  border: 1px solid var(--d2-border);
+  -webkit-backdrop-filter: var(--d2-glass-filter);
+  backdrop-filter: var(--d2-glass-filter);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.28),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.06),
-    0 8px 28px rgba(31, 38, 48, 0.12);
+    inset 0 1px 0 var(--d2-edge-top),
+    inset 0 -1px 0 var(--d2-edge-bottom),
+    var(--d2-shadow);
 }
 
 .d2-glass-strong {
-  background: var(--d2-glass-2);
-  border: 1px solid var(--d2-hair);
-  backdrop-filter: blur(26px) saturate(150%);
-  -webkit-backdrop-filter: blur(26px) saturate(150%);
+  background: rgba(var(--d2-glass-tint), var(--d2-glass-2));
+  border: 1px solid var(--d2-border-strong);
+  -webkit-backdrop-filter: var(--d2-glass-filter-strong);
+  backdrop-filter: var(--d2-glass-filter-strong);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.35),
-    0 10px 34px rgba(31, 38, 48, 0.14);
+    inset 0 1px 0 var(--d2-edge-top),
+    var(--d2-shadow-strong);
 }
 
-/* El fondo: un gris frío con manchas desenfocadas detrás. Son las manchas las
-   que hacen que el vidrio tenga algo que difuminar; sobre un color plano el
-   backdrop-filter no se nota. */
 .d2-backdrop {
   background:
-    radial-gradient(120% 80% at 18% 8%, #d9dde3 0%, rgba(217, 221, 227, 0) 55%),
-    radial-gradient(90% 70% at 88% 22%, #c4c9d1 0%, rgba(196, 201, 209, 0) 60%),
-    radial-gradient(130% 90% at 50% 105%, #9ba2ad 0%, rgba(155, 162, 173, 0) 60%),
-    linear-gradient(168deg, #c3c8d0 0%, #aeb4bd 46%, #c9ced5 100%);
+    radial-gradient(120% 80% at 18% 8%, var(--d2-bg-a) 0%, transparent 55%),
+    radial-gradient(90% 70% at 88% 22%, var(--d2-bg-b) 0%, transparent 60%),
+    radial-gradient(130% 90% at 50% 105%, var(--d2-bg-c) 0%, transparent 60%),
+    var(--d2-bg-grad);
 }
 
 .d2-blob {
   position: absolute;
   border-radius: 9999px;
-  filter: blur(70px);
+  filter: var(--d2-blob-filter);
   will-change: transform;
 }
 
-/* Ocultar la barra de scroll del carrusel sin perder el scroll. */
+/* Grano. Rompe las bandas del degradado, que en negro se ven mucho, y le saca
+   el aspecto plano al fondo. Se apaga con --d2-noise-opacity: 0. */
+.d2-noise {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: var(--d2-noise-opacity);
+  mix-blend-mode: var(--d2-noise-blend);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+}
+
+/* Relleno de vidrio suelto, para piezas que no son una tarjeta entera. */
+.d2-fill {
+  background: rgba(var(--d2-glass-tint), var(--d2-glass-1));
+}
+.d2-fill-strong {
+  background: rgba(var(--d2-glass-tint), var(--d2-glass-3));
+}
+/* El variante hover: de Tailwind no alcanza a las clases propias, asi que el
+   estado va escrito aca. */
+.d2-fill-hover:hover {
+  background: rgba(var(--d2-glass-tint), var(--d2-glass-1));
+}
+
 .d2-rail {
   scrollbar-width: none;
   -ms-overflow-style: none;

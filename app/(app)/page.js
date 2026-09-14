@@ -7,11 +7,12 @@ import { listTrainedDates, listUserSessions } from "@/lib/sessions/sessions";
 import { computeStreak, toLocalDayKey } from "@/lib/sessions/streak";
 import { setCompletionRate, sessionsInLastDays, sessionSeconds, weeklyCalories } from "@/lib/home/metrics";
 import { weekVolumeShare, daysTrainedThisWeek } from "@/lib/home/weekly";
+import ThemeRoot from "@/components/design2/ThemeRoot";
 import Backdrop from "@/components/design2/Backdrop";
 import Header from "@/components/design2/Header";
 import Headline from "@/components/design2/Headline";
 import GoalRail from "@/components/design2/GoalRail";
-import ActivitySection from "@/components/design2/ActivitySection";
+import SearchAndActivity from "@/components/design2/SearchAndActivity";
 import TabBar from "@/components/design2/TabBar";
 
 export const dynamic = "force-dynamic";
@@ -121,7 +122,7 @@ export default async function Home() {
   ];
 
   return (
-    <div className="d2 relative min-h-screen">
+    <ThemeRoot>
       <Backdrop />
 
       <div className="mx-auto w-full max-w-[520px] px-5 pb-32 pt-5">
@@ -139,12 +140,14 @@ export default async function Home() {
           href={featured ? `/rutinas/${featured.id}` : "/rutinas/nueva"}
         />
 
-        <GoalRail cards={cards} />
-
-        <ActivitySection activities={activities} />
+        {/* El buscador va arriba de las tarjetas, como en la referencia; la
+            lista que filtra queda debajo. */}
+        <SearchAndActivity activities={activities}>
+          <GoalRail cards={cards} />
+        </SearchAndActivity>
       </div>
 
       <TabBar />
-    </div>
+    </ThemeRoot>
   );
 }

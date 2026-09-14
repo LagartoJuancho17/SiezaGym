@@ -40,9 +40,9 @@ function GoalCard({ title, value, unit, badge, ring, icon }) {
  */
 export default function GoalRail({ cards }) {
   return (
-    <section className="mt-6" aria-labelledby="d2-goals">
+    <section className="mt-7" aria-labelledby="d2-goals">
       <div className="flex items-baseline justify-between gap-3">
-        <h2 id="d2-goals" className="text-[19px] font-bold tracking-[-0.01em]">
+        <h2 id="d2-goals" className="text-[17px] font-semibold tracking-[-0.01em]">
           Tus objetivos
         </h2>
         <Link href="/progreso" className="text-[13px] text-[var(--d2-text-2)] underline-offset-4 hover:underline">

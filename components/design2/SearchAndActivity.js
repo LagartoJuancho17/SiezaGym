@@ -5,14 +5,18 @@ import { useMemo, useState } from "react";
 import { SearchIcon, WeightIcon } from "./Icons";
 
 /**
- * Actividad reciente, con buscador.
+ * Buscador y actividad reciente.
  *
- * El buscador filtra de verdad sobre las sesiones que ya estan en la pagina, en
- * el cliente: son pocas y filtrar contra el servidor por cada tecla no aporta
- * nada. Si el rediseño despues necesita buscar en todo el historial, esto pasa a
- * ser una consulta.
+ * Van juntos en un componente aunque en pantalla estén separados: el buscador
+ * va arriba de todo, como en la referencia, y la lista que filtra está más
+ * abajo. Lo que queda en el medio entra por `children` y se sigue renderizando
+ * en el servidor.
+ *
+ * Filtra en el cliente sobre las sesiones que ya están en la página: son pocas
+ * y consultar al servidor por cada tecla no aporta nada. Si el rediseño después
+ * necesita buscar en todo el historial, esto pasa a ser una consulta.
  */
-export default function ActivitySection({ activities }) {
+export default function SearchAndActivity({ activities, children }) {
   const [query, setQuery] = useState("");
 
   const filtered = useMemo(() => {
@@ -23,21 +27,23 @@ export default function ActivitySection({ activities }) {
 
   return (
     <>
-      <div className="d2-glass mt-6 flex items-center gap-2.5 rounded-full px-4 py-3">
+      <div className="d2-glass mt-5 flex items-center gap-2.5 rounded-full px-4 py-3">
         <SearchIcon size={19} className="shrink-0 text-[var(--d2-text-3)]" />
         <input
           type="search"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Buscar en tu actividad"
+          placeholder="Buscar"
           aria-label="Buscar en tu actividad"
           className="w-full bg-transparent text-[15px] placeholder:text-[var(--d2-text-3)] focus:outline-none"
         />
       </div>
 
+      {children}
+
       <section className="mt-7 pb-4" aria-labelledby="d2-activity">
         <div className="flex items-baseline justify-between gap-3">
-          <h2 id="d2-activity" className="text-[19px] font-bold tracking-[-0.01em]">
+          <h2 id="d2-activity" className="text-[17px] font-semibold tracking-[-0.01em]">
             Actividad reciente
           </h2>
           <Link href="/historial" className="text-[13px] text-[var(--d2-text-2)] underline-offset-4 hover:underline">
