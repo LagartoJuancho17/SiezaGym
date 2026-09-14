@@ -1,6 +1,7 @@
 import BottomNav from "@/components/nav/BottomNav";
 import TopNavbar from "@/components/nav/TopNavbar";
 import AppShell from "@/components/nav/AppShell";
+import LegacyChrome from "@/components/nav/LegacyChrome";
 import { getCurrentUser } from "@/lib/firebase/session";
 import { getUserProfile } from "@/lib/users/users";
 
@@ -10,11 +11,9 @@ export default async function AppLayout({ children }) {
 
   return (
     <AppShell>
-      <TopNavbar user={user} profile={profile} />
-      <main className="w-full min-h-screen">
+      <LegacyChrome top={<TopNavbar user={user} profile={profile} />} bottom={<BottomNav />}>
         {children}
-      </main>
-      <BottomNav />
+      </LegacyChrome>
     </AppShell>
   );
 }

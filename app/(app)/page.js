@@ -3,157 +3,148 @@ import { getCurrentUser } from "@/lib/firebase/session";
 import { getUserProfile } from "@/lib/users/users";
 import { listUserRoutines } from "@/lib/routines/routines";
 import { listStudentAssignments } from "@/lib/assignments/assignments";
-import { listExercises } from "@/lib/exercises/exercises";
-import { weeklyVolumeKg, listTrainedDates, listUserSessions } from "@/lib/sessions/sessions";
+import { listTrainedDates, listUserSessions } from "@/lib/sessions/sessions";
 import { computeStreak, toLocalDayKey } from "@/lib/sessions/streak";
-import { totalSets, estimatedDurationMinutes } from "@/lib/routines/summary";
-import { listCoachStudents } from "@/lib/coach/students";
-import {
-  volumeByMuscleGroup,
-  pushPullBalance,
-  setCompletionRate,
-  volumeByWeekday,
-  relativeIntensity,
-  volumePerSession,
-  intensityZones,
-  intensitySequence,
-  sessionSeconds,
-  sessionsInLastDays,
-  weeklyCalories,
-} from "@/lib/home/metrics";
-import HomeHero from "@/components/home/HomeHero";
-import HomeStats from "@/components/home/HomeStats";
-import RoutinesCarousel from "@/components/home/RoutinesCarousel";
-import CoachHomeSection from "@/components/coach/CoachHomeSection";
-import LinkCoachSection from "@/components/home/LinkCoachSection";
+import { setCompletionRate, sessionsInLastDays, sessionSeconds, weeklyCalories } from "@/lib/home/metrics";
+import { weekVolumeShare, daysTrainedThisWeek } from "@/lib/home/weekly";
+import Backdrop from "@/components/design2/Backdrop";
+import Header from "@/components/design2/Header";
+import Headline from "@/components/design2/Headline";
+import GoalRail from "@/components/design2/GoalRail";
+import ActivitySection from "@/components/design2/ActivitySection";
+import TabBar from "@/components/design2/TabBar";
 
 export const dynamic = "force-dynamic";
-
-// Indice de dia 0..6 (lunes a domingo) en hora Argentina. Se ancla al mediodia
-// para que el runtime del server no corra el dia, igual que hace computeStreak.
-function toWeekdayIndex(isoDate) {
-  if (!isoDate) return null;
-  const key = toLocalDayKey(new Date(isoDate));
-  const day = new Date(`${key}T12:00:00`).getDay();
-  return (day + 6) % 7;
-}
 
 function formatDuration(totalSeconds) {
   const minutes = Math.round(totalSeconds / 60);
   if (minutes < 60) return `${minutes} min`;
-  return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
+  return `${Math.floor(minutes / 60)} h ${String(minutes % 60).padStart(2, "0")}`;
+}
+
+// "Hoy" / "Ayer" / "9 sept". Se compara por clave de dia en hora Argentina para
+// que el runtime del server, que corre en UTC, no adelante el dia.
+function formatWhen(isoDate, todayKey, yesterdayKey) {
+  if (!isoDate) return "Sin fecha";
+  const key = toLocalDayKey(new Date(isoDate));
+  if (key === todayKey) return "Hoy";
+  if (key === yesterdayKey) return "Ayer";
+  return new Date(`${key}T12:00:00`).toLocaleDateString("es-AR", { day: "numeric", month: "short" });
 }
 
 export default async function Home() {
   const user = await getCurrentUser();
+  if (!user) redirect("/login");
 
-  if (!user) {
-    redirect("/login");
-  }
+  const [profile, routines, assignments, trainedDates, sessions] = await Promise.all([
+    getUserProfile(user.uid),
+    listUserRoutines(user.uid),
+    listStudentAssignments(user.uid),
+    listTrainedDates(user.uid),
+    listUserSessions(user.uid, { limitCount: 50 }),
+  ]);
 
-  const [profile, routines, weekVolume, assignments, trainedDates, sessions, exercises] =
-    await Promise.all([
-      getUserProfile(user.uid),
-      listUserRoutines(user.uid),
-      weeklyVolumeKg(user.uid),
-      listStudentAssignments(user.uid),
-      listTrainedDates(user.uid),
-      listUserSessions(user.uid, { limitCount: 50 }),
-      listExercises(),
-    ]);
-
-  const isCoach = !!profile?.isCoach || !!profile?.isAdmin;
-  const students = isCoach ? await listCoachStudents(user.uid) : [];
-
-  const streak = computeStreak(trainedDates);
-  const exerciseById = new Map(exercises.map((exercise) => [exercise.id, exercise]));
+  const now = new Date();
+  const todayKey = toLocalDayKey(now);
+  const yesterday = new Date(`${todayKey}T12:00:00`);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayKey = toLocalDayKey(yesterday);
 
   const weekSessions = sessionsInLastDays(sessions, 7);
+  const calories = weeklyCalories(weekSessions, {
+    bodyWeightKg: profile?.bodyWeightKg,
+    goal: profile?.weeklyCalorieGoalKcal,
+  });
+  const week = weekVolumeShare(sessions, now);
+  const completion = setCompletionRate(sessions);
+  const streak = computeStreak(trainedDates);
+  const daysThisWeek = daysTrainedThisWeek(trainedDates, now);
 
-  const muscleVolume = volumeByMuscleGroup(sessions, exerciseById);
-  const trend = volumePerSession(sessions);
-  const maxTrend = Math.max(...trend.points, 1);
+  // La rutina del titular es la ultima usada que se muestre en la Home. Si no
+  // hay ninguna no se inventa un nombre: el titular invita a crear la primera.
+  const visibleRoutines = [
+    ...routines.filter((routine) => routine.showOnHome !== false),
+    ...assignments.map((assignment) => ({
+      id: assignment.id,
+      name: assignment.routineName,
+      lastUsedAt: assignment.lastUsedAt || assignment.assignedAt,
+      createdAt: assignment.assignedAt,
+    })),
+  ].sort(
+    (a, b) =>
+      new Date(b.lastUsedAt || b.createdAt || 0) - new Date(a.lastUsedAt || a.createdAt || 0),
+  );
+  const featured = visibleRoutines[0] || null;
 
-  const metrics = {
-    muscleVolume,
-    sessionBars: trend.points.map((kg) => kg / maxTrend),
-    balance: pushPullBalance(sessions, exerciseById),
-    completion: setCompletionRate(sessions),
-    weekdays: volumeByWeekday(sessions, toWeekdayIndex),
-    intensity: relativeIntensity(sessions),
-    trend,
-    zones: intensityZones(sessions),
-    sequence: intensitySequence(sessions),
-    calories: weeklyCalories(weekSessions, {
-      bodyWeightKg: profile?.bodyWeightKg,
-      goal: profile?.weeklyCalorieGoalKcal,
-    }),
-    durationText: formatDuration(
-      weekSessions.reduce((total, session) => total + sessionSeconds(session), 0),
-    ),
-  };
-
-  const enrichedRoutines = routines.map((routine) => ({
-    ...routine,
-    totalSets: totalSets(routine),
-    estimatedMinutes: estimatedDurationMinutes(routine),
-    isAssigned: false,
-    sortKey: routine.lastUsedAt || routine.createdAt,
-  }));
-  const enrichedAssignments = assignments.map((assignment) => ({
-    id: assignment.id,
-    name: assignment.routineName,
-    exercises: assignment.exercises,
-    showOnHome: true,
-    isAssigned: true,
-    totalSets: totalSets({ exercises: assignment.exercises }),
-    estimatedMinutes: estimatedDurationMinutes({ exercises: assignment.exercises }),
-    sortKey: assignment.lastUsedAt || assignment.assignedAt,
+  const activities = sessions.slice(0, 12).map((session) => ({
+    id: session.id,
+    name: session.routineName || "Entrenamiento libre",
+    when: formatWhen(session.finishedAt, todayKey, yesterdayKey),
+    volume: `${Math.round(session.totalVolumeKg || 0).toLocaleString("es-AR")} kg`,
+    duration: formatDuration(sessionSeconds(session)),
   }));
 
-  const visibleRoutines = [...enrichedRoutines, ...enrichedAssignments]
-    .filter((routine) => routine.showOnHome !== false)
-    .sort((a, b) => new Date(b.sortKey || 0) - new Date(a.sortKey || 0));
-
-  // Sin rutinas no inventamos una: routineId null hace que el hero linkee a
-  // /rutinas en vez de a un id que devuelve 404.
-  const activeRoutine = visibleRoutines[0]
-    ? { id: visibleRoutines[0].id, name: visibleRoutines[0].name }
-    : { id: null, name: "Armá tu primera rutina" };
-
-  const initial = (profile?.displayName || user.email || "T").charAt(0).toUpperCase();
+  const cards = [
+    {
+      title: "Esta semana",
+      value: week.kg.toLocaleString("es-AR"),
+      unit: "kg",
+      badge: week.bestKg > 0 ? (week.isBest ? "Tu mejor semana" : `Mejor ${week.bestKg.toLocaleString("es-AR")}`) : null,
+      ring: week.share,
+      icon: "weight",
+    },
+    {
+      title: "Racha",
+      value: streak,
+      unit: streak === 1 ? "día" : "días",
+      badge: `${daysThisWeek} de 7 días`,
+      ring: daysThisWeek / 7,
+      icon: "flame",
+    },
+    {
+      title: "Calorías",
+      value: calories.kcal.toLocaleString("es-AR"),
+      unit: "kcal",
+      // Es una estimación por MET, no una medición: hay que decirlo.
+      badge: calories.usesDefaultWeight ? "Estimado, 75 kg" : `Meta ${calories.goal.toLocaleString("es-AR")}`,
+      ring: calories.pct / 100,
+      icon: "clock",
+    },
+    {
+      title: "Series completadas",
+      value: completion.hasData ? completion.pct : 0,
+      unit: "%",
+      badge: completion.hasData ? `${completion.completed} de ${completion.total}` : "Sin datos",
+      ring: completion.pct / 100,
+      icon: "check",
+    },
+  ];
 
   return (
-    <div className="flex flex-col w-full bg-[#35080A] pb-28 md:pb-12">
-      {/* 1. TOP HALF: Panoramic Athletic Dumbbells Hero matching Image 1 & 2 */}
-      <HomeHero
-        routineId={activeRoutine.id}
-        routineName={activeRoutine.name}
-        volumeKg={weekVolume}
-        setsLeft={9}
-        primaryMuscle="Piernas"
-        secondaryMuscle="Espalda"
-        accountInitial={initial}
-        accountPhotoURL={profile?.photoURL || null}
-        accountEmail={user.email || null}
-      />
+    <div className="d2 relative min-h-screen">
+      <Backdrop />
 
-      {/* 2. Métricas y calendario */}
-      <HomeStats {...metrics} trainedDates={trainedDates} streak={streak} />
+      <div className="mx-auto w-full max-w-[520px] px-5 pb-32 pt-5">
+        <Header
+          name={(profile?.displayName || user.email || "").split(" ")[0] || "atleta"}
+          photoURL={profile?.photoURL || null}
+          initial={(profile?.displayName || user.email || "T").charAt(0).toUpperCase()}
+          goalPct={calories.pct}
+          hasGoalData={calories.hasData}
+        />
 
-      {/* 3. Rutinas */}
-      <div className="mx-auto flex w-full max-w-[1360px] flex-col px-4 pb-4 sm:px-6 lg:px-7">
-        <RoutinesCarousel routines={visibleRoutines} />
+        <Headline
+          lead={featured ? "Hoy toca" : "Empezá por"}
+          emphasis={featured ? `${featured.name}.` : "armar tu primera rutina."}
+          href={featured ? `/rutinas/${featured.id}` : "/rutinas/nueva"}
+        />
+
+        <GoalRail cards={cards} />
+
+        <ActivitySection activities={activities} />
       </div>
 
-      {/* 4. Panel del coach / vinculación con entrenador */}
-      <div className="mx-auto flex w-full max-w-[1360px] flex-col px-4 pb-4 sm:px-6 lg:px-7">
-        {isCoach ? (
-          <CoachHomeSection students={students} isAdmin={!!profile?.isAdmin} />
-        ) : (
-          <LinkCoachSection />
-        )}
-      </div>
+      <TabBar />
     </div>
   );
 }

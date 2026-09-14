@@ -1,4 +1,4 @@
-import { Anton, Archivo, Silkscreen } from "next/font/google";
+import { Anton, Archivo, Plus_Jakarta_Sans, Silkscreen } from "next/font/google";
 import "./globals.css";
 
 const anton = Anton({
@@ -11,6 +11,14 @@ const archivo = Archivo({
   weight: ["400", "500", "600", "800"],
   subsets: ["latin"],
   variable: "--font-sans",
+});
+
+// Rediseño (design2): geométrica, con itálicas de verdad para los titulares.
+const jakarta = Plus_Jakarta_Sans({
+  weight: ["400", "500", "600", "700", "800"],
+  style: ["normal", "italic"],
+  subsets: ["latin"],
+  variable: "--font-d2",
 });
 
 const silkscreen = Silkscreen({
@@ -29,7 +37,7 @@ export default function RootLayout({ children }) {
     <html
       lang="es"
       data-theme="dark"
-      className={`${anton.variable} ${archivo.variable} ${silkscreen.variable}`}
+      className={`${anton.variable} ${archivo.variable} ${jakarta.variable} ${silkscreen.variable}`}
     >
       <body className="min-h-screen bg-bg text-text antialiased">
         {children}

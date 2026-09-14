@@ -1,9 +1,11 @@
 @import "tailwindcss";
+@import "./design2.css";
 
 @theme {
   --font-sans: var(--font-sans), Archivo, Arial, Helvetica, sans-serif;
   --font-display: var(--font-display), Anton, sans-serif;
   --font-mono-digit: var(--font-mono-digit), Silkscreen, ui-monospace, monospace;
+  --font-d2: var(--font-d2), "Plus Jakarta Sans", system-ui, sans-serif;
 
   --color-bg: var(--bg);
   --color-deep: var(--deep);
