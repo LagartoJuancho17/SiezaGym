@@ -7,7 +7,7 @@ const pageSource = read("app/(app)/rutinas/nueva/page.js");
 const composerSource = read("components/design2/RoutineComposer.js");
 const itemSource = read("components/design2/ExerciseItem.js");
 const pickerSource = read("components/design2/ExercisePicker.js");
-const chromeSource = read("components/nav/LegacyChrome.js");
+const navSource = read("lib/nav/redesigned.js");
 const cssSource = read("app/design2.css");
 
 describe("Pantalla de nueva rutina", () => {
@@ -17,7 +17,7 @@ describe("Pantalla de nueva rutina", () => {
   });
 
   it("está declarada como rediseñada", () => {
-    expect(chromeSource).toContain('"/rutinas/nueva"');
+    expect(navSource).toContain('"/rutinas/nueva"');
   });
 
   it("manda al cliente solo lo que la pantalla dibuja", () => {

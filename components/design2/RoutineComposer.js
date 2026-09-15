@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createRoutine } from "@/app/(app)/rutinas/actions";
+import { createRoutine, updateRoutine } from "@/app/(app)/rutinas/actions";
 import { isTimeBasedRegistration, MUSCLE_GROUP_LABELS } from "@/lib/exercises/constants";
 import { muscleDistribution } from "@/lib/routines/summary";
 import { ArrowLeftIcon, PlusIcon } from "./Icons";
@@ -26,10 +26,18 @@ function defaultItemFor(exercise) {
   };
 }
 
-export default function RoutineComposer({ exercises }) {
+/**
+ * Armar una rutina, nueva o existente.
+ *
+ * Con `routine` entra en modo edición: arranca con lo que ya estaba cargado y
+ * guarda sobre la misma rutina. Es la misma pantalla a propósito, porque editar
+ * es agregar, sacar y volver a prescribir, exactamente lo mismo que crear.
+ */
+export default function RoutineComposer({ exercises, routine = null }) {
   const router = useRouter();
-  const [name, setName] = useState("");
-  const [items, setItems] = useState([]);
+  const editing = !!routine;
+  const [name, setName] = useState(routine?.name || "");
+  const [items, setItems] = useState(routine?.exercises || []);
   const [picking, setPicking] = useState(false);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -62,8 +70,14 @@ export default function RoutineComposer({ exercises }) {
 
     setSaving(true);
     try {
-      const id = await createRoutine({ name: name.trim(), note: "", exercises: items });
-      router.push(`/rutinas/${id}`);
+      const payload = { name: name.trim(), note: routine?.note || "", exercises: items };
+      if (editing) {
+        await updateRoutine(routine.id, payload);
+        router.push(`/rutinas/${routine.id}`);
+      } else {
+        const id = await createRoutine(payload);
+        router.push(`/rutinas/${id}`);
+      }
       router.refresh();
     } catch (err) {
       setError(err.message || "No se pudo guardar la rutina.");
@@ -74,10 +88,14 @@ export default function RoutineComposer({ exercises }) {
   return (
     <>
       <header className="d2-compose-head">
-        <Link href="/rutinas" aria-label="Volver a rutinas" className="d2-back">
+        <Link
+          href={editing ? `/rutinas/${routine.id}` : "/rutinas"}
+          aria-label={editing ? "Volver a la rutina" : "Volver a rutinas"}
+          className="d2-back"
+        >
           <ArrowLeftIcon size={20} width={1.8} />
         </Link>
-        <h1 className="d2-page-title">Nueva rutina</h1>
+        <h1 className="d2-page-title">{editing ? "Editar rutina" : "Nueva rutina"}</h1>
         <button type="button" onClick={save} disabled={saving} className="d2-save">
           {saving ? "Guardando…" : "Guardar"}
         </button>

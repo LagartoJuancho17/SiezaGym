@@ -5,7 +5,7 @@ const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf
 
 const pageSource = read("app/(app)/rutinas/page.js");
 const listSource = read("components/design2/RoutineList.js");
-const chromeSource = read("components/nav/LegacyChrome.js");
+const navSource = read("lib/nav/redesigned.js");
 
 describe("Pantalla de Rutinas", () => {
   it("usa los componentes de design2 y ninguno de la pantalla vieja", () => {
@@ -18,12 +18,13 @@ describe("Pantalla de Rutinas", () => {
   });
 
   it("está declarada como rediseñada para que no le entre el chrome viejo", () => {
-    expect(chromeSource).toContain('"/rutinas"');
+    expect(navSource).toContain('"/rutinas"');
   });
 
-  it("solo la lista está rediseñada, no el detalle ni el alta", () => {
-    // La coincidencia es exacta: /rutinas/algo sigue con el diseño anterior.
-    expect(chromeSource).toContain("REDESIGNED.includes(pathname)");
+  it("las rutas fijas se comparan exactas y las dinámicas por patrón", () => {
+    // /rutinas y /rutinas/nueva son literales; el detalle lleva un id variable.
+    expect(navSource).toContain("EXACT.includes(path)");
+    expect(navSource).toContain("PATTERNS.some(");
   });
 
   it("no cuenta los ejercicios a ojo: sale del largo real de la rutina", () => {

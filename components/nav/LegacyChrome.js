@@ -1,25 +1,23 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { isRedesigned } from "@/lib/nav/redesigned";
 
 /**
  * Chrome viejo (TopNavbar + BottomNav bordo).
  *
- * El rediseño (design2) va pantalla por pantalla y trae su propia navegación,
- * así que las que ya se rediseñaron se excluyen acá. Cuando el rediseño cubra
- * toda la app, esto se borra junto con los componentes viejos.
+ * Las pantallas ya rediseñadas traen su propia navegación y quedan afuera. La
+ * lista de rutas vive en lib/nav/redesigned.js, que se prueba aparte.
  */
-const REDESIGNED = ["/", "/rutinas", "/rutinas/nueva"];
-
 export default function LegacyChrome({ top, bottom, children }) {
   const pathname = usePathname() || "/";
-  const isRedesigned = REDESIGNED.includes(pathname);
+  const redesigned = isRedesigned(pathname);
 
   return (
     <>
-      {!isRedesigned && top}
+      {!redesigned && top}
       <main className="w-full min-h-screen">{children}</main>
-      {!isRedesigned && bottom}
+      {!redesigned && bottom}
     </>
   );
 }

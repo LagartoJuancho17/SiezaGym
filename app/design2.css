@@ -513,6 +513,123 @@
 .d2-credit { margin-top: calc(14 * var(--d2-u)); text-align: center; font-size: calc(10 * var(--d2-u)); color: var(--d2-text-3); }
 .d2-credit a { text-decoration: underline; text-underline-offset: 3px; }
 
+/* ---------- Detalle de una rutina ---------- */
+
+/* El titulo de una rutina puede ser largo: se deja crecer a dos lineas en vez
+   de recortarlo con puntos suspensivos. */
+.d2-detail-title { flex: 1; min-width: 0; font-size: calc(24 * var(--d2-u)); line-height: 1.2; font-weight: 750; letter-spacing: -0.025em; overflow-wrap: anywhere; }
+.d2-detail-tag { display: block; margin-top: calc(4 * var(--d2-u)); font-size: calc(11 * var(--d2-u)); line-height: 1.4; font-weight: 400; color: var(--d2-text-2); }
+
+/* Tres numeros y nada mas: ejercicios, series y tiempo. */
+.d2-stats { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: calc(20 * var(--d2-u)); padding: calc(16 * var(--d2-u)) calc(10 * var(--d2-u)); }
+.d2-stats > * + * { border-top: 0; border-left: 1px solid var(--d2-border); }
+.d2-stat { display: flex; flex-direction: column; align-items: center; gap: calc(4 * var(--d2-u)); }
+.d2-stat-value { font-size: calc(22 * var(--d2-u)); line-height: 1.1; font-weight: 600; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.d2-stat-label { font-size: calc(10 * var(--d2-u)); line-height: 1.3; color: var(--d2-text-2); text-align: center; }
+
+/* Nota de la rutina, tal como la escribio quien la armo. */
+.d2-note { margin-top: calc(14 * var(--d2-u)); padding: calc(14 * var(--d2-u)) calc(18 * var(--d2-u)); border-radius: calc(18 * var(--d2-u)); font-size: calc(13 * var(--d2-u)); line-height: 1.5; color: var(--d2-text-2); }
+
+/* Anillo de terminado al lado del nombre, cuando el ejercicio ya esta hecho. */
+.d2-ex-check { display: flex; flex: none; align-items: center; justify-content: center; width: calc(18 * var(--d2-u)); height: calc(18 * var(--d2-u)); color: var(--d2-text); }
+.d2-ex-check svg { width: 100%; height: 100%; }
+
+/* Lo prescrito, una fila por serie. Es una tabla de lectura: mismas columnas
+   que la planilla de entrenamiento, para que la vista y el registro se lean
+   igual. */
+/* Filas en flex y no en grid: la cantidad de columnas cambia segun el
+   ejercicio (sin peso en plancha, sin RIR si no se prescribio) y con flex la
+   fila se acomoda sola, sin una plantilla de grid por combinacion. */
+.d2-plan { display: flex; flex-direction: column; gap: calc(6 * var(--d2-u)); }
+.d2-plan-row { display: flex; align-items: center; gap: calc(8 * var(--d2-u)); }
+.d2-plan-head { flex: 1; min-width: 0; font-size: calc(10 * var(--d2-u)); line-height: 1.3; color: var(--d2-text-3); text-align: center; }
+.d2-plan-n { flex: none; width: calc(22 * var(--d2-u)); font-size: calc(11 * var(--d2-u)); line-height: 1.3; color: var(--d2-text-3); font-variant-numeric: tabular-nums; }
+.d2-plan-cell { flex: 1; min-width: 0; min-height: calc(32 * var(--d2-u)); display: grid; place-items: center; border-radius: calc(11 * var(--d2-u)); background: rgba(var(--d2-glass-tint), var(--d2-glass-1)); font-size: calc(13 * var(--d2-u)); line-height: 1.2; font-variant-numeric: tabular-nums; }
+.d2-plan-cell-empty { color: var(--d2-text-3); }
+.d2-ex-meta { margin-top: calc(12 * var(--d2-u)); font-size: calc(11 * var(--d2-u)); line-height: 1.5; color: var(--d2-text-2); }
+
+/* Planilla del entrenamiento: numero, dos campos y el tilde que confirma. */
+.d2-log { display: flex; flex-direction: column; gap: calc(7 * var(--d2-u)); }
+.d2-log-row { display: flex; align-items: center; gap: calc(8 * var(--d2-u)); }
+.d2-log-n { flex: none; width: calc(22 * var(--d2-u)); font-size: calc(11 * var(--d2-u)); color: var(--d2-text-3); font-variant-numeric: tabular-nums; }
+.d2-log-row input { flex: 1; width: 100%; min-width: 0; min-height: calc(40 * var(--d2-u)); padding-inline: calc(8 * var(--d2-u)); border-radius: calc(12 * var(--d2-u)); border: 1px solid var(--d2-border); background: rgba(var(--d2-glass-tint), var(--d2-glass-1)); color: var(--d2-text); text-align: center; font-size: max(16px, calc(13 * var(--d2-u))); font-variant-numeric: tabular-nums; }
+.d2-log-row input::placeholder { color: var(--d2-text-3); }
+.d2-log-check { display: flex; flex: none; align-items: center; justify-content: center; width: calc(40 * var(--d2-u)); height: calc(40 * var(--d2-u)); border-radius: 50%; border: 1px solid var(--d2-border-strong); color: var(--d2-text); }
+.d2-log-check svg { width: calc(15 * var(--d2-u)); height: calc(15 * var(--d2-u)); }
+/* Serie confirmada: el solido del tema, el mismo que el dia entrenado del
+   calendario, para que "esto esta hecho" se lea igual en toda la app. */
+.d2-log-check-on { background: var(--d2-ink); color: var(--d2-on-ink); border-color: transparent; }
+.d2-log-row-done input { opacity: 0.55; }
+/* Hueco del tilde en la fila de rotulos, para que las columnas coincidan. */
+.d2-log-spacer { flex: none; width: calc(40 * var(--d2-u)); }
+.d2-log-tools { display: flex; gap: calc(8 * var(--d2-u)); margin-top: calc(10 * var(--d2-u)); }
+.d2-chip { min-height: calc(34 * var(--d2-u)); padding-inline: calc(12 * var(--d2-u)); border-radius: 999px; border: 1px dashed var(--d2-border-strong); color: var(--d2-text-2); font-size: calc(12 * var(--d2-u)); }
+.d2-chip[disabled] { opacity: 0.4; }
+
+/* Barra de accion. Va fija y centrada con el mismo ancho que la pagina, para
+   que el boton principal quede siempre a mano sin tapar el contenido. */
+.d2-dock { position: fixed; inset-inline: 0; z-index: 55; display: flex; justify-content: center; padding-inline: 18px; pointer-events: none; bottom: max(calc(78 * var(--d2-u)), calc(72 * var(--d2-u) + env(safe-area-inset-bottom))); }
+/* Entrenando no hay barra de pestanas: la accion baja al borde y no se puede
+   salir de la sesion de un toque al azar. */
+.d2-dock-low { bottom: max(calc(16 * var(--d2-u)), env(safe-area-inset-bottom)); }
+.d2-dock > * { width: 100%; max-width: 484px; pointer-events: auto; }
+/* La pagina reserva el alto del dock para que el ultimo ejercicio no quede
+   abajo del boton. */
+.d2-page-dock { padding-bottom: max(calc(152 * var(--d2-u)), calc(134 * var(--d2-u) + env(safe-area-inset-bottom))); }
+
+.d2-start { display: flex; align-items: center; justify-content: center; gap: calc(9 * var(--d2-u)); min-height: calc(54 * var(--d2-u)); border-radius: 999px; background: var(--d2-ink); color: var(--d2-on-ink); font-size: calc(15 * var(--d2-u)); font-weight: 500; box-shadow: var(--d2-ink-shadow); }
+.d2-start svg { width: calc(17 * var(--d2-u)); height: calc(17 * var(--d2-u)); }
+.d2-start svg path { fill: currentColor; }
+.d2-start[disabled] { opacity: 0.45; box-shadow: none; }
+
+.d2-run { display: flex; flex-direction: column; gap: calc(10 * var(--d2-u)); padding: calc(14 * var(--d2-u)); border-radius: calc(24 * var(--d2-u)); }
+.d2-run-top { display: flex; align-items: center; gap: calc(10 * var(--d2-u)); }
+.d2-run-clock { font-size: calc(24 * var(--d2-u)); line-height: 1; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.d2-run-progress { flex: 1; min-width: 0; font-size: calc(11 * var(--d2-u)); line-height: 1.4; color: var(--d2-text-2); }
+.d2-run-hold { display: block; color: var(--d2-text); }
+.d2-run-actions { display: flex; gap: calc(8 * var(--d2-u)); }
+.d2-ghost { display: flex; flex: none; align-items: center; justify-content: center; gap: calc(6 * var(--d2-u)); min-height: calc(46 * var(--d2-u)); padding-inline: calc(16 * var(--d2-u)); border-radius: 999px; border: 1px solid var(--d2-border-strong); color: var(--d2-text); font-size: calc(14 * var(--d2-u)); }
+.d2-ghost svg { width: calc(15 * var(--d2-u)); height: calc(15 * var(--d2-u)); }
+.d2-ghost svg path { fill: currentColor; }
+.d2-finish { display: flex; flex: 1; align-items: center; justify-content: center; min-height: calc(46 * var(--d2-u)); padding-inline: calc(16 * var(--d2-u)); border-radius: 999px; background: var(--d2-ink); color: var(--d2-on-ink); font-size: calc(14 * var(--d2-u)); font-weight: 500; }
+.d2-finish[disabled] { opacity: 0.5; }
+
+/* Menu de la rutina. Texto y nada de iconos: son cuatro acciones que se leen
+   mas rapido escritas. */
+.d2-menu-wrap { position: relative; flex: none; }
+/* Capa invisible que cierra el menu al tocar fuera. Un click afuera cerrando
+   el menu es lo que espera cualquiera; con un listener en document hay que
+   pelear con el propio boton que lo abrio. */
+.d2-menu-backdrop { position: fixed; inset: 0; z-index: 59; }
+.d2-menu { position: absolute; top: calc(48 * var(--d2-u)); right: 0; z-index: 60; overflow: hidden; width: calc(196 * var(--d2-u)); border-radius: calc(18 * var(--d2-u)); }
+.d2-menu > * + * { border-top: 1px solid var(--d2-border); }
+.d2-menu-item { display: flex; align-items: center; width: 100%; min-height: calc(46 * var(--d2-u)); padding-inline: calc(16 * var(--d2-u)); color: var(--d2-text); font-size: calc(13 * var(--d2-u)); text-align: left; }
+.d2-menu-item[disabled] { opacity: 0.45; }
+
+/* Confirmaciones y resumen: una tarjeta centrada sobre el fondo oscurecido. */
+.d2-modal { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; padding: 18px; background: rgba(0, 0, 0, 0.55); }
+.d2-modal-card { width: 100%; max-width: calc(360 * var(--d2-u)); padding: calc(22 * var(--d2-u)); border-radius: calc(28 * var(--d2-u)); }
+.d2-modal-title { font-size: calc(20 * var(--d2-u)); line-height: 1.25; font-weight: 600; letter-spacing: -0.02em; overflow-wrap: anywhere; }
+.d2-modal-text { margin-top: calc(8 * var(--d2-u)); font-size: calc(13 * var(--d2-u)); line-height: 1.5; color: var(--d2-text-2); }
+.d2-modal-actions { display: flex; flex-direction: column; gap: calc(8 * var(--d2-u)); margin-top: calc(18 * var(--d2-u)); }
+.d2-modal-primary { display: flex; align-items: center; justify-content: center; min-height: calc(50 * var(--d2-u)); border-radius: 999px; background: var(--d2-ink); color: var(--d2-on-ink); font-size: calc(14 * var(--d2-u)); font-weight: 500; box-shadow: var(--d2-ink-shadow); }
+.d2-modal-primary[disabled] { opacity: 0.5; box-shadow: none; }
+.d2-modal-secondary { display: flex; align-items: center; justify-content: center; min-height: calc(46 * var(--d2-u)); border-radius: 999px; border: 1px solid var(--d2-border); color: var(--d2-text-2); font-size: calc(14 * var(--d2-u)); }
+
+/* Resumen del entrenamiento: tiempo, series y volumen, los tres medidos. */
+.d2-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(8 * var(--d2-u)); margin-top: calc(18 * var(--d2-u)); }
+.d2-summary-cell { display: flex; flex-direction: column; align-items: center; gap: calc(5 * var(--d2-u)); padding: calc(12 * var(--d2-u)) calc(6 * var(--d2-u)); border-radius: calc(16 * var(--d2-u)); background: rgba(var(--d2-glass-tint), var(--d2-glass-1)); }
+.d2-summary-value { font-size: calc(17 * var(--d2-u)); line-height: 1.15; font-weight: 600; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.d2-summary-label { font-size: calc(10 * var(--d2-u)); line-height: 1.3; color: var(--d2-text-2); }
+
+/* Alumnos, para asignar la rutina desde el panel del entrenador. */
+.d2-students { margin-top: calc(14 * var(--d2-u)); max-height: calc(280 * var(--d2-u)); overflow-y: auto; }
+.d2-student { display: flex; width: 100%; align-items: center; gap: calc(11 * var(--d2-u)); padding: calc(11 * var(--d2-u)) calc(14 * var(--d2-u)); text-align: left; color: var(--d2-text); }
+.d2-student-initial { display: grid; place-items: center; flex: none; width: calc(36 * var(--d2-u)); height: calc(36 * var(--d2-u)); border-radius: 50%; background: rgba(var(--d2-glass-tint), var(--d2-glass-3)); font-size: calc(14 * var(--d2-u)); font-weight: 500; }
+.d2-student-body { min-width: 0; flex: 1; }
+.d2-student-name { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: calc(14 * var(--d2-u)); line-height: 1.3; font-weight: 500; }
+.d2-student-mail { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: calc(3 * var(--d2-u)); font-size: calc(11 * var(--d2-u)); line-height: 1.4; color: var(--d2-text-2); }
+
 /* ---------- Semana ---------- */
 
 .d2-cal { margin-top: calc(20 * var(--d2-u)); padding: calc(16 * var(--d2-u)); border-radius: calc(26 * var(--d2-u)); }
@@ -559,8 +676,10 @@
   .d2-section-heading a:hover { text-decoration: underline; }
   .d2-fab:hover, .d2-tab-active:hover { opacity: 0.88; }
   .d2-activity-row:hover, .d2-routine:hover, .d2-pick:hover, .d2-tab.d2-orb:hover { background-color: rgba(var(--d2-glass-tint), var(--d2-glass-3)); }
-  .d2-add:hover, .d2-back:hover, .d2-ex-remove:hover { background-color: rgba(var(--d2-glass-tint), var(--d2-glass-1)); }
+  .d2-add:hover, .d2-back:hover, .d2-ex-remove:hover, .d2-cal-arrow:hover { background-color: rgba(var(--d2-glass-tint), var(--d2-glass-1)); }
   .d2-empty-action:hover { opacity: 0.88; }
+  .d2-start:hover, .d2-finish:hover, .d2-modal-primary:hover { opacity: 0.88; }
+  .d2-menu-item:hover, .d2-student:hover, .d2-chip:hover, .d2-ghost:hover, .d2-modal-secondary:hover { background-color: rgba(var(--d2-glass-tint), var(--d2-glass-3)); }
 }
 
 @media (prefers-reduced-motion: reduce) {

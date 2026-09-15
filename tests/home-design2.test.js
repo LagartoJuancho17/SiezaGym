@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 
 const homeSource = read("app/(app)/page.js");
-const chromeSource = read("components/nav/LegacyChrome.js");
+const navSource = read("lib/nav/redesigned.js");
 const activitySource = read("components/design2/RecentActivity.js");
 const ringSource = read("components/design2/Ring.js");
 const calendarSource = read("components/design2/TrainingWeek.js");
@@ -34,7 +34,7 @@ describe("Home del rediseño", () => {
     // encima del rediseño.
     // Se comprueba que "/" esté en la lista y no la lista entera: el rediseño
     // va sumando rutas y el test no tiene que romperse en cada una.
-    expect(chromeSource).toMatch(/const REDESIGNED = \[[^\]]*"\/"/);
+    expect(navSource).toMatch(/const EXACT = \[[^\]]*"\/"/);
   });
 });
 

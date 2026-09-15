@@ -139,3 +139,17 @@ export const ChevronLeftIcon = (props) => (
     <path d="m14.5 6-6 6 6 6" />
   </Stroke>
 );
+
+export const MoreIcon = (props) => (
+  <Stroke {...props}>
+    <circle cx="12" cy="5" r="1.4" />
+    <circle cx="12" cy="12" r="1.4" />
+    <circle cx="12" cy="19" r="1.4" />
+  </Stroke>
+);
+
+export const PauseIcon = (props) => (
+  <Stroke {...props}>
+    <path d="M9.5 5v14M14.5 5v14" />
+  </Stroke>
+);
