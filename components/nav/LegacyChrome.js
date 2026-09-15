@@ -9,7 +9,7 @@ import { usePathname } from "next/navigation";
  * así que las que ya se rediseñaron se excluyen acá. Cuando el rediseño cubra
  * toda la app, esto se borra junto con los componentes viejos.
  */
-const REDESIGNED = ["/", "/rutinas"];
+const REDESIGNED = ["/", "/rutinas", "/rutinas/nueva"];
 
 export default function LegacyChrome({ top, bottom, children }) {
   const pathname = usePathname() || "/";

@@ -114,3 +114,21 @@ export const ChevronRightIcon = (props) => (
     <path d="m9.5 6 6 6-6 6" />
   </Stroke>
 );
+
+export const ArrowLeftIcon = (props) => (
+  <Stroke {...props}>
+    <path d="M19 12H5M11 6l-6 6 6 6" />
+  </Stroke>
+);
+
+export const CloseIcon = (props) => (
+  <Stroke {...props}>
+    <path d="m6 6 12 12M18 6 6 18" />
+  </Stroke>
+);
+
+export const CheckIcon = (props) => (
+  <Stroke {...props}>
+    <path d="m5 12.5 4.5 4.5L19 7" />
+  </Stroke>
+);
