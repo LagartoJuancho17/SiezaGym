@@ -1,7 +1,10 @@
 # design2 — sistema de diseño
 
 Rediseño de SiezaGym con estética de vidrio esmerilado. Va pantalla por
-pantalla: hoy solo la Home (`/`).
+pantalla: hoy solo la Home (`/`). La Home usa por defecto el acabado `plata`,
+con gris humo, tarjetas proporcionales y una barra inferior cápsula. En
+móviles la escala está contenida aproximadamente un 6 % para que el conjunto
+respire, sin reducir los márgenes laterales de 18 px.
 
 ## Cómo está armado
 
@@ -23,14 +26,15 @@ rediseñadas — su lista `REDESIGNED` es la que hay que ampliar al avanzar.
 
 | id      | Qué es                  |
 | ------- | ----------------------- |
-| `noche` | Negro con degradado (por defecto) |
-| `plata` | Gris frío claro         |
+| `plata` | Gris humo de la referencia (por defecto) |
+| `noche` | Negro con degradado |
 | `brasa` | El bordo de SiezaGym    |
 
-En desarrollo aparece un selector abajo a la derecha y la elección queda en
-`localStorage`. Para mostrarlo también en producción, poné `SHOW_THEME_SWITCHER`
-en `true` en `components/design2/themes.js`. Para fijar un tema y sacar el
-selector del medio, cambiá `DEFAULT_THEME`.
+El selector de temas está oculto por defecto, incluso en desarrollo. Para
+mostrarlo durante una revisión visual, iniciá el servidor con
+`NEXT_PUBLIC_D2_THEME_SWITCHER=true`; nunca aparece en producción. La elección
+queda en `localStorage` bajo `d2-theme-v2`. La clave anterior `d2-theme` se
+ignora para que quienes ya tenían `noche` vean el nuevo acabado plata.
 
 ### Agregar un tema
 
@@ -57,7 +61,9 @@ esmerilar y no hay ningún error. Hay un test que lo prohíbe.
 sombra abajo son lo que le da volumen al cristal; sin eso queda un rectángulo
 translúcido.
 
-**Texto** — `--d2-text`, `--d2-text-2`, `--d2-text-3`.
+**Texto** — `--d2-text`, `--d2-text-2`, `--d2-text-3`. La Home usa la pila
+del sistema para acercarse al texto de la referencia y mantener itálicas reales
+sin depender de una descarga de fuentes durante la ejecución.
 
 **Sólido** — `--d2-ink` y `--d2-on-ink`. Es el par del FAB y de la pastilla
 activa de la barra. **Se invierte entre temas claros y oscuros**: un botón negro
@@ -92,4 +98,16 @@ Ningún número está escrito a mano, que es lo que hizo fallar al diseño anter
 
 Los agregados por semana están en `lib/home/weekly.js` como funciones puras, con
 tests. La semana arranca el lunes y se ancla al mediodía para que el runtime del
-server, que corre en UTC, no corra el día.
+server, que corre en UTC, no corra el día. La búsqueda de actividad vive en
+`lib/home/activity-search.js`: sin texto se muestran dos sesiones, y con texto
+se consulta toda la lista recibida.
+
+## Vista de evaluación
+
+Con `D2_PREVIEW=true npm run dev`, `/design-preview` muestra los mismos
+componentes con datos controlados de `evals/fixtures/home-reference.js`. En
+ese modo, la URL raíz (`http://localhost:3000/`) es un atajo a la vista móvil de
+390 × 844 px y conserva la URL limpia del navegador.
+`/design-preview?viewport=390` encuadra el interior en 390 × 844 px; también hay
+320 × 694 y 430 × 932. La ruta está bloqueada fuera de desarrollo y no forma
+parte de la Home autenticada.

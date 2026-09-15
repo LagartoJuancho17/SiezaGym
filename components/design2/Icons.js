@@ -76,6 +76,12 @@ export const ListIcon = (props) => (
   </Stroke>
 );
 
+export const PlayIcon = (props) => (
+  <Stroke {...props}>
+    <path d="M8 4.8c-1.3-.8-2.5-.1-2.5 1.4v11.6c0 1.5 1.2 2.2 2.5 1.4l10-5.8c1.3-.8 1.3-2 0-2.8L8 4.8Z" />
+  </Stroke>
+);
+
 export const ClockIcon = (props) => (
   <Stroke {...props}>
     <circle cx="12" cy="12" r="8.5" />

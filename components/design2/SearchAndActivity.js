@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { SearchIcon, WeightIcon } from "./Icons";
+import { visibleActivities } from "@/lib/home/activity-search";
 
 /**
  * Buscador y actividad reciente.
@@ -19,57 +20,53 @@ import { SearchIcon, WeightIcon } from "./Icons";
 export default function SearchAndActivity({ activities, children }) {
   const [query, setQuery] = useState("");
 
-  const filtered = useMemo(() => {
-    const term = query.trim().toLowerCase();
-    if (!term) return activities;
-    return activities.filter((activity) => activity.name.toLowerCase().includes(term));
-  }, [activities, query]);
+  const filtered = useMemo(() => visibleActivities(activities, query), [activities, query]);
 
   return (
     <>
-      <div className="d2-glass mt-5 flex items-center gap-2.5 rounded-full px-4 py-3">
-        <SearchIcon size={19} className="shrink-0 text-[var(--d2-text-3)]" />
+      <div className="d2-glass d2-search">
+        <SearchIcon size={25} width={1.4} />
         <input
           type="search"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Buscar"
           aria-label="Buscar en tu actividad"
-          className="w-full bg-transparent text-[15px] placeholder:text-[var(--d2-text-3)] focus:outline-none"
+          className="d2-search-input"
         />
       </div>
 
       {children}
 
-      <section className="mt-7 pb-4" aria-labelledby="d2-activity">
-        <div className="flex items-baseline justify-between gap-3">
-          <h2 id="d2-activity" className="text-[17px] font-semibold tracking-[-0.01em]">
+      <section className="d2-activity" aria-labelledby="d2-activity">
+        <div className="d2-section-heading">
+          <h2 id="d2-activity">
             Actividad reciente
           </h2>
-          <Link href="/historial" className="text-[13px] text-[var(--d2-text-2)] underline-offset-4 hover:underline">
+          <Link href="/historial">
             Ver todo
           </Link>
         </div>
 
-        <ul className="mt-3 flex flex-col gap-2.5">
+        <ul className="d2-activity-list" aria-live="polite" aria-relevant="additions removals">
           {filtered.map((activity) => (
             <li key={activity.id}>
               <Link
                 href={`/historial/${activity.id}`}
-                className="d2-glass flex items-center gap-3.5 rounded-[24px] p-3 transition active:scale-[0.99]"
+                className="d2-glass d2-activity-row"
               >
-                <span className="d2-glass-strong flex h-[54px] w-[54px] shrink-0 items-center justify-center rounded-full">
-                  <WeightIcon size={22} />
+                <span className="d2-orb d2-activity-icon">
+                  <WeightIcon size={26} width={1.5} />
                 </span>
 
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[16px] font-bold">{activity.name}</span>
-                  <span className="block text-[13px] text-[var(--d2-text-2)]">{activity.when}</span>
+                <span className="d2-activity-description">
+                  <span className="d2-activity-name">{activity.name}</span>
+                  <span className="d2-activity-secondary">{activity.when}</span>
                 </span>
 
-                <span className="shrink-0 text-right">
-                  <span className="block text-[16px] font-bold">{activity.volume}</span>
-                  <span className="block text-[12px] text-[var(--d2-text-3)]">{activity.duration}</span>
+                <span className="d2-activity-metrics">
+                  <span className="d2-activity-volume">{activity.volume}</span>
+                  <span className="d2-activity-secondary">{activity.duration}</span>
                 </span>
               </Link>
             </li>
@@ -77,7 +74,7 @@ export default function SearchAndActivity({ activities, children }) {
         </ul>
 
         {filtered.length === 0 && (
-          <p className="d2-glass mt-3 rounded-[24px] px-4 py-8 text-center text-[14px] text-[var(--d2-text-2)]">
+          <p className="d2-glass d2-activity-empty" role="status">
             {activities.length === 0
               ? "Todavía no registraste entrenamientos."
               : `Ninguna actividad coincide con “${query.trim()}”.`}

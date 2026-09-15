@@ -64,7 +64,7 @@ export default function ThemeRoot({ children }) {
   );
 
   return (
-    <div className="d2 relative min-h-screen" data-d2-theme={theme}>
+    <div className="d2" data-d2-theme={theme}>
       {children}
       {SHOW_THEME_SWITCHER && <ThemeSwitcher theme={theme} onChoose={themeStore.set} />}
     </div>

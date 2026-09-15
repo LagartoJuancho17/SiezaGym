@@ -7,21 +7,21 @@
  */
 export const THEMES = [
   { id: "noche", label: "Noche", hint: "Negro con degradado" },
-  { id: "plata", label: "Plata", hint: "Calcado de la referencia" },
+  { id: "plata", label: "Plata", hint: "Gris humo y vidrio esmerilado" },
   { id: "brasa", label: "Brasa", hint: "El bordo de SiezaGym" },
 ];
 
-export const DEFAULT_THEME = "noche";
+export const DEFAULT_THEME = "plata";
 
 /** Donde se recuerda el tema elegido desde el selector. */
-export const THEME_STORAGE_KEY = "d2-theme";
+export const THEME_STORAGE_KEY = "d2-theme-v2";
 
 /**
- * El selector es una herramienta para diseñar, no una función del producto: por
- * eso solo aparece en desarrollo. Poné `true` si querés mostrarlo también en
- * producción (por ejemplo, para enseñar los temas en la defensa del TP).
+ * Herramienta de diseño optativa. El valor anterior de d2-theme no se migra:
+ * todos ven el nuevo acabado plata al recibir esta versión del diseño.
  */
-export const SHOW_THEME_SWITCHER = process.env.NODE_ENV === "development";
+export const SHOW_THEME_SWITCHER = process.env.NODE_ENV === "development"
+  && process.env.NEXT_PUBLIC_D2_THEME_SWITCHER === "true";
 
 export function isValidTheme(id) {
   return THEMES.some((theme) => theme.id === id);

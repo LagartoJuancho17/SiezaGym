@@ -1,5 +1,5 @@
 import { readdirSync, readFileSync } from "node:fs";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { THEMES, DEFAULT_THEME, isValidTheme } from "@/components/design2/themes";
 
 const css = readFileSync(new URL("../app/design2.css", import.meta.url), "utf8");
@@ -15,6 +15,27 @@ const componentDir = new URL("../components/design2/", import.meta.url);
 const componentSources = readdirSync(componentDir)
   .filter((file) => file.endsWith(".js"))
   .map((file) => [file, readFileSync(new URL(file, componentDir), "utf8")]);
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
+
+describe("Selector de temas con activación explícita", () => {
+  it.each([
+    ["development", "", false],
+    ["development", "false", false],
+    ["production", "", false],
+    ["development", "true", true],
+    ["production", "true", false],
+    ["development", "1", false],
+  ])("NODE_ENV=%s y NEXT_PUBLIC_D2_THEME_SWITCHER=%j: %j", async (nodeEnv, flag, enabled) => {
+    vi.stubEnv("NODE_ENV", nodeEnv);
+    vi.stubEnv("NEXT_PUBLIC_D2_THEME_SWITCHER", flag);
+    vi.resetModules();
+    const { SHOW_THEME_SWITCHER } = await import("@/components/design2/themes");
+    expect(SHOW_THEME_SWITCHER).toBe(enabled);
+  });
+});
 
 describe("Registro de temas", () => {
   it("cada tema del registro tiene su bloque de variables en el CSS", () => {
@@ -41,6 +62,15 @@ describe("Registro de temas", () => {
       expect(body).toContain("--d2-ink:");
       expect(body).toContain("--d2-on-ink:");
     }
+  });
+});
+
+describe("Escala móvil contenida", () => {
+  it("reduce un poco los elementos, pero conserva los márgenes laterales de 18 px", () => {
+    expect(css).toContain("--d2-u: clamp(0.77px, 0.241025641vw, 1.253333px);");
+    expect(css).toContain("padding-right: 18px;");
+    expect(css).toContain("padding-left: 18px;");
+    expect(css).toContain("margin: calc(16 * var(--d2-u)) -18px 0;");
   });
 });
 

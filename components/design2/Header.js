@@ -10,21 +10,21 @@ import { BoltIcon, BellIcon } from "./Icons";
  */
 export default function Header({ name, photoURL, initial, goalPct, hasGoalData }) {
   return (
-    <header className="flex items-center gap-3">
-      <div className="d2-glass relative h-[52px] w-[52px] shrink-0 overflow-hidden rounded-full">
+    <header className="d2-header">
+      <div className="d2-avatar">
         {photoURL ? (
-          <Image src={photoURL} alt="" fill sizes="52px" className="object-cover" />
+          <Image src={photoURL} alt="" fill sizes="(max-width: 520px) 17vw, 87px" className="object-cover" />
         ) : (
-          <span className="flex h-full w-full items-center justify-center text-[19px] font-bold">
+          <span className="d2-avatar-initial">
             {initial}
           </span>
         )}
       </div>
 
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-[21px] font-bold leading-tight">Hola, {name}</p>
-        <p className="mt-0.5 flex items-center gap-1.5 text-[13px] text-[var(--d2-text-2)]">
-          <BoltIcon size={14} />
+      <div className="d2-greeting">
+        <p className="d2-greeting-name">Hola, {name}</p>
+        <p className="d2-greeting-progress">
+          <BoltIcon size={19} width={1.6} />
           {hasGoalData ? `Meta semanal: ${goalPct}%` : "Sin entrenamientos esta semana"}
         </p>
       </div>
@@ -32,9 +32,9 @@ export default function Header({ name, photoURL, initial, goalPct, hasGoalData }
       <Link
         href="/perfil"
         aria-label="Perfil y ajustes"
-        className="d2-glass flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full transition active:scale-95"
+        className="d2-orb d2-profile-link"
       >
-        <BellIcon size={21} />
+        <BellIcon size={23} width={1.5} />
       </Link>
     </header>
   );

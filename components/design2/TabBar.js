@@ -2,13 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { HomeIcon, ListIcon, ClockIcon, TrendIcon, UserIcon } from "./Icons";
+import { HomeIcon, PlayIcon, TrendIcon, UserIcon } from "./Icons";
 
 const TABS = [
   { href: "/", label: "Inicio", Icon: HomeIcon, match: (path) => path === "/" },
-  { href: "/rutinas", label: "Rutinas", Icon: ListIcon, match: (path) => path.startsWith("/rutinas") },
-  { href: "/historial", label: "Historial", Icon: ClockIcon, match: (path) => path.startsWith("/historial") },
   { href: "/progreso", label: "Progreso", Icon: TrendIcon, match: (path) => path.startsWith("/progreso") },
+  { href: "/rutinas", label: "Rutinas", Icon: PlayIcon, match: (path) => path.startsWith("/rutinas") },
   { href: "/perfil", label: "Perfil", Icon: UserIcon, match: (path) => path.startsWith("/perfil") },
 ];
 
@@ -16,18 +15,17 @@ const TABS = [
  * Barra inferior del rediseño: la sección activa es una pastilla negra con la
  * etiqueta y un disco blanco; el resto son discos de vidrio sin texto.
  */
-export default function TabBar() {
-  const pathname = usePathname() || "/";
+export default function TabBar({ activePath } = {}) {
+  const currentPath = usePathname();
+  const pathname = activePath ?? currentPath ?? "/";
 
   return (
     <nav
       aria-label="Navegación principal"
-      className="fixed inset-x-0 bottom-5 z-50 flex justify-center px-3"
+      className="d2-tabbar"
     >
-      {/* La referencia tiene cuatro destinos y la app tiene cinco, asi que el
-          ancho no sobra. El contenedor reparte con justify-between y la
-          etiqueta activa se recorta antes que desbordar la pantalla. */}
-      <div className="flex w-full max-w-[420px] items-center justify-between gap-1.5">
+      {/* Historial se abre desde «Ver todo» en Actividad reciente. */}
+      <div className="d2-glass d2-tabbar-shell">
         {TABS.map(({ href, label, Icon, match }) => {
           const isActive = match(pathname);
 
@@ -37,21 +35,17 @@ export default function TabBar() {
               href={href}
               aria-label={label}
               aria-current={isActive ? "page" : undefined}
-              className={
-                isActive
-                  ? "flex h-[54px] min-w-0 flex-1 items-center gap-2 rounded-full bg-[var(--d2-ink)] py-1.5 pl-4 pr-1.5 text-[var(--d2-on-ink)] shadow-[var(--d2-ink-shadow)]"
-                  : "d2-glass flex h-[54px] w-[54px] shrink-0 items-center justify-center rounded-full transition active:scale-95"
-              }
+              className={isActive ? "d2-tab d2-tab-active" : "d2-orb d2-tab"}
             >
               {isActive ? (
                 <>
-                  <span className="min-w-0 flex-1 truncate text-[14px] font-semibold">{label}</span>
-                  <span className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-full bg-[var(--d2-on-ink)] text-[var(--d2-ink)]">
-                    <Icon size={20} width={1.9} />
+                  <span className="d2-tab-label">{label}</span>
+                  <span className="d2-tab-active-icon">
+                    <Icon size={16} width={1.5} />
                   </span>
                 </>
               ) : (
-                <Icon size={20} />
+                <Icon size={20} width={1.5} />
               )}
             </Link>
           );

@@ -125,7 +125,7 @@ export default async function Home() {
     <ThemeRoot>
       <Backdrop />
 
-      <div className="mx-auto w-full max-w-[520px] px-5 pb-32 pt-5">
+      <div className="d2-home">
         <Header
           name={(profile?.displayName || user.email || "").split(" ")[0] || "atleta"}
           photoURL={profile?.photoURL || null}
@@ -138,6 +138,7 @@ export default async function Home() {
           lead={featured ? "Hoy toca" : "Empezá por"}
           emphasis={featured ? `${featured.name}.` : "armar tu primera rutina."}
           href={featured ? `/rutinas/${featured.id}` : "/rutinas/nueva"}
+          actionLabel={featured ? `Abrir rutina ${featured.name}` : "Nueva rutina"}
         />
 
         {/* El buscador va arriba de las tarjetas, como en la referencia; la
