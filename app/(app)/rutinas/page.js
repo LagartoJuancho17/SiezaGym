@@ -1,7 +1,5 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/firebase/session";
-import { getUserProfile } from "@/lib/users/users";
 import { listUserRoutines } from "@/lib/routines/routines";
 import { listStudentAssignments } from "@/lib/assignments/assignments";
 import { listExercises } from "@/lib/exercises/exercises";
@@ -9,9 +7,12 @@ import { listCustomExercises } from "@/lib/customExercises/customExercises";
 import { totalSets, estimatedDurationMinutes } from "@/lib/routines/summary";
 import { groupByMonthAndWeek, itemsWithoutDate, weekOfMonth } from "@/lib/routines/schedule";
 import { toLocalDayKey } from "@/lib/sessions/streak";
-import RoutinesHero from "@/components/routines/RoutinesHero";
-import RoutineSchedule from "@/components/routines/RoutineSchedule";
-import RoutineRow from "@/components/routines/RoutineRow";
+import ThemeRoot from "@/components/design2/ThemeRoot";
+import Backdrop from "@/components/design2/Backdrop";
+import PageHeader from "@/components/design2/PageHeader";
+import Headline from "@/components/design2/Headline";
+import RoutinesBrowser from "@/components/design2/RoutinesBrowser";
+import TabBar from "@/components/design2/TabBar";
 
 export const dynamic = "force-dynamic";
 
@@ -27,38 +28,44 @@ export default async function RutinasPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
-  const [profile, routines, assignments, catalogExercises, customExercises] = await Promise.all([
-    getUserProfile(user.uid),
+  const [routines, assignments, catalogExercises, customExercises] = await Promise.all([
     listUserRoutines(user.uid),
     listStudentAssignments(user.uid),
     listExercises(),
     listCustomExercises(user.uid),
   ]);
 
-  const exerciseLookup = new Map(
-    [...catalogExercises, ...customExercises].map((e) => [e.id, e]),
-  );
+  const exerciseLookup = new Map([...catalogExercises, ...customExercises].map((e) => [e.id, e]));
+
+  // Las rutinas propias y las asignadas pueden compartir id, asi que la clave
+  // de React lleva el origen adelante.
+  const shape = (item, isAssigned) => ({
+    key: `${isAssigned ? "asg" : "own"}-${item.id}`,
+    id: item.id,
+    name: item.name,
+    isAssigned,
+    exerciseCount: item.exercises?.length || 0,
+    totalSets: totalSets(item),
+    estimatedMinutes: estimatedDurationMinutes(item, exerciseLookup),
+    assignedAt: item.assignedAt,
+    createdAt: item.createdAt,
+    lastUsedAt: item.lastUsedAt,
+  });
 
   const allItems = [
-    ...routines.map((routine) => ({
-      ...routine,
-      isAssigned: false,
-      totalSets: totalSets(routine),
-      estimatedMinutes: estimatedDurationMinutes(routine, exerciseLookup),
-    })),
-    ...assignments.map((assignment) => {
-      const withExercises = { ...assignment, exercises: assignment.exercises };
-      return {
-        id: assignment.id,
-        name: assignment.routineName,
-        exercises: assignment.exercises,
-        assignedAt: assignment.assignedAt,
-        lastUsedAt: assignment.lastUsedAt,
-        isAssigned: true,
-        totalSets: totalSets(withExercises),
-        estimatedMinutes: estimatedDurationMinutes(withExercises, exerciseLookup),
-      };
-    }),
+    ...routines.map((routine) => shape(routine, false)),
+    ...assignments.map((assignment) =>
+      shape(
+        {
+          id: assignment.id,
+          name: assignment.routineName,
+          exercises: assignment.exercises,
+          assignedAt: assignment.assignedAt,
+          lastUsedAt: assignment.lastUsedAt,
+        },
+        true,
+      ),
+    ),
   ];
 
   const months = groupByMonthAndWeek(allItems, toParts);
@@ -68,65 +75,43 @@ export default async function RutinasPage() {
   const currentMonthKey = `${todayYear}-${String(todayMonth).padStart(2, "0")}`;
   const currentWeek = weekOfMonth(todayDay);
 
-  const hero = {
-    title: "Rutinas",
-    accountInitial: (profile?.displayName || user.email || "T").charAt(0).toUpperCase(),
-    accountPhotoURL: profile?.photoURL || null,
-    accountEmail: user.email || null,
-  };
+  const assigned = allItems.filter((item) => item.isAssigned).length;
+  const subtitle = allItems.length === 0
+    ? "Todavía no armaste ninguna"
+    : `${allItems.length} en total${assigned > 0 ? ` · ${assigned} del coach` : ""}`;
 
-  if (allItems.length === 0) {
-    return (
-      <div className="flex w-full flex-col bg-[#35080A] pb-28 md:pb-12">
-        <RoutinesHero {...hero} />
-        <div className="mx-auto w-full max-w-[1360px] px-3 pt-3 sm:px-5">
-          <div className="rounded-[10px] border border-[#5A1215] bg-surface p-8 text-center">
-            <p className="text-sm font-medium text-[#6E665E]">
-              Todavía no armaste ninguna rutina.
-            </p>
-            <Link
-              href="/rutinas/nueva"
-              className="mt-4 inline-flex h-11 items-center justify-center rounded-[10px] bg-[#FF5733] px-5 text-[13px] font-bold text-white shadow-[0_4px_14px_rgba(255,87,51,0.3)] transition hover:bg-[#E84D29]"
-            >
-              Crear la primera
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // El titular repite el patron de la portada: una linea liviana y otra en
+  // bold italica. Dice la rutina que toca, que es la ultima usada.
+  const featured = [...allItems].sort(
+    (a, b) =>
+      new Date(b.lastUsedAt || b.assignedAt || b.createdAt || 0) -
+      new Date(a.lastUsedAt || a.assignedAt || a.createdAt || 0),
+  )[0];
 
   return (
-    <div className="flex w-full flex-col bg-[#35080A] pb-28 md:pb-12">
-      <RoutineSchedule
-        hero={hero}
-        months={months}
-        currentMonthKey={currentMonthKey}
-        currentWeek={currentWeek}
-      >
-        {undated.length > 0 && (
-          <div className="mt-2 flex flex-col gap-2">
-            <p className="px-1 text-[12px] font-semibold uppercase tracking-[0.12em] text-white/60">
-              Sin fecha
-            </p>
-            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-              {undated.map((item) => (
-                <RoutineRow key={`${item.isAssigned ? "asg" : "own"}-${item.id}`} routine={item} />
-              ))}
-            </div>
-          </div>
-        )}
+    <ThemeRoot>
+      <Backdrop />
 
-        <Link
-          href="/rutinas/nueva"
-          className="mt-2 flex h-11 items-center justify-center gap-2 self-start rounded-[10px] bg-[#FF5733] px-5 text-[13px] font-bold text-white shadow-[0_4px_14px_rgba(255,87,51,0.3)] transition hover:bg-[#E84D29] active:scale-[0.98]"
-        >
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true">
-            <path d="M12 5v14M5 12h14" />
-          </svg>
-          Nueva rutina
-        </Link>
-      </RoutineSchedule>
-    </div>
+      <div className="d2-page">
+        <PageHeader title="Rutinas" subtitle={subtitle} />
+
+        <Headline
+          lead={featured ? "Seguí con" : "Armá tu"}
+          emphasis={featured ? `${featured.name}.` : "primera rutina."}
+          href={featured ? `/rutinas/${featured.id}` : "/rutinas/nueva"}
+          actionLabel={featured ? `Abrir rutina ${featured.name}` : "Nueva rutina"}
+        />
+
+        <RoutinesBrowser
+          items={allItems}
+          months={months}
+          undated={undated}
+          currentMonthKey={currentMonthKey}
+          currentWeek={currentWeek}
+        />
+      </div>
+
+      <TabBar />
+    </ThemeRoot>
   );
 }

@@ -28,7 +28,9 @@ describe("Home del rediseño", () => {
   it("declara la Home como rediseñada para que no le entre el chrome viejo", () => {
     // Si "/" sale de esta lista vuelven el TopNavbar y la BottomNav bordo
     // encima del rediseño.
-    expect(chromeSource).toContain('const REDESIGNED = ["/"]');
+    // Se comprueba que "/" esté en la lista y no la lista entera: el rediseño
+    // va sumando rutas y el test no tiene que romperse en cada una.
+    expect(chromeSource).toMatch(/const REDESIGNED = \[[^\]]*"\/"/);
   });
 });
 

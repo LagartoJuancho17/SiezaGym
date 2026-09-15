@@ -102,3 +102,15 @@ export const UserIcon = (props) => (
     <path d="M5 20c.9-3.4 3.6-5.2 7-5.2s6.1 1.8 7 5.2" />
   </Stroke>
 );
+
+export const ChevronDownIcon = (props) => (
+  <Stroke {...props}>
+    <path d="m6 9.5 6 6 6-6" />
+  </Stroke>
+);
+
+export const ChevronRightIcon = (props) => (
+  <Stroke {...props}>
+    <path d="m9.5 6 6 6-6 6" />
+  </Stroke>
+);
