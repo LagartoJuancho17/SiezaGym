@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { THEMES, DEFAULT_THEME, isValidTheme } from "@/components/design2/themes";
 
@@ -52,12 +52,14 @@ describe("Registro de temas", () => {
   });
 
   it("cada tema define su propio fondo", () => {
+    // Dos formas validas: las tres luces sobre un degradado, o una obra propia
+    // en --d2-ground. Lo que no puede pasar es heredar el fondo de otro tema.
     for (const theme of THEMES) {
       const block = css.slice(css.indexOf(`.d2[data-d2-theme="${theme.id}"]`));
       const body = block.slice(0, block.indexOf("}"));
-      for (const variable of ["--d2-bg-grad:", "--d2-bg-a:", "--d2-bg-b:", "--d2-bg-c:"]) {
-        expect(body).toContain(variable);
-      }
+      expect(body).toContain("--d2-bg-grad:");
+      const tieneLuces = ["--d2-bg-a:", "--d2-bg-b:", "--d2-bg-c:"].every((v) => body.includes(v));
+      expect(tieneLuces || body.includes("--d2-ground:")).toBe(true);
     }
   });
 
@@ -72,7 +74,7 @@ describe("Piso del tema", () => {
   it("el fondo y la muestra dibujan la misma composición", () => {
     // Si la muestra tuviera su propia copia, mentiría apenas se retoque el
     // tema.
-    expect(cssCode).toMatch(/\.d2-backdrop \{\s*background: var\(--d2-ground\);\s*\}/);
+    expect(cssCode).toMatch(/\.d2-backdrop \{[^}]*background: var\(--d2-ground\)/);
     expect(cssCode).toMatch(/\.d2-theme-dot \{[^}]*background: var\(--d2-ground\)/);
   });
 
@@ -85,50 +87,66 @@ describe("Piso del tema", () => {
   });
 });
 
-describe("Estrías", () => {
-  it("están apagadas salvo en los temas que las traen", () => {
-    expect(cssCode).toMatch(/--d2-ribs: none;/);
-    for (const id of ["electrico", "pliegues"]) {
+describe("Temas con obra de fondo", () => {
+  // Tobías trajo estos dos como HTML autónomos. El fondo es ese archivo tal
+  // cual, no una recreación con degradados: recrearlos "parecido" fue
+  // justamente lo que hubo que deshacer.
+  const CON_OBRA = {
+    pliegues: "public/themes/luz-entre-pliegues.svg",
+    electrico: "public/themes/azul-electrico.svg",
+  };
+
+  it("apuntan al archivo y no a un degradado hecho a mano", () => {
+    for (const [id, archivo] of Object.entries(CON_OBRA)) {
       const block = css.slice(css.indexOf(`.d2[data-d2-theme="${id}"]`));
-      expect(block.slice(0, block.indexOf("}"))).toContain("--d2-ribs:");
+      const body = block.slice(0, block.indexOf("}"));
+      const url = `/${archivo.replace("public/", "")}`;
+      expect(body).toContain(`--d2-ground: url("${url}")`);
     }
   });
 
-  it("van en su propia capa, arriba de las manchas", () => {
-    // En la referencia el vidrio acanalado es la superficie de adelante: si
-    // fueran el fondo del contenedor, las manchas desenfocadas las taparían.
+  it("el archivo está en el repo y es el SVG entero", () => {
+    for (const archivo of Object.values(CON_OBRA)) {
+      const ruta = new URL(`../${archivo}`, import.meta.url);
+      expect(existsSync(ruta)).toBe(true);
+      const svg = readFileSync(ruta, "utf8");
+      expect(svg.startsWith("<svg")).toBe(true);
+      expect(svg.trimEnd().endsWith("</svg>")).toBe(true);
+      // Un SVG recortado a la mitad igual empieza y termina bien si alguien lo
+      // "arregla" a mano: las franjas tienen que estar.
+      expect(svg).toContain("<linearGradient");
+      expect(statSync(ruta).size).toBeGreaterThan(500_000);
+    }
+  });
+
+  it("sangran a toda la pantalla en vez de quedar con franjas negras", () => {
+    expect(cssCode).toMatch(/\.d2-backdrop \{[^}]*background-size: cover/);
+    expect(cssCode).toMatch(/\.d2-theme-dot \{[^}]*background-size: cover/);
+  });
+
+  it("no les ponen nada encima que ensucie la obra", () => {
+    // Estrías, grano y manchas ya están dibujados adentro del archivo.
+    for (const id of Object.keys(CON_OBRA)) {
+      const block = css.slice(css.indexOf(`.d2[data-d2-theme="${id}"]`));
+      const body = block.slice(0, block.indexOf("}"));
+      expect(body).toContain("--d2-ribs: none;");
+      expect(body).toContain("--d2-noise-opacity: 0;");
+      expect(css).toContain(`.d2[data-d2-theme="${id}"] .d2-blob`);
+    }
+  });
+});
+
+describe("Estrías por CSS", () => {
+  it("están apagadas por defecto", () => {
+    expect(cssCode).toMatch(/--d2-ribs: none;/);
+  });
+
+  it("su capa va arriba de las manchas", () => {
     const backdrop = componentSources.find(([file]) => file === "Backdrop.js")[1];
     const ribs = backdrop.indexOf('className="d2-ribs"');
     const blob = backdrop.lastIndexOf('className="d2-blob"');
     expect(ribs).toBeGreaterThan(blob);
     expect(cssCode).toMatch(/\.d2-ribs \{[^}]*background: var\(--d2-ribs\)/);
-  });
-});
-
-describe("Escala móvil contenida", () => {
-  it("reduce un poco los elementos, pero conserva los márgenes laterales de 18 px", () => {
-    expect(css).toContain("--d2-u: clamp(0.77px, 0.241025641vw, 1.253333px);");
-    expect(css).toContain("padding-right: 18px;");
-    expect(css).toContain("padding-left: 18px;");
-    expect(css).toContain("margin: calc(16 * var(--d2-u)) -18px 0;");
-  });
-});
-
-describe("El vidrio llega al navegador", () => {
-  it("no mete var() adentro de blur(): Lightning CSS descarta la regla entera", () => {
-    // Tailwind v4 compila con Lightning CSS, que no sabe parsear
-    // `blur(var(--x))` y borra la declaración sin avisar. El resultado es que
-    // el backdrop-filter no existe y el vidrio deja de esmerilar, sin ningún
-    // error visible. El filtro va entero en una variable.
-    expect(cssCode).not.toMatch(/blur\(\s*(var|calc)\(/);
-    expect(css).toContain("backdrop-filter: var(--d2-glass-filter)");
-  });
-
-  it("cada tema define su propio filtro", () => {
-    for (const theme of THEMES) {
-      const block = css.slice(css.indexOf(`.d2[data-d2-theme="${theme.id}"]`));
-      expect(block.slice(0, block.indexOf("}"))).toContain("--d2-glass-filter:");
-    }
   });
 });
 

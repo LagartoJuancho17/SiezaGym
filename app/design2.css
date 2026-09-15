@@ -247,9 +247,10 @@
   --d2-noise-blend: overlay;
 }
 
-/* Luz entre pliegues — la luz cayendo entre las estrias: ambar arriba a la
-   izquierda, magenta abajo, y el resto casi negro. Los colores salen de los
-   degradados del archivo que trajo Tobias, no de una estimacion a ojo. */
+/* Luz entre pliegues — el fondo es el SVG que trajo Tobias, servido tal cual
+   desde /public/themes. No se recrea con degradados: el archivo ya es la obra,
+   franja por franja. Lo unico que sale de acá es la paleta de la interfaz que
+   va encima, medida contra esa imagen. */
 .d2[data-d2-theme="pliegues"],
 [data-d2-vars="pliegues"] {
   --d2-glass-1: 0.07;
@@ -269,7 +270,7 @@
   --d2-text-2: rgba(253, 236, 226, 0.7);
   --d2-text-3: rgba(253, 236, 226, 0.46);
 
-  /* El ambar de la referencia. Como es un solido claro, el texto de encima va
+  /* El ambar de la obra. Como es un solido claro, el texto de encima va
      oscuro, igual que en noche. */
   --d2-ink: #df7b47;
   --d2-on-ink: #1c0a05;
@@ -280,34 +281,16 @@
   --d2-ring-core: rgba(255, 255, 255, 0.08);
   --d2-ring-core-border: rgba(255, 255, 255, 0.16);
 
-  /* En la referencia la luz se concentra arriba a la izquierda y la mitad
-     derecha queda casi negra, asi que bg-b oscurece en vez de aportar color:
-     el azul acerado entra por la mancha de la derecha. */
-  --d2-bg-a: rgba(223, 123, 71, 0.36);
-  --d2-bg-b: rgba(8, 5, 9, 0.62);
-  --d2-bg-c: rgba(102, 0, 60, 0.5);
-  --d2-bg-grad: linear-gradient(168deg, #1a0a06 0%, #080406 54%, #040308 100%);
+  --d2-bg-grad: #000;
+  --d2-ground: url("/themes/luz-entre-pliegues.svg");
 
-  --d2-blob-1: rgba(218, 94, 58, 0.52);
-  --d2-blob-2: rgba(58, 76, 100, 0.42);
-  --d2-blob-3: rgba(84, 0, 46, 0.62);
-  --d2-blob-filter: blur(86px);
-
-  --d2-ribs: repeating-linear-gradient(
-    90deg,
-    rgba(0, 0, 0, 0.46) 0px,
-    rgba(0, 0, 0, 0.05) 2.5px,
-    rgba(255, 236, 222, 0.07) 4.5px,
-    rgba(0, 0, 0, 0.05) 6.5px,
-    rgba(0, 0, 0, 0.46) 9px
-  );
-
-  --d2-noise-opacity: 0.05;
-  --d2-noise-blend: overlay;
+  /* Las estrias y el grano ya estan dibujados adentro del SVG. */
+  --d2-ribs: none;
+  --d2-noise-opacity: 0;
 }
 
-/* Azul electrico — el azul saturado con las ondas magenta de la referencia.
-   El solido es el rosa: un boton azul sobre fondo azul se pierde. */
+/* Azul electrico — mismo criterio: el SVG que trajo Tobias, servido tal cual.
+   El solido es el rosa de la obra: un boton azul sobre fondo azul se pierde. */
 .d2[data-d2-theme="electrico"],
 [data-d2-vars="electrico"] {
   --d2-glass-1: 0.1;
@@ -336,27 +319,11 @@
   --d2-ring-core: rgba(255, 255, 255, 0.1);
   --d2-ring-core-border: rgba(255, 255, 255, 0.2);
 
-  --d2-bg-a: rgba(10, 55, 236, 0.6);
-  --d2-bg-b: rgba(201, 56, 247, 0.4);
-  --d2-bg-c: rgba(5, 10, 32, 0.8);
-  --d2-bg-grad: linear-gradient(168deg, #1430cf 0%, #0a2f76 46%, #050a20 100%);
+  --d2-bg-grad: #000;
+  --d2-ground: url("/themes/azul-electrico.svg");
 
-  --d2-blob-1: rgba(11, 51, 235, 0.62);
-  --d2-blob-2: rgba(229, 69, 135, 0.36);
-  --d2-blob-3: rgba(5, 9, 28, 0.85);
-  --d2-blob-filter: blur(90px);
-
-  --d2-ribs: repeating-linear-gradient(
-    90deg,
-    rgba(0, 0, 0, 0.4) 0px,
-    rgba(0, 0, 0, 0.04) 2.5px,
-    rgba(222, 232, 255, 0.09) 4.5px,
-    rgba(0, 0, 0, 0.04) 6.5px,
-    rgba(0, 0, 0, 0.4) 9px
-  );
-
-  --d2-noise-opacity: 0.045;
-  --d2-noise-blend: overlay;
+  --d2-ribs: none;
+  --d2-noise-opacity: 0;
 }
 
 /* ============================================================
@@ -386,6 +353,11 @@
 
 .d2-backdrop {
   background: var(--d2-ground);
+  /* cover + centro para los temas cuyo piso es una imagen: la obra sangra a
+     toda la pantalla en vez de quedar con franjas negras al costado. En los
+     temas de degradado no cambia nada, porque un degradado ya llena la caja. */
+  background-size: cover;
+  background-position: center;
 }
 
 .d2-blob {
@@ -467,7 +439,12 @@
 }
 
 .d2-backdrop { z-index: -1; }
-.d2[data-d2-theme="plata"] .d2-blob { display: none; }
+/* Las manchas desenfocadas existen para darle algo que difuminar al vidrio
+   sobre un fondo plano. Los temas que traen una obra de fondo ya tienen forma
+   propia, y encima la ensucian. */
+.d2[data-d2-theme="plata"] .d2-blob,
+.d2[data-d2-theme="pliegues"] .d2-blob,
+.d2[data-d2-theme="electrico"] .d2-blob { display: none; }
 
 .d2-header { display: flex; align-items: center; gap: calc(14 * var(--d2-u)); }
 .d2-avatar {
@@ -856,7 +833,7 @@
    queda en cincuenta pixeles y "Electrico" se corta. */
 .d2-themes { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(10 * var(--d2-u)); padding: calc(14 * var(--d2-u)) calc(18 * var(--d2-u)) calc(18 * var(--d2-u)); }
 .d2-theme { display: flex; min-width: 0; flex-direction: column; align-items: center; gap: calc(8 * var(--d2-u)); padding: calc(10 * var(--d2-u)) calc(6 * var(--d2-u)); border-radius: calc(18 * var(--d2-u)); border: 1px solid transparent; color: var(--d2-text-2); }
-.d2-theme-dot { width: calc(46 * var(--d2-u)); height: calc(46 * var(--d2-u)); border-radius: 50%; background: var(--d2-ground); border: 1px solid var(--d2-border-strong); box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.25); }
+.d2-theme-dot { width: calc(46 * var(--d2-u)); height: calc(46 * var(--d2-u)); border-radius: 50%; background: var(--d2-ground); background-size: cover; background-position: center; border: 1px solid var(--d2-border-strong); box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.25); }
 .d2-theme-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; font-size: calc(12 * var(--d2-u)); line-height: 1.3; }
 /* El elegido se marca con el borde y el texto en primer plano, no con un
    tilde encima de la muestra: el tilde tapa justo lo que hay que mirar. */
