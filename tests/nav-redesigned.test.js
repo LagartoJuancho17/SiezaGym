@@ -6,7 +6,7 @@ const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf
 
 describe("Rutas rediseñadas", () => {
   it("reconoce las pantallas ya rediseñadas", () => {
-    for (const path of ["/", "/rutinas", "/rutinas/nueva"]) {
+    for (const path of ["/", "/rutinas", "/rutinas/nueva", "/perfil"]) {
       expect(isRedesigned(path)).toBe(true);
     }
   });
@@ -21,7 +21,7 @@ describe("Rutas rediseñadas", () => {
   });
 
   it("deja el chrome viejo en las pantallas que faltan", () => {
-    for (const path of ["/login", "/historial", "/progreso", "/perfil", "/dashboard/coach"]) {
+    for (const path of ["/login", "/historial", "/progreso", "/dashboard/coach"]) {
       expect(isRedesigned(path)).toBe(false);
     }
   });

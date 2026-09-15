@@ -1,13 +1,33 @@
 import Image from "next/image";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/firebase/session";
 import { getUserProfile } from "@/lib/users/users";
-import { listUserSessions } from "@/lib/sessions/sessions";
-import { getStudentCount, getLinkedCoach } from "@/lib/coach/students";
+import { listTrainedDates, listUserSessions } from "@/lib/sessions/sessions";
+import { computeStreak } from "@/lib/sessions/streak";
+import { getLinkedCoach, getStudentCount } from "@/lib/coach/students";
 import { logout } from "@/app/dashboard/actions";
-import PerfilForm from "@/components/perfil/PerfilForm";
+import ThemeRoot from "@/components/design2/ThemeRoot";
+import Backdrop from "@/components/design2/Backdrop";
+import ProfileForm from "@/components/design2/ProfileForm";
+import ThemePicker from "@/components/design2/ThemePicker";
+import TabBar from "@/components/design2/TabBar";
+import { ChevronRightIcon } from "@/components/design2/Icons";
 
 export const dynamic = "force-dynamic";
+
+// El límite existe para no traerse una colección entera a la memoria. Si
+// alguna vez alguien lo pasa, los totales dirían "las últimas 500" sin avisar,
+// así que la pantalla lo declara.
+const SESSION_LIMIT = 500;
+
+// Lo que guarda Firebase en sign_in_provider. Un proveedor que no esté acá se
+// muestra tal cual: es preferible a afirmar "email y contraseña" de algo que
+// quizá no lo sea.
+const PROVIDER_LABELS = {
+  "google.com": "Google",
+  password: "Email y contraseña",
+};
 
 export default async function PerfilPage() {
   const user = await getCurrentUser();
@@ -16,86 +36,144 @@ export default async function PerfilPage() {
   const profile = await getUserProfile(user.uid);
   const isCoach = !!profile?.isCoach || !!profile?.isAdmin;
 
-  const [sessions, studentCount, linkedCoach] = await Promise.all([
-    listUserSessions(user.uid, { limitCount: 500 }),
+  const [sessions, trainedDates, studentCount, linkedCoach] = await Promise.all([
+    listUserSessions(user.uid, { limitCount: SESSION_LIMIT }),
+    listTrainedDates(user.uid),
     isCoach ? getStudentCount(user.uid) : Promise.resolve(0),
-    !isCoach ? getLinkedCoach(user.uid) : Promise.resolve(null),
+    isCoach ? Promise.resolve(null) : getLinkedCoach(user.uid),
   ]);
 
+  // Los tres números salen de las sesiones guardadas, no de una estimación.
+  // La racha usa la misma función que la portada, así no pueden discrepar.
+  const streak = computeStreak(trainedDates);
+  const totalSets = sessions.reduce((total, session) => total + (session.totalSetsCompleted || 0), 0);
+
+  const name = profile?.displayName || "Sin nombre";
   const initial = (profile?.displayName || user.email || "?").charAt(0).toUpperCase();
+  const role = profile?.isAdmin ? "Admin y entrenador" : isCoach ? "Entrenador" : "Atleta";
   const memberSince = profile?.createdAt
-    ? new Intl.DateTimeFormat("es-AR", { month: "long", year: "numeric" }).format(new Date(profile.createdAt))
+    ? new Intl.DateTimeFormat("es-AR", { month: "long", year: "numeric" }).format(
+        new Date(profile.createdAt),
+      )
     : null;
 
   return (
-    <div className="mx-auto flex max-w-[1360px] flex-col gap-6 px-4 pt-20 pb-28 sm:px-8 sm:pt-24 md:pb-16">
-      <header>
-        <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#FF5733]">Perfil</p>
-        <h1 className="font-sans mt-0.5 text-3xl font-extrabold tracking-tight text-white">
-          Tu cuenta
-        </h1>
-      </header>
+    <ThemeRoot>
+      <Backdrop />
 
-      <section className="flex items-center gap-4 rounded-3xl border border-[#6B1717] bg-[#EDE8E1] p-5 shadow-sm">
-        <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#6B1717]/30 bg-[#DFD8CE] text-xl font-bold text-[#141414]">
-          {profile?.photoURL ? (
-            <Image
-              src={profile.photoURL}
-              alt=""
-              width={64}
-              height={64}
-              className="h-full w-full object-cover"
-              referrerPolicy="no-referrer"
-            />
+      <div className="d2-page">
+        <header className="d2-page-head">
+          <h1 className="d2-page-title">Perfil</h1>
+        </header>
+
+        <section className="d2-glass d2-id">
+          <span className="d2-avatar">
+            {profile?.photoURL ? (
+              <Image
+                src={profile.photoURL}
+                alt=""
+                width={65}
+                height={65}
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <span className="d2-avatar-initial">{initial}</span>
+            )}
+          </span>
+
+          <span className="d2-id-body">
+            <span className="d2-id-name">{name}</span>
+            <span className="d2-id-mail">{user.email}</span>
+            <span className="d2-id-role">
+              {role}
+              {memberSince && ` · desde ${memberSince}`}
+            </span>
+          </span>
+        </section>
+
+        <p className="d2-glass d2-stats">
+          <span className="d2-stat">
+            <span className="d2-stat-value">{sessions.length}</span>
+            <span className="d2-stat-label">
+              {sessions.length === 1 ? "entrenamiento" : "entrenamientos"}
+            </span>
+          </span>
+          <span className="d2-stat">
+            <span className="d2-stat-value">{totalSets}</span>
+            <span className="d2-stat-label">{totalSets === 1 ? "serie" : "series"}</span>
+          </span>
+          <span className="d2-stat">
+            <span className="d2-stat-value">{streak}</span>
+            <span className="d2-stat-label">
+              {streak === 1 ? "día seguido" : "días seguidos"}
+            </span>
+          </span>
+        </p>
+
+        <p className="d2-label">Tus datos</p>
+        <ProfileForm profile={profile} />
+
+        <p className="d2-label">Configuración</p>
+        <div className="d2-panel">
+          <div>
+            <div className="d2-setting">
+              <span className="d2-setting-body">
+                <span className="d2-setting-name">Tema</span>
+                <span className="d2-setting-hint">
+                  El fondo de la app. Se guarda en este dispositivo.
+                </span>
+              </span>
+            </div>
+            <ThemePicker />
+          </div>
+
+          {isCoach ? (
+            <Link href="/dashboard/coach" className="d2-setting">
+              <span className="d2-setting-body">
+                <span className="d2-setting-name">Panel del entrenador</span>
+                <span className="d2-setting-hint">
+                  {studentCount === 1 ? "1 alumno" : `${studentCount} alumnos`}
+                </span>
+              </span>
+              <ChevronRightIcon size={16} width={1.6} className="d2-setting-go" />
+            </Link>
           ) : (
-            initial
+            <div className="d2-setting">
+              <span className="d2-setting-body">
+                <span className="d2-setting-name">Entrenador</span>
+                <span className="d2-setting-hint">Quien te asigna rutinas</span>
+              </span>
+              <span className="d2-setting-value">
+                {linkedCoach?.displayName || "Sin vincular"}
+              </span>
+            </div>
           )}
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="truncate font-sans text-lg font-bold text-[#141414]">
-            {profile?.displayName || "Sin nombre"}
-          </p>
-          <p className="truncate text-xs text-[#756C65]">{user.email}</p>
-          <p className="mt-1 text-[11px] font-bold uppercase tracking-wide text-[#FF5733]">
-            {profile?.isAdmin ? "Admin & Coach" : isCoach ? "Entrenador" : "Atleta"}
-          </p>
-        </div>
-      </section>
 
-      <div className="grid grid-cols-3 gap-3">
-        <div className="rounded-2xl border border-[#6B1717] bg-[#EDE8E1] p-4 shadow-sm">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-[#756C65]">Sesiones</p>
-          <p className="font-sans mt-1 text-2xl font-extrabold text-[#141414]">{sessions.length}</p>
+          <div className="d2-setting">
+            <span className="d2-setting-body">
+              <span className="d2-setting-name">Cuenta</span>
+              <span className="d2-setting-hint">Cómo iniciás sesión</span>
+            </span>
+            <span className="d2-setting-value">
+              {PROVIDER_LABELS[profile?.provider] || profile?.provider || "—"}
+            </span>
+          </div>
         </div>
-        {isCoach ? (
-          <div className="rounded-2xl border border-[#6B1717] bg-[#EDE8E1] p-4 shadow-sm">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-[#756C65]">Alumnos</p>
-            <p className="font-sans mt-1 text-2xl font-extrabold text-[#141414]">{studentCount}</p>
-          </div>
-        ) : (
-          <div className="rounded-2xl border border-[#6B1717] bg-[#EDE8E1] p-4 shadow-sm">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-[#756C65]">Entrenador</p>
-            <p className="mt-1 truncate font-sans text-sm font-bold text-[#141414]">
-              {linkedCoach?.displayName || "Sin vincular"}
-            </p>
-          </div>
+
+        {sessions.length === SESSION_LIMIT && (
+          <p className="d2-form-note">
+            Los totales cuentan tus últimos {SESSION_LIMIT} entrenamientos.
+          </p>
         )}
-        <div className="rounded-2xl border border-[#6B1717] bg-[#EDE8E1] p-4 shadow-sm">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-[#756C65]">Miembro desde</p>
-          <p className="mt-1 font-sans text-sm font-bold text-[#141414]">{memberSince || "—"}</p>
-        </div>
+
+        <form action={logout}>
+          <button type="submit" className="d2-signout">
+            Cerrar sesión
+          </button>
+        </form>
       </div>
 
-      <PerfilForm profile={profile} />
-
-      <form action={logout}>
-        <button
-          type="submit"
-          className="flex h-11 w-full items-center justify-center gap-2 rounded-full border border-white/20 bg-white/5 text-sm font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
-        >
-          Cerrar sesión
-        </button>
-      </form>
-    </div>
+      <TabBar />
+    </ThemeRoot>
   );
 }

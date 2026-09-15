@@ -1,5 +1,5 @@
 import { readdirSync, readFileSync } from "node:fs";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { THEMES, DEFAULT_THEME, isValidTheme } from "@/components/design2/themes";
 
 const css = readFileSync(new URL("../app/design2.css", import.meta.url), "utf8");
@@ -10,32 +10,19 @@ const themeRootSource = readFileSync(
   new URL("../components/design2/ThemeRoot.js", import.meta.url),
   "utf8",
 );
+const themeStoreSource = readFileSync(
+  new URL("../components/design2/themeStore.js", import.meta.url),
+  "utf8",
+);
+const pickerSource = readFileSync(
+  new URL("../components/design2/ThemePicker.js", import.meta.url),
+  "utf8",
+);
 
 const componentDir = new URL("../components/design2/", import.meta.url);
 const componentSources = readdirSync(componentDir)
   .filter((file) => file.endsWith(".js"))
   .map((file) => [file, readFileSync(new URL(file, componentDir), "utf8")]);
-
-afterEach(() => {
-  vi.unstubAllEnvs();
-});
-
-describe("Selector de temas con activación explícita", () => {
-  it.each([
-    ["development", "", false],
-    ["development", "false", false],
-    ["production", "", false],
-    ["development", "true", true],
-    ["production", "true", false],
-    ["development", "1", false],
-  ])("NODE_ENV=%s y NEXT_PUBLIC_D2_THEME_SWITCHER=%j: %j", async (nodeEnv, flag, enabled) => {
-    vi.stubEnv("NODE_ENV", nodeEnv);
-    vi.stubEnv("NEXT_PUBLIC_D2_THEME_SWITCHER", flag);
-    vi.resetModules();
-    const { SHOW_THEME_SWITCHER } = await import("@/components/design2/themes");
-    expect(SHOW_THEME_SWITCHER).toBe(enabled);
-  });
-});
 
 describe("Registro de temas", () => {
   it("cada tema del registro tiene su bloque de variables en el CSS", () => {
@@ -111,32 +98,63 @@ describe("Los componentes no escapan al tema", () => {
   });
 });
 
-describe("ThemeRoot", () => {
-  it("sincroniza el tema como estado externo, no con estado local en un efecto", () => {
+describe("Estado del tema", () => {
+  it("se sincroniza como estado externo, no con estado local en un efecto", () => {
     // El tema vive en localStorage, fuera del árbol de React. Leerlo con
     // useState + useEffect obliga a un setState dentro del efecto (React 19 lo
     // rechaza) y hace que el primer render del cliente no coincida con el del
     // servidor.
-    expect(themeRootSource).toContain("useSyncExternalStore");
-    // Se mira el import y no el texto: "useEffect" aparece en el comentario
+    expect(themeStoreSource).toContain("useSyncExternalStore");
+    // Se miran los imports y no el texto: "useEffect" aparece en el comentario
     // que explica por qué no se usa.
-    const imports = themeRootSource.slice(0, themeRootSource.indexOf(";"));
+    const imports = themeStoreSource.slice(0, themeStoreSource.lastIndexOf("import"));
     expect(imports).not.toContain("useEffect");
   });
 
   it("le da al servidor un tema fijo para que la hidratación coincida", () => {
-    expect(themeRootSource).toContain("getServerSnapshot");
-    const snapshot = themeRootSource.slice(themeRootSource.indexOf("getServerSnapshot"));
+    expect(themeStoreSource).toContain("getServerSnapshot");
+    const snapshot = themeStoreSource.slice(themeStoreSource.indexOf("function getServerSnapshot"));
     expect(snapshot.slice(0, snapshot.indexOf("}"))).toContain("DEFAULT_THEME");
   });
 
   it("aguanta que localStorage no esté disponible", () => {
     // Ventana privada o cookies bloqueadas: acceder tira, no devuelve null.
-    expect(themeRootSource.match(/catch/g)?.length ?? 0).toBeGreaterThanOrEqual(2);
+    expect(themeStoreSource.match(/catch/g)?.length ?? 0).toBeGreaterThanOrEqual(2);
   });
 
   it("se entera si cambian el tema desde otra pestaña", () => {
-    expect(themeRootSource).toContain('addEventListener("storage"');
-    expect(themeRootSource).toContain('removeEventListener("storage"');
+    expect(themeStoreSource).toContain('addEventListener("storage"');
+    expect(themeStoreSource).toContain('removeEventListener("storage"');
+  });
+
+  it("no deja guardar un tema que no existe", () => {
+    expect(themeStoreSource).toContain("if (!isValidTheme(id)) return;");
+  });
+
+  it("el contenedor y el selector leen el mismo estado", () => {
+    // Si cada uno tuviera el suyo, elegir un tema no repintaría el fondo.
+    expect(themeRootSource).toContain('from "./themeStore"');
+    expect(pickerSource).toContain('from "./themeStore"');
+  });
+});
+
+describe("Selector de temas", () => {
+  it("cada muestra dibuja el fondo real de su tema", () => {
+    // Copiar el degradado a mano hace que la muestra mienta apenas se retoca
+    // el tema; data-d2-vars le presta las variables del bloque de CSS.
+    expect(pickerSource).toContain("data-d2-vars={item.id}");
+    expect(css).toMatch(/\.d2-theme-dot \{[^}]*background: var\(--d2-bg-grad\)/);
+    for (const theme of THEMES) {
+      expect(css).toContain(`[data-d2-vars="${theme.id}"]`);
+    }
+  });
+
+  it("se anuncia como un grupo de opciones excluyentes", () => {
+    expect(pickerSource).toContain('role="radiogroup"');
+    expect(pickerSource).toContain("aria-checked={active}");
+  });
+
+  it("ofrece todos los temas del registro y ninguno escrito a mano", () => {
+    expect(pickerSource).toContain("THEMES.map");
   });
 });
