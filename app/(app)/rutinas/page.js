@@ -44,6 +44,9 @@ export default async function RutinasPage() {
     id: item.id,
     name: item.name,
     isAssigned,
+    // Lo necesita el menú de mantener presionado, para decir si la acción
+    // pone o saca de la portada.
+    showOnHome: item.showOnHome !== false,
     exerciseCount: item.exercises?.length || 0,
     totalSets: totalSets(item),
     estimatedMinutes: estimatedDurationMinutes(item, exerciseLookup),

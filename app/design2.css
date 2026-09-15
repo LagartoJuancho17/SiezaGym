@@ -789,6 +789,31 @@
 .d2-cal-streak svg { width: calc(11 * var(--d2-u)); height: calc(11 * var(--d2-u)); }
 .d2-cal-foot { margin-top: calc(14 * var(--d2-u)); font-size: calc(11 * var(--d2-u)); color: var(--d2-text-2); }
 
+/* ---------- Mantener presionada una rutina ---------- */
+
+/* Sin esto, mantener presionado en iOS abre la lupa de seleccion de texto y la
+   vista previa del enlace por encima del menu. */
+.d2-routine { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+
+.d2-scrim { position: fixed; inset: 0; z-index: 80; display: flex; align-items: flex-end; justify-content: center; padding: 18px; background: rgba(0, 0, 0, 0.5); }
+
+/* Sube desde abajo y no aparece flotando donde esta el dedo: en un telefono el
+   pulgar tapa justo el lugar donde quedaria el menu. */
+.d2-holdsheet { width: 100%; max-width: 484px; padding: calc(18 * var(--d2-u)) calc(14 * var(--d2-u)) max(calc(14 * var(--d2-u)), env(safe-area-inset-bottom)); border-radius: calc(28 * var(--d2-u)); animation: d2-rise 200ms ease-out; }
+@keyframes d2-rise {
+  from { transform: translateY(14px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.d2-holdsheet-title { padding-inline: calc(8 * var(--d2-u)); font-size: calc(15 * var(--d2-u)); line-height: 1.3; font-weight: 500; letter-spacing: -0.015em; overflow-wrap: anywhere; }
+.d2-holdsheet-meta { margin-top: calc(6 * var(--d2-u)); padding-inline: calc(8 * var(--d2-u)); font-size: calc(12 * var(--d2-u)); line-height: 1.45; color: var(--d2-text-2); }
+.d2-holdsheet-action { display: flex; align-items: center; width: 100%; min-height: calc(52 * var(--d2-u)); margin-top: calc(6 * var(--d2-u)); padding-inline: calc(16 * var(--d2-u)); border-radius: calc(16 * var(--d2-u)); color: var(--d2-text); font-size: calc(14 * var(--d2-u)); text-align: left; }
+.d2-holdsheet-action:first-of-type { margin-top: calc(12 * var(--d2-u)); }
+.d2-holdsheet-action[disabled] { opacity: 0.45; }
+/* La unica que no se deshace. Se separa con una linea en vez de pintarse de
+   rojo: el rojo sale del tema y en Brasa todo el fondo ya es rojo. */
+.d2-holdsheet-danger { margin-top: calc(10 * var(--d2-u)); border-top: 1px solid var(--d2-border); border-radius: 0 0 calc(16 * var(--d2-u)) calc(16 * var(--d2-u)); padding-top: calc(4 * var(--d2-u)); }
+.d2-holdsheet-cancel { display: flex; align-items: center; justify-content: center; width: 100%; min-height: calc(48 * var(--d2-u)); margin-top: calc(10 * var(--d2-u)); border-radius: 999px; border: 1px solid var(--d2-border); color: var(--d2-text-2); font-size: calc(14 * var(--d2-u)); }
+
 /* ---------- Perfil y configuracion ---------- */
 
 .d2-id { display: flex; align-items: center; gap: calc(14 * var(--d2-u)); margin-top: calc(20 * var(--d2-u)); padding: calc(16 * var(--d2-u)); border-radius: calc(26 * var(--d2-u)); }
@@ -863,6 +888,7 @@
   .d2-start:hover, .d2-finish:hover, .d2-modal-primary:hover { opacity: 0.88; }
   .d2-menu-item:hover, .d2-student:hover, .d2-chip:hover, .d2-ghost:hover, .d2-modal-secondary:hover { background-color: rgba(var(--d2-glass-tint), var(--d2-glass-3)); }
   .d2-seg:hover, .d2-theme:hover, .d2-signout:hover, a.d2-setting:hover { background-color: rgba(var(--d2-glass-tint), var(--d2-glass-3)); }
+  .d2-holdsheet-action:hover, .d2-holdsheet-cancel:hover { background-color: rgba(var(--d2-glass-tint), var(--d2-glass-3)); }
   .d2-seg-on:hover, .d2-form-save:hover { background-color: var(--d2-ink); opacity: 0.88; }
 }
 

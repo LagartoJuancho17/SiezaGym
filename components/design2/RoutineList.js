@@ -3,10 +3,18 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { monthSections, shouldGroupByMonth, visibleRoutines } from "@/lib/routines/filter";
+import { hasMenu } from "@/lib/routines/menu";
 import { ChevronRightIcon, PlusIcon, SearchIcon } from "./Icons";
+import RoutineHoldSheet from "./RoutineHoldSheet";
+import useHold from "./useHold";
 
-/** Una rutina: nombre, lo que tiene adentro y el paso al detalle. */
-function Row({ routine }) {
+/**
+ * Una rutina: nombre, lo que tiene adentro y el paso al detalle.
+ *
+ * Manteniéndola presionada abre las acciones. Las asignadas no abren nada,
+ * porque no hay ninguna que el alumno pueda hacer sobre la copia del coach.
+ */
+function Row({ routine, onHold }) {
   const exercises = routine.exerciseCount;
   const meta = [
     `${exercises} ${exercises === 1 ? "ejercicio" : "ejercicios"}`,
@@ -14,8 +22,10 @@ function Row({ routine }) {
     `${routine.estimatedMinutes} min`,
   ].join(" · ");
 
+  const hold = useHold(() => onHold(routine), { enabled: hasMenu(routine) });
+
   return (
-    <Link href={`/rutinas/${routine.id}`} className="d2-routine">
+    <Link href={`/rutinas/${routine.id}`} className="d2-routine" {...hold}>
       <span className="d2-routine-body">
         <span className="d2-routine-name">
           <span>{routine.name}</span>
@@ -37,6 +47,7 @@ function Row({ routine }) {
  */
 export default function RoutineList({ items, months, undated }) {
   const [query, setQuery] = useState("");
+  const [held, setHeld] = useState(null);
 
   const sections = useMemo(() => monthSections(months, undated), [months, undated]);
   const results = useMemo(() => visibleRoutines(items, query), [items, query]);
@@ -70,7 +81,7 @@ export default function RoutineList({ items, months, undated }) {
             <h2 className="d2-routine-month">{section.label}</h2>
             <div className="d2-routine-list">
               {section.items.map((routine) => (
-                <Row key={routine.key} routine={routine} />
+                <Row key={routine.key} routine={routine} onHold={setHeld} />
               ))}
             </div>
           </section>
@@ -79,13 +90,15 @@ export default function RoutineList({ items, months, undated }) {
         <div className="d2-routine-section">
           <div className="d2-routine-list">
             {results.map((routine) => (
-              <Row key={routine.key} routine={routine} />
+              <Row key={routine.key} routine={routine} onHold={setHeld} />
             ))}
           </div>
         </div>
       ) : (
         <p className="d2-glass d2-empty">Ninguna rutina coincide.</p>
       )}
+
+      {held && <RoutineHoldSheet routine={held} onClose={() => setHeld(null)} />}
     </>
   );
 }
