@@ -6,13 +6,14 @@ import { listStudentAssignments } from "@/lib/assignments/assignments";
 import { listTrainedDates, listUserSessions } from "@/lib/sessions/sessions";
 import { computeStreak, toLocalDayKey } from "@/lib/sessions/streak";
 import { setCompletionRate, sessionsInLastDays, sessionSeconds, weeklyCalories } from "@/lib/home/metrics";
-import { weekVolumeShare, daysTrainedThisWeek } from "@/lib/home/weekly";
+import { weekVolumeShare } from "@/lib/home/weekly";
 import ThemeRoot from "@/components/design2/ThemeRoot";
 import Backdrop from "@/components/design2/Backdrop";
 import Header from "@/components/design2/Header";
 import Headline from "@/components/design2/Headline";
 import GoalRail from "@/components/design2/GoalRail";
-import SearchAndActivity from "@/components/design2/SearchAndActivity";
+import TrainingWeek from "@/components/design2/TrainingWeek";
+import RecentActivity from "@/components/design2/RecentActivity";
 import TabBar from "@/components/design2/TabBar";
 
 export const dynamic = "force-dynamic";
@@ -59,7 +60,6 @@ export default async function Home() {
   const week = weekVolumeShare(sessions, now);
   const completion = setCompletionRate(sessions);
   const streak = computeStreak(trainedDates);
-  const daysThisWeek = daysTrainedThisWeek(trainedDates, now);
 
   // La rutina del titular es la ultima usada que se muestre en la Home. Si no
   // hay ninguna no se inventa un nombre: el titular invita a crear la primera.
@@ -77,7 +77,7 @@ export default async function Home() {
   );
   const featured = visibleRoutines[0] || null;
 
-  const activities = sessions.slice(0, 12).map((session) => ({
+  const activities = sessions.slice(0, 2).map((session) => ({
     id: session.id,
     name: session.routineName || "Entrenamiento libre",
     when: formatWhen(session.finishedAt, todayKey, yesterdayKey),
@@ -93,14 +93,6 @@ export default async function Home() {
       badge: week.bestKg > 0 ? (week.isBest ? "Tu mejor semana" : `Mejor ${week.bestKg.toLocaleString("es-AR")}`) : null,
       ring: week.share,
       icon: "weight",
-    },
-    {
-      title: "Racha",
-      value: streak,
-      unit: streak === 1 ? "día" : "días",
-      badge: `${daysThisWeek} de 7 días`,
-      ring: daysThisWeek / 7,
-      icon: "flame",
     },
     {
       title: "Calorías",
@@ -141,11 +133,11 @@ export default async function Home() {
           actionLabel={featured ? `Abrir rutina ${featured.name}` : "Nueva rutina"}
         />
 
-        {/* El buscador va arriba de las tarjetas, como en la referencia; la
-            lista que filtra queda debajo. */}
-        <SearchAndActivity activities={activities}>
-          <GoalRail cards={cards} />
-        </SearchAndActivity>
+        <TrainingWeek trainedDayKeys={trainedDates} todayKey={todayKey} streak={streak} />
+
+        <GoalRail cards={cards} />
+
+        <RecentActivity activities={activities} />
       </div>
 
       <TabBar />

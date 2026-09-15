@@ -4,7 +4,8 @@ import Backdrop from "@/components/design2/Backdrop";
 import Header from "@/components/design2/Header";
 import Headline from "@/components/design2/Headline";
 import GoalRail from "@/components/design2/GoalRail";
-import SearchAndActivity from "@/components/design2/SearchAndActivity";
+import TrainingWeek from "@/components/design2/TrainingWeek";
+import RecentActivity from "@/components/design2/RecentActivity";
 import TabBar from "@/components/design2/TabBar";
 import { homeReferenceFixture } from "@/evals/fixtures/home-reference";
 
@@ -55,9 +56,9 @@ export default async function DesignPreview({ searchParams }) {
       <div className="d2-home">
         <Header {...fixture.header} />
         <Headline {...fixture.headline} />
-        <SearchAndActivity activities={fixture.activities}>
-          <GoalRail cards={fixture.cards} />
-        </SearchAndActivity>
+        <TrainingWeek {...fixture.calendar} />
+        <GoalRail cards={fixture.cards} />
+        <RecentActivity activities={fixture.activities} />
       </div>
       <TabBar activePath="/" />
     </ThemeRoot>

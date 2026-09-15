@@ -2,7 +2,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-const runtime = vi.hoisted(() => ({ pathname: "/", store: null, query: undefined }));
+const runtime = vi.hoisted(() => ({ pathname: "/", store: null }));
 
 vi.mock("next/link", async () => {
   const { createElement } = await import("react");
@@ -20,11 +20,6 @@ vi.mock("react", async (importOriginal) => {
   const react = await importOriginal();
   return {
     ...react,
-    // Permite evaluar el HTML de un estado de búsqueda concreto. El evento
-    // del navegador se verifica por separado en evals/home-reference.md.
-    useState(initial) {
-      return react.useState(typeof initial === "string" && runtime.query !== undefined ? runtime.query : initial);
-    },
     useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot) {
       runtime.store = { subscribe, getSnapshot, getServerSnapshot };
       return react.useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
@@ -36,7 +31,8 @@ import Header from "@/components/design2/Header";
 import Headline from "@/components/design2/Headline";
 import GoalRail from "@/components/design2/GoalRail";
 import Ring from "@/components/design2/Ring";
-import SearchAndActivity from "@/components/design2/SearchAndActivity";
+import TrainingWeek from "@/components/design2/TrainingWeek";
+import RecentActivity from "@/components/design2/RecentActivity";
 import TabBar from "@/components/design2/TabBar";
 import ThemeRoot from "@/components/design2/ThemeRoot";
 import DesignPreview from "@/app/design-preview/page";
@@ -49,7 +45,6 @@ const hrefs = (html) => [...html.matchAll(/\bhref="([^"]+)"/g)].map((match) => m
 afterEach(() => {
   runtime.pathname = "/";
   runtime.store = null;
-  runtime.query = undefined;
   vi.unstubAllGlobals();
   vi.unstubAllEnvs();
 });
@@ -77,51 +72,92 @@ describe("Home: HTML real de los componentes", () => {
     expect(hrefs(render(Headline, homeReferenceFixture("empty").headline))).toEqual(["/rutinas/nueva"]);
   });
 
-  it("renderiza las cuatro métricas de gimnasio y su enlace a progreso", () => {
+  it("renderiza las métricas de gimnasio y su enlace a progreso", () => {
     const html = render(GoalRail, { cards: homeReferenceFixture().cards });
-    expect(html.match(/<article\b/g)).toHaveLength(4);
-    for (const value of ["Esta semana", "7.793", "kg", "Racha", "días", "Calorías", "Series completadas"]) {
+    expect(html.match(/<article\b/g)).toHaveLength(3);
+    for (const value of ["Esta semana", "7.793", "kg", "Calorías", "Series completadas"]) {
       expect(html).toContain(value);
     }
+    // La racha ya no es una tarjeta: vive en el encabezado del calendario.
+    expect(html).not.toContain("Racha");
     expect(hrefs(html)).toEqual(["/progreso"]);
   });
 
-  it("muestra dos sesiones, preserva los destinos y ubica los objetivos entre buscador y lista", () => {
-    const fixture = homeReferenceFixture();
-    const html = render(SearchAndActivity, { activities: fixture.activities }, createElement(GoalRail, { cards: fixture.cards }));
-    expect(html).toContain('type="search"');
-    expect(html).toContain('aria-label="Buscar en tu actividad"');
-    expect(html.indexOf('type="search"')).toBeLessThan(html.indexOf("Tus objetivos"));
-    expect(html.indexOf("Tus objetivos")).toBeLessThan(html.indexOf("Actividad reciente"));
+  it("muestra las dos últimas sesiones y preserva los destinos", () => {
+    const html = render(RecentActivity, { activities: homeReferenceFixture().activities });
     expect(html.match(/<li\b/g)).toHaveLength(2);
-    expect(hrefs(html)).toEqual(["/progreso", "/historial", "/historial/fixture-fullbody", "/historial/fixture-empuje"]);
+    expect(hrefs(html)).toEqual(["/historial", "/historial/fixture-fullbody", "/historial/fixture-empuje"]);
     expect(html).toContain("Fullbody A");
     expect(html).toContain("4.165 kg");
     expect(html).not.toContain("Tracción y bíceps");
   });
 
+  it("ya no trae buscador: esa sección no manda JavaScript al cliente", () => {
+    const html = render(RecentActivity, { activities: homeReferenceFixture().activities });
+    expect(html).not.toContain('type="search"');
+    expect(html).not.toContain("Buscar");
+  });
+
   it("la cuenta vacía presenta el mensaje correcto y conserva el acceso al historial", () => {
-    const html = render(SearchAndActivity, { activities: [] });
+    const html = render(RecentActivity, { activities: [] });
     expect(html).toContain("Todavía no registraste entrenamientos.");
-    expect(html).not.toContain("Ninguna actividad coincide");
     expect(hrefs(html)).toEqual(["/historial"]);
   });
+});
 
-  it("renderiza una coincidencia posterior a las dos sesiones iniciales", () => {
-    runtime.query = " TRACCION ";
-    const html = render(SearchAndActivity, { activities: homeReferenceFixture().activities });
-    expect(html.match(/<li\b/g)).toHaveLength(1);
-    expect(html).toContain("Tracción y bíceps");
-    expect(hrefs(html)).toEqual(["/historial", "/historial/fixture-traccion"]);
+describe("Semana de la portada", () => {
+  it("muestra los siete días de la semana en curso", () => {
+    const html = render(TrainingWeek, homeReferenceFixture().calendar);
+    expect(html).toContain("Esta semana");
+    expect(html.match(/d2-week-num/g)).not.toBeNull();
+    for (const day of [14, 15, 16, 17, 18, 19, 20]) {
+      expect(html).toContain(`>${day}</span>`);
+    }
   });
 
-  it("distingue la búsqueda sin resultados del historial vacío", () => {
-    runtime.query = "  natación  ";
-    const html = render(SearchAndActivity, { activities: homeReferenceFixture().activities });
-    expect(html).toContain("Ninguna actividad coincide con “natación”.");
-    expect(html).not.toContain("Todavía no registraste entrenamientos.");
-    expect(html).not.toContain("<li");
-    expect(hrefs(html)).toEqual(["/historial"]);
+  it("marca los días entrenados de esa semana y no los de otra", () => {
+    const html = render(TrainingWeek, homeReferenceFixture().calendar);
+    // El 7 está entrenado pero es de la semana anterior.
+    expect(html.match(/d2-week-num-on/g)).toHaveLength(2);
+    expect(html).toContain("14, entrenaste");
+    expect(html).not.toContain(">7</span>");
+  });
+
+  it("un día que es hoy y además entrenado lleva las dos marcas", () => {
+    // Si solo quedara la de "hoy", el número se pintaría del color del texto
+    // sobre el relleno y desaparecería.
+    const html = render(TrainingWeek, homeReferenceFixture().calendar);
+    expect(html).toContain("d2-week-num d2-week-num-on d2-week-num-today");
+    expect(html).toContain("16, entrenaste, hoy");
+  });
+
+  it("apaga los días que todavía no pasaron", () => {
+    // No se puede haber entrenado mañana: no es lo mismo que haberlo salteado.
+    const html = render(TrainingWeek, homeReferenceFixture().calendar);
+    expect(html.match(/d2-week-day-future/g)).toHaveLength(4);
+  });
+
+  it("no deja avanzar más allá de la semana en curso", () => {
+    const html = render(TrainingWeek, homeReferenceFixture().calendar);
+    const siguiente = html.match(/<button[^>]*aria-label="Semana siguiente"[^>]*>/)[0];
+    expect(siguiente).toContain("disabled");
+    const anterior = html.match(/<button[^>]*aria-label="Semana anterior"[^>]*>/)[0];
+    expect(anterior).not.toContain("disabled");
+  });
+
+  it("resume los días entrenados y la racha, separados", () => {
+    // Sin separador un lector de pantalla lee "entrenados1 día seguido".
+    const html = render(TrainingWeek, homeReferenceFixture().calendar);
+    expect(html).toContain("2 días entrenados");
+    expect(html).toContain("1 día seguido");
+    expect(html).toContain("·");
+  });
+
+  it("una cuenta sin entrenamientos no inventa racha ni marcas", () => {
+    const html = render(TrainingWeek, homeReferenceFixture("empty").calendar);
+    expect(html).toContain("Sin entrenamientos esta semana.");
+    expect(html).not.toContain("d2-week-num-on");
+    expect(html).not.toContain("seguido");
   });
 });
 

@@ -22,10 +22,18 @@ export function homeReferenceFixture(scenario = "default") {
     headline: { lead: "Hoy toca", emphasis: "Fullbody A.", href: "/rutinas/fixture-fullbody" },
     cards: [
       { title: "Esta semana", value: "7.793", unit: "kg", badge: "Mejor 9.120", ring: 0.46, icon: "weight" },
-      { title: "Racha", value: 7, unit: "días", badge: "4 de 7 días", ring: 4 / 7, icon: "flame" },
       { title: "Calorías", value: "824", unit: "kcal", badge: "Meta 1.800", ring: 0.46, icon: "clock" },
       { title: "Series completadas", value: 92, unit: "%", badge: "46 de 50", ring: 0.92, icon: "check" },
     ],
+    // La racha vive en el encabezado del calendario y no en una tarjeta:
+    // repetirla seria decir lo mismo dos veces, una arriba de la otra.
+    calendar: {
+      // 2026-09-16 es miércoles: la semana va del lunes 14 al domingo 20, con
+      // jueves a domingo todavía en el futuro.
+      trainedDayKeys: ["2026-09-07", "2026-09-14", "2026-09-16"],
+      todayKey: "2026-09-16",
+      streak: 1,
+    },
     activities,
   };
 
@@ -33,6 +41,7 @@ export function homeReferenceFixture(scenario = "default") {
     fixture.header.hasGoalData = false;
     fixture.headline = { lead: "Empezá por", emphasis: "armar tu primera rutina.", href: "/rutinas/nueva" };
     fixture.cards = fixture.cards.map((card) => ({ ...card, value: 0, badge: "Sin datos", ring: 0 }));
+    fixture.calendar = { ...fixture.calendar, trainedDayKeys: [], streak: 0 };
     fixture.activities = [];
   }
 

@@ -1,6 +1,6 @@
 // Iconos del rediseño: trazo fino y uniforme, sin relleno, para que se apoyen
 // sobre el vidrio sin pesar.
-function Stroke({ children, size = 20, width = 1.7, className = "" }) {
+function Stroke({ children, size = 20, width = 1.7, className = "", ...rest }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -13,6 +13,7 @@ function Stroke({ children, size = 20, width = 1.7, className = "" }) {
       strokeLinejoin="round"
       className={className}
       aria-hidden="true"
+      {...rest}
     >
       {children}
     </svg>
@@ -130,5 +131,11 @@ export const CloseIcon = (props) => (
 export const CheckIcon = (props) => (
   <Stroke {...props}>
     <path d="m5 12.5 4.5 4.5L19 7" />
+  </Stroke>
+);
+
+export const ChevronLeftIcon = (props) => (
+  <Stroke {...props}>
+    <path d="m14.5 6-6 6 6 6" />
   </Stroke>
 );
