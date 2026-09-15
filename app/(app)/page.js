@@ -3,24 +3,11 @@ import { getCurrentUser } from "@/lib/firebase/session";
 import { getUserProfile } from "@/lib/users/users";
 import { listUserRoutines } from "@/lib/routines/routines";
 import { listStudentAssignments } from "@/lib/assignments/assignments";
-import { listExercises } from "@/lib/exercises/exercises";
 import { weeklyVolumeKg, listTrainedDates, listUserSessions } from "@/lib/sessions/sessions";
-import { computeStreak, toLocalDayKey } from "@/lib/sessions/streak";
+import { computeStreak } from "@/lib/sessions/streak";
 import { totalSets, estimatedDurationMinutes } from "@/lib/routines/summary";
 import { listCoachStudents } from "@/lib/coach/students";
-import {
-  volumeByMuscleGroup,
-  pushPullBalance,
-  setCompletionRate,
-  volumeByWeekday,
-  relativeIntensity,
-  volumePerSession,
-  intensityZones,
-  intensitySequence,
-  sessionSeconds,
-  sessionsInLastDays,
-  weeklyCalories,
-} from "@/lib/home/metrics";
+import { sessionsInLastDays } from "@/lib/home/metrics";
 import HomeHero from "@/components/home/HomeHero";
 import HomeStats from "@/components/home/HomeStats";
 import RoutinesCarousel from "@/components/home/RoutinesCarousel";
@@ -29,21 +16,6 @@ import LinkCoachSection from "@/components/home/LinkCoachSection";
 
 export const dynamic = "force-dynamic";
 
-// Indice de dia 0..6 (lunes a domingo) en hora Argentina. Se ancla al mediodia
-// para que el runtime del server no corra el dia, igual que hace computeStreak.
-function toWeekdayIndex(isoDate) {
-  if (!isoDate) return null;
-  const key = toLocalDayKey(new Date(isoDate));
-  const day = new Date(`${key}T12:00:00`).getDay();
-  return (day + 6) % 7;
-}
-
-function formatDuration(totalSeconds) {
-  const minutes = Math.round(totalSeconds / 60);
-  if (minutes < 60) return `${minutes} min`;
-  return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
-}
-
 export default async function Home() {
   const user = await getCurrentUser();
 
@@ -51,7 +23,7 @@ export default async function Home() {
     redirect("/login");
   }
 
-  const [profile, routines, weekVolume, assignments, trainedDates, sessions, exercises] =
+  const [profile, routines, weekVolume, assignments, trainedDates, sessions] =
     await Promise.all([
       getUserProfile(user.uid),
       listUserRoutines(user.uid),
@@ -59,39 +31,13 @@ export default async function Home() {
       listStudentAssignments(user.uid),
       listTrainedDates(user.uid),
       listUserSessions(user.uid, { limitCount: 50 }),
-      listExercises(),
     ]);
 
   const isCoach = !!profile?.isCoach || !!profile?.isAdmin;
   const students = isCoach ? await listCoachStudents(user.uid) : [];
 
   const streak = computeStreak(trainedDates);
-  const exerciseById = new Map(exercises.map((exercise) => [exercise.id, exercise]));
-
   const weekSessions = sessionsInLastDays(sessions, 7);
-
-  const muscleVolume = volumeByMuscleGroup(sessions, exerciseById);
-  const trend = volumePerSession(sessions);
-  const maxTrend = Math.max(...trend.points, 1);
-
-  const metrics = {
-    muscleVolume,
-    sessionBars: trend.points.map((kg) => kg / maxTrend),
-    balance: pushPullBalance(sessions, exerciseById),
-    completion: setCompletionRate(sessions),
-    weekdays: volumeByWeekday(sessions, toWeekdayIndex),
-    intensity: relativeIntensity(sessions),
-    trend,
-    zones: intensityZones(sessions),
-    sequence: intensitySequence(sessions),
-    calories: weeklyCalories(weekSessions, {
-      bodyWeightKg: profile?.bodyWeightKg,
-      goal: profile?.weeklyCalorieGoalKcal,
-    }),
-    durationText: formatDuration(
-      weekSessions.reduce((total, session) => total + sessionSeconds(session), 0),
-    ),
-  };
 
   const enrichedRoutines = routines.map((routine) => ({
     ...routine,
@@ -138,8 +84,13 @@ export default async function Home() {
         accountEmail={user.email || null}
       />
 
-      {/* 2. Métricas y calendario */}
-      <HomeStats {...metrics} trainedDates={trainedDates} streak={streak} />
+      {/* 2. Fechas y resumen */}
+      <HomeStats
+        trainedDates={trainedDates}
+        streak={streak}
+        completedWorkouts={weekSessions.length}
+        weeklyVolumeKg={weekVolume}
+      />
 
       {/* 3. Rutinas */}
       <div className="mx-auto flex w-full max-w-[1360px] flex-col px-4 pb-4 sm:px-6 lg:px-7">

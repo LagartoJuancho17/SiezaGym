@@ -15,12 +15,10 @@ const metricsSource = readFileSync(
 );
 
 describe("calendario de la pantalla principal", () => {
-  it("va debajo del hero y primero de las métricas, con una sola instancia", () => {
+  it("va debajo del hero y conserva una sola instancia", () => {
     expect(homePageSource).not.toContain("<WeekStrip");
     expect(metricsSource).toContain("<WeekStrip");
-    // order-first lo pone antes de "Volumen por músculo" en mobile; en lg
-    // vuelve al orden del código, abajo a la derecha.
-    expect(metricsSource).toContain("order-first col-span-6 lg:order-none lg:col-span-7");
+    expect(metricsSource).toContain('aria-label="Resumen de entrenamiento"');
   });
 
   it("el hero va antes que las métricas y las rutinas", () => {
