@@ -1,14 +1,13 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createRoutine } from "@/app/(app)/rutinas/actions";
 import { isTimeBasedRegistration, MUSCLE_GROUP_LABELS } from "@/lib/exercises/constants";
 import { muscleDistribution } from "@/lib/routines/summary";
-import { primaryMuscleLabel } from "@/lib/exercises/browse";
-import { ArrowLeftIcon, CloseIcon, PlusIcon, WeightIcon } from "./Icons";
+import { ArrowLeftIcon, PlusIcon } from "./Icons";
+import ExerciseItem from "./ExerciseItem";
 import ExercisePicker from "./ExercisePicker";
 
 /** Lo que se prescribe por defecto al agregar un ejercicio. */
@@ -16,11 +15,14 @@ function defaultItemFor(exercise) {
   return {
     exerciseId: exercise.id,
     exerciseSource: exercise.source === "custom" ? "custom" : "catalog",
-    // En los ejercicios de tiempo, targetReps son segundos y no repeticiones.
     targetSets: 3,
+    // En los ejercicios de tiempo, targetReps son segundos y no repeticiones.
     targetReps: isTimeBasedRegistration(exercise.registrationType) ? 30 : 10,
+    targetWeight: null,
     targetRIR: null,
     techniqueNote: "",
+    // null = todas las series iguales. Se llena al prescribir una por una.
+    sets: null,
   };
 }
 
@@ -49,10 +51,8 @@ export default function RoutineComposer({ exercises }) {
     setPicking(false);
   }
 
-  function patch(exerciseId, changes) {
-    setItems((current) =>
-      current.map((item) => (item.exerciseId === exerciseId ? { ...item, ...changes } : item)),
-    );
+  function replace(exerciseId, next) {
+    setItems((current) => current.map((item) => (item.exerciseId === exerciseId ? next : item)));
   }
 
   async function save() {
@@ -92,68 +92,21 @@ export default function RoutineComposer({ exercises }) {
         className="d2-name-field"
       />
 
-      <p className="d2-label">
-        {items.length === 0
-          ? "Ejercicios"
-          : `Ejercicios · ${items.length}`}
-      </p>
+      <p className="d2-label">{items.length === 0 ? "Ejercicios" : `Ejercicios · ${items.length}`}</p>
 
       {items.length > 0 && (
         <div className="d2-panel">
-          {items.map((item) => {
-            const exercise = lookup.get(item.exerciseId);
-            const timeBased = isTimeBasedRegistration(exercise?.registrationType);
-            return (
-              <div key={item.exerciseId} className="d2-ex">
-                <span className="d2-ex-thumb">
-                  {exercise?.mediaUrl ? (
-                    <Image src={exercise.mediaUrl} alt="" width={54} height={54} unoptimized />
-                  ) : (
-                    <WeightIcon size={22} width={1.5} />
-                  )}
-                </span>
-
-                <span className="d2-ex-body">
-                  <span className="d2-ex-name">{exercise?.nameEs || item.exerciseId}</span>
-                  <span className="d2-ex-muscle">{primaryMuscleLabel(exercise) || "Sin datos"}</span>
-                </span>
-
-                <span className="d2-ex-sets">
-                  <input
-                    type="number"
-                    min="1"
-                    max="20"
-                    inputMode="numeric"
-                    value={item.targetSets}
-                    onChange={(event) => patch(item.exerciseId, { targetSets: Number(event.target.value) || 1 })}
-                    aria-label={`Series de ${exercise?.nameEs || "el ejercicio"}`}
-                    className="d2-num"
-                  />
-                  ×
-                  <input
-                    type="number"
-                    min="1"
-                    max="300"
-                    inputMode="numeric"
-                    value={item.targetReps}
-                    onChange={(event) => patch(item.exerciseId, { targetReps: Number(event.target.value) || 1 })}
-                    aria-label={timeBased ? "Segundos por serie" : "Repeticiones por serie"}
-                    className="d2-num"
-                  />
-                  {timeBased ? "s" : ""}
-                </span>
-
-                <button
-                  type="button"
-                  onClick={() => setItems((current) => current.filter((row) => row.exerciseId !== item.exerciseId))}
-                  aria-label={`Quitar ${exercise?.nameEs || "el ejercicio"}`}
-                  className="d2-ex-remove"
-                >
-                  <CloseIcon size={15} width={1.8} />
-                </button>
-              </div>
-            );
-          })}
+          {items.map((item) => (
+            <ExerciseItem
+              key={item.exerciseId}
+              item={item}
+              exercise={lookup.get(item.exerciseId)}
+              onChange={(next) => replace(item.exerciseId, next)}
+              onRemove={() =>
+                setItems((current) => current.filter((row) => row.exerciseId !== item.exerciseId))
+              }
+            />
+          ))}
         </div>
       )}
 

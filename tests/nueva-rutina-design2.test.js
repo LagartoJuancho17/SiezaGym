@@ -5,6 +5,7 @@ const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf
 
 const pageSource = read("app/(app)/rutinas/nueva/page.js");
 const composerSource = read("components/design2/RoutineComposer.js");
+const itemSource = read("components/design2/ExerciseItem.js");
 const pickerSource = read("components/design2/ExercisePicker.js");
 const chromeSource = read("components/nav/LegacyChrome.js");
 const cssSource = read("app/design2.css");
@@ -82,12 +83,12 @@ describe("Selector de ejercicios", () => {
   it("deja animar los gifs en vez de optimizarlos", () => {
     // next/image sin unoptimized congela el gif en el primer cuadro.
     expect(pickerSource).toContain("unoptimized");
-    expect(composerSource).toContain("unoptimized");
+    expect(itemSource).toContain("unoptimized");
   });
 
   it("muestra un icono cuando el ejercicio no tiene animación", () => {
     expect(pickerSource).toContain("<WeightIcon");
-    expect(composerSource).toContain("<WeightIcon");
+    expect(itemSource).toContain("<WeightIcon");
   });
 });
 
@@ -107,5 +108,52 @@ describe("Estilo de las miniaturas", () => {
   it("la barra de músculo tiene alto propio", () => {
     // Un span inline ignora height y la barra no se dibuja.
     expect(cssSource).toMatch(/\.d2-muscle-bar \{ display: block/);
+  });
+});
+
+describe("Prescripción por ejercicio", () => {
+  it("el ejercicio nuevo arranca con todas las series iguales", () => {
+    // sets en null es la forma "pareja"; se llena recién al detallar.
+    expect(composerSource).toContain("sets: null");
+    expect(composerSource).toContain("targetWeight: null");
+    expect(composerSource).toContain("targetRIR: null");
+  });
+
+  it("deja prescribir series, reps, peso y RIR", () => {
+    for (const label of ['label="Series"', "label={repsLabel}", 'label="Peso (kg)"', 'label="RIR"']) {
+      expect(itemSource).toContain(label);
+    }
+  });
+
+  it("pide tiempo y no repeticiones en los ejercicios de tiempo", () => {
+    expect(itemSource).toContain('timeBased ? "Tiempo (s)" : "Reps"');
+  });
+
+  it("pide peso solo donde tiene sentido", () => {
+    // En peso corporal o en plancha, un campo de kilos sobra.
+    expect(itemSource).toContain('exercise?.registrationType === "peso_reps"');
+    expect(itemSource).toContain("showWeight &&");
+  });
+
+  it("permite prescribir cada serie por separado", () => {
+    // El caso: 4 series de press con 10, 12, 14 y 16 repeticiones.
+    expect(itemSource).toContain("Prescribir cada serie por separado");
+    expect(itemSource).toContain("buildSets(item)");
+    expect(itemSource).toContain("toUniform(item)");
+  });
+
+  it("al cambiar la cantidad de series ajusta las filas detalladas", () => {
+    expect(itemSource).toContain("resizeSets(item.sets, total)");
+  });
+
+  it("se abre de a un ejercicio", () => {
+    // Una rutina de diez ejercicios con todos los campos abiertos no se lee.
+    expect(itemSource).toContain("aria-expanded={open}");
+    expect(itemSource).toContain("aria-controls={detailId}");
+  });
+
+  it("un campo vacío se guarda como null y no como cero", () => {
+    // Un RIR de 0 significa al fallo; vacío significa que no se prescribió.
+    expect(itemSource).toContain('onChange(raw === "" ? null : Number(raw))');
   });
 });
