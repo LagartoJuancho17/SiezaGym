@@ -40,15 +40,68 @@ describe("Registro de temas", () => {
     expect(isValidTheme(null)).toBe(false);
   });
 
-  it("los temas oscuros invierten el sólido para que el botón no desaparezca", () => {
-    // Un FAB negro sobre fondo negro no se ve: noche y brasa tienen que
-    // redefinir el par ink / on-ink.
-    for (const id of ["noche", "brasa"]) {
-      const block = css.slice(css.indexOf(`.d2[data-d2-theme="${id}"]`));
+  it("cada tema define su propio sólido para que el botón no desaparezca", () => {
+    // Un FAB negro sobre fondo negro no se ve: cada tema tiene que redefinir
+    // el par ink / on-ink contra su propio fondo.
+    for (const theme of THEMES) {
+      const block = css.slice(css.indexOf(`.d2[data-d2-theme="${theme.id}"]`));
       const body = block.slice(0, block.indexOf("}"));
       expect(body).toContain("--d2-ink:");
       expect(body).toContain("--d2-on-ink:");
     }
+  });
+
+  it("cada tema define su propio fondo", () => {
+    for (const theme of THEMES) {
+      const block = css.slice(css.indexOf(`.d2[data-d2-theme="${theme.id}"]`));
+      const body = block.slice(0, block.indexOf("}"));
+      for (const variable of ["--d2-bg-grad:", "--d2-bg-a:", "--d2-bg-b:", "--d2-bg-c:"]) {
+        expect(body).toContain(variable);
+      }
+    }
+  });
+
+  it("cada tema se puede aplicar suelto, para la muestra del selector", () => {
+    for (const theme of THEMES) {
+      expect(css).toContain(`[data-d2-vars="${theme.id}"]`);
+    }
+  });
+});
+
+describe("Piso del tema", () => {
+  it("el fondo y la muestra dibujan la misma composición", () => {
+    // Si la muestra tuviera su propia copia, mentiría apenas se retoque el
+    // tema.
+    expect(cssCode).toMatch(/\.d2-backdrop \{\s*background: var\(--d2-ground\);\s*\}/);
+    expect(cssCode).toMatch(/\.d2-theme-dot \{[^}]*background: var\(--d2-ground\)/);
+  });
+
+  it("se declara también sobre [data-d2-vars] y no solo sobre .d2", () => {
+    // Un var() adentro de otra variable se resuelve en el elemento donde se
+    // declara la variable, no donde se usa. Declarado solo en .d2, las cinco
+    // muestras heredarían el piso ya resuelto del tema activo y se verían
+    // iguales.
+    expect(cssCode).toMatch(/\.d2,\s*\[data-d2-vars\]\s*\{\s*--d2-ground:/);
+  });
+});
+
+describe("Estrías", () => {
+  it("están apagadas salvo en los temas que las traen", () => {
+    expect(cssCode).toMatch(/--d2-ribs: none;/);
+    for (const id of ["electrico", "pliegues"]) {
+      const block = css.slice(css.indexOf(`.d2[data-d2-theme="${id}"]`));
+      expect(block.slice(0, block.indexOf("}"))).toContain("--d2-ribs:");
+    }
+  });
+
+  it("van en su propia capa, arriba de las manchas", () => {
+    // En la referencia el vidrio acanalado es la superficie de adelante: si
+    // fueran el fondo del contenedor, las manchas desenfocadas las taparían.
+    const backdrop = componentSources.find(([file]) => file === "Backdrop.js")[1];
+    const ribs = backdrop.indexOf('className="d2-ribs"');
+    const blob = backdrop.lastIndexOf('className="d2-blob"');
+    expect(ribs).toBeGreaterThan(blob);
+    expect(cssCode).toMatch(/\.d2-ribs \{[^}]*background: var\(--d2-ribs\)/);
   });
 });
 
@@ -143,7 +196,7 @@ describe("Selector de temas", () => {
     // Copiar el degradado a mano hace que la muestra mienta apenas se retoca
     // el tema; data-d2-vars le presta las variables del bloque de CSS.
     expect(pickerSource).toContain("data-d2-vars={item.id}");
-    expect(css).toMatch(/\.d2-theme-dot \{[^}]*background: var\(--d2-bg-grad\)/);
+    expect(css).toMatch(/\.d2-theme-dot \{[^}]*background: var\(--d2-ground\)/);
     for (const theme of THEMES) {
       expect(css).toContain(`[data-d2-vars="${theme.id}"]`);
     }

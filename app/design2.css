@@ -75,11 +75,33 @@
   --d2-blob-filter: blur(70px);
 
   /* ---- textura ---- */
+  /* Estrias verticales, como un vidrio acanalado. Apagadas salvo en los temas
+     que las traen. Van en una capa propia arriba de las manchas: en la
+     referencia el acanalado es la superficie de adelante, no el fondo. */
+  --d2-ribs: none;
   --d2-noise-opacity: 0;
   --d2-noise-blend: overlay;
 
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: var(--d2-text);
+}
+
+/* El piso completo: el degradado de base con las tres luces encima. Lo usan el
+   fondo de la pantalla y la muestra de cada tema en Configuracion, asi la
+   muestra dibuja la composicion real del tema y no una aproximacion que se
+   desactualiza al retocarlo.
+
+   Va tambien sobre [data-d2-vars] y no solo sobre .d2 porque un var() adentro
+   de otra variable se resuelve en el elemento donde se declara la variable, no
+   donde se usa. Declarado solo en .d2, cada muestra heredaria el piso ya
+   resuelto del tema activo y las cinco se verian iguales. */
+.d2,
+[data-d2-vars] {
+  --d2-ground:
+    radial-gradient(120% 80% at 18% 8%, var(--d2-bg-a) 0%, transparent 55%),
+    radial-gradient(90% 70% at 88% 22%, var(--d2-bg-b) 0%, transparent 60%),
+    radial-gradient(130% 90% at 50% 105%, var(--d2-bg-c) 0%, transparent 60%),
+    var(--d2-bg-grad);
 }
 
 /* ============================================================
@@ -172,6 +194,14 @@
   --d2-blob-filter: blur(48px);
   --d2-noise-opacity: 0.025;
   --d2-noise-blend: soft-light;
+
+  /* Plata mide su piso contra la referencia: elipses propias en vez de las
+     tres luces genericas. */
+  --d2-ground:
+    radial-gradient(ellipse 29% 36% at 52% 69%, rgba(37, 40, 48, 0.68), transparent 100%),
+    radial-gradient(ellipse 29% 38% at 4% 48%, rgba(206, 211, 214, 0.29), transparent 100%),
+    radial-gradient(ellipse 34% 34% at 105% 63%, rgba(185, 190, 197, 0.22), transparent 100%),
+    var(--d2-bg-grad);
 }
 
 /* Brasa — el bordo de SiezaGym, para que el rediseño pueda seguir siendo la
@@ -217,6 +247,118 @@
   --d2-noise-blend: overlay;
 }
 
+/* Luz entre pliegues — la luz cayendo entre las estrias: ambar arriba a la
+   izquierda, magenta abajo, y el resto casi negro. Los colores salen de los
+   degradados del archivo que trajo Tobias, no de una estimacion a ojo. */
+.d2[data-d2-theme="pliegues"],
+[data-d2-vars="pliegues"] {
+  --d2-glass-1: 0.07;
+  --d2-glass-2: 0.12;
+  --d2-glass-3: 0.18;
+  --d2-glass-filter: blur(26px) saturate(135%);
+  --d2-glass-filter-strong: blur(32px) saturate(135%);
+
+  --d2-edge-top: rgba(255, 226, 206, 0.18);
+  --d2-edge-bottom: rgba(0, 0, 0, 0.5);
+  --d2-border: rgba(255, 219, 199, 0.12);
+  --d2-border-strong: rgba(255, 186, 140, 0.3);
+  --d2-shadow: 0 10px 34px rgba(12, 4, 6, 0.55);
+  --d2-shadow-strong: 0 14px 44px rgba(12, 4, 6, 0.65);
+
+  --d2-text: #fdf4ee;
+  --d2-text-2: rgba(253, 236, 226, 0.7);
+  --d2-text-3: rgba(253, 236, 226, 0.46);
+
+  /* El ambar de la referencia. Como es un solido claro, el texto de encima va
+     oscuro, igual que en noche. */
+  --d2-ink: #df7b47;
+  --d2-on-ink: #1c0a05;
+  --d2-ink-shadow: 0 10px 30px rgba(223, 123, 71, 0.38);
+
+  --d2-ring-track: rgba(255, 255, 255, 0.14);
+  --d2-ring-fill: #df7b47;
+  --d2-ring-core: rgba(255, 255, 255, 0.08);
+  --d2-ring-core-border: rgba(255, 255, 255, 0.16);
+
+  /* En la referencia la luz se concentra arriba a la izquierda y la mitad
+     derecha queda casi negra, asi que bg-b oscurece en vez de aportar color:
+     el azul acerado entra por la mancha de la derecha. */
+  --d2-bg-a: rgba(223, 123, 71, 0.36);
+  --d2-bg-b: rgba(8, 5, 9, 0.62);
+  --d2-bg-c: rgba(102, 0, 60, 0.5);
+  --d2-bg-grad: linear-gradient(168deg, #1a0a06 0%, #080406 54%, #040308 100%);
+
+  --d2-blob-1: rgba(218, 94, 58, 0.52);
+  --d2-blob-2: rgba(58, 76, 100, 0.42);
+  --d2-blob-3: rgba(84, 0, 46, 0.62);
+  --d2-blob-filter: blur(86px);
+
+  --d2-ribs: repeating-linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.46) 0px,
+    rgba(0, 0, 0, 0.05) 2.5px,
+    rgba(255, 236, 222, 0.07) 4.5px,
+    rgba(0, 0, 0, 0.05) 6.5px,
+    rgba(0, 0, 0, 0.46) 9px
+  );
+
+  --d2-noise-opacity: 0.05;
+  --d2-noise-blend: overlay;
+}
+
+/* Azul electrico — el azul saturado con las ondas magenta de la referencia.
+   El solido es el rosa: un boton azul sobre fondo azul se pierde. */
+.d2[data-d2-theme="electrico"],
+[data-d2-vars="electrico"] {
+  --d2-glass-1: 0.1;
+  --d2-glass-2: 0.15;
+  --d2-glass-3: 0.22;
+  --d2-glass-filter: blur(28px) saturate(130%);
+  --d2-glass-filter-strong: blur(34px) saturate(130%);
+
+  --d2-edge-top: rgba(226, 232, 255, 0.22);
+  --d2-edge-bottom: rgba(0, 0, 0, 0.42);
+  --d2-border: rgba(214, 224, 255, 0.16);
+  --d2-border-strong: rgba(198, 212, 255, 0.34);
+  --d2-shadow: 0 10px 34px rgba(3, 6, 26, 0.6);
+  --d2-shadow-strong: 0 14px 44px rgba(3, 6, 26, 0.7);
+
+  --d2-text: #f2f5ff;
+  --d2-text-2: rgba(234, 239, 255, 0.74);
+  --d2-text-3: rgba(234, 239, 255, 0.5);
+
+  --d2-ink: #e54587;
+  --d2-on-ink: #1a0210;
+  --d2-ink-shadow: 0 10px 30px rgba(229, 69, 135, 0.42);
+
+  --d2-ring-track: rgba(255, 255, 255, 0.18);
+  --d2-ring-fill: #e54587;
+  --d2-ring-core: rgba(255, 255, 255, 0.1);
+  --d2-ring-core-border: rgba(255, 255, 255, 0.2);
+
+  --d2-bg-a: rgba(10, 55, 236, 0.6);
+  --d2-bg-b: rgba(201, 56, 247, 0.4);
+  --d2-bg-c: rgba(5, 10, 32, 0.8);
+  --d2-bg-grad: linear-gradient(168deg, #1430cf 0%, #0a2f76 46%, #050a20 100%);
+
+  --d2-blob-1: rgba(11, 51, 235, 0.62);
+  --d2-blob-2: rgba(229, 69, 135, 0.36);
+  --d2-blob-3: rgba(5, 9, 28, 0.85);
+  --d2-blob-filter: blur(90px);
+
+  --d2-ribs: repeating-linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.4) 0px,
+    rgba(0, 0, 0, 0.04) 2.5px,
+    rgba(222, 232, 255, 0.09) 4.5px,
+    rgba(0, 0, 0, 0.04) 6.5px,
+    rgba(0, 0, 0, 0.4) 9px
+  );
+
+  --d2-noise-opacity: 0.045;
+  --d2-noise-blend: overlay;
+}
+
 /* ============================================================
    PIEZAS
    ============================================================ */
@@ -243,11 +385,7 @@
 }
 
 .d2-backdrop {
-  background:
-    radial-gradient(120% 80% at 18% 8%, var(--d2-bg-a) 0%, transparent 55%),
-    radial-gradient(90% 70% at 88% 22%, var(--d2-bg-b) 0%, transparent 60%),
-    radial-gradient(130% 90% at 50% 105%, var(--d2-bg-c) 0%, transparent 60%),
-    var(--d2-bg-grad);
+  background: var(--d2-ground);
 }
 
 .d2-blob {
@@ -255,6 +393,13 @@
   border-radius: 9999px;
   filter: var(--d2-blob-filter);
   will-change: transform;
+}
+
+.d2-ribs {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: var(--d2-ribs);
 }
 
 /* Grano. Rompe las bandas del degradado, que en negro se ven mucho, y le saca
@@ -322,13 +467,6 @@
 }
 
 .d2-backdrop { z-index: -1; }
-.d2[data-d2-theme="plata"] .d2-backdrop {
-  background:
-    radial-gradient(ellipse 29% 36% at 52% 69%, rgba(37, 40, 48, 0.68), transparent 100%),
-    radial-gradient(ellipse 29% 38% at 4% 48%, rgba(206, 211, 214, 0.29), transparent 100%),
-    radial-gradient(ellipse 34% 34% at 105% 63%, rgba(185, 190, 197, 0.22), transparent 100%),
-    var(--d2-bg-grad);
-}
 .d2[data-d2-theme="plata"] .d2-blob { display: none; }
 
 .d2-header { display: flex; align-items: center; gap: calc(14 * var(--d2-u)); }
@@ -714,9 +852,11 @@
 
 /* Temas. Cada muestra dibuja el fondo real del tema con data-d2-vars, no una
    copia del degradado: si se retoca el tema, la muestra cambia sola. */
-.d2-themes { display: flex; gap: calc(10 * var(--d2-u)); padding: calc(14 * var(--d2-u)) calc(18 * var(--d2-u)) calc(18 * var(--d2-u)); }
-.d2-theme { display: flex; flex: 1; min-width: 0; flex-direction: column; align-items: center; gap: calc(8 * var(--d2-u)); padding: calc(10 * var(--d2-u)) calc(6 * var(--d2-u)); border-radius: calc(18 * var(--d2-u)); border: 1px solid transparent; color: var(--d2-text-2); }
-.d2-theme-dot { width: calc(46 * var(--d2-u)); height: calc(46 * var(--d2-u)); border-radius: 50%; background: var(--d2-bg-grad); border: 1px solid var(--d2-border-strong); box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.25); }
+/* Tres por fila y no todos en una: con cinco temas en linea, cada nombre
+   queda en cincuenta pixeles y "Electrico" se corta. */
+.d2-themes { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(10 * var(--d2-u)); padding: calc(14 * var(--d2-u)) calc(18 * var(--d2-u)) calc(18 * var(--d2-u)); }
+.d2-theme { display: flex; min-width: 0; flex-direction: column; align-items: center; gap: calc(8 * var(--d2-u)); padding: calc(10 * var(--d2-u)) calc(6 * var(--d2-u)); border-radius: calc(18 * var(--d2-u)); border: 1px solid transparent; color: var(--d2-text-2); }
+.d2-theme-dot { width: calc(46 * var(--d2-u)); height: calc(46 * var(--d2-u)); border-radius: 50%; background: var(--d2-ground); border: 1px solid var(--d2-border-strong); box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.25); }
 .d2-theme-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; font-size: calc(12 * var(--d2-u)); line-height: 1.3; }
 /* El elegido se marca con el borde y el texto en primer plano, no con un
    tilde encima de la muestra: el tilde tapa justo lo que hay que mirar. */

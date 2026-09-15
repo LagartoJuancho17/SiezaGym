@@ -22,6 +22,10 @@ export default function Backdrop() {
         className="d2-blob"
         style={{ width: 520, height: 520, left: "24%", bottom: "-22%", background: "var(--d2-blob-3)" }}
       />
+      {/* Las estrias van arriba de las manchas: en la referencia el vidrio
+          acanalado es la superficie de adelante, no el fondo. Los temas que no
+          las tienen dejan --d2-ribs en none y esta capa no dibuja nada. */}
+      <div className="d2-ribs" />
       <div className="d2-noise" />
     </div>
   );

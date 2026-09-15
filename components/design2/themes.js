@@ -9,6 +9,8 @@ export const THEMES = [
   { id: "noche", label: "Noche", hint: "Negro con degradado" },
   { id: "plata", label: "Plata", hint: "Gris humo y vidrio esmerilado" },
   { id: "brasa", label: "Brasa", hint: "El bordo de SiezaGym" },
+  { id: "electrico", label: "Eléctrico", hint: "Azul eléctrico y magenta" },
+  { id: "pliegues", label: "Pliegues", hint: "Luz cálida entre pliegues" },
 ];
 
 export const DEFAULT_THEME = "plata";
