@@ -6,7 +6,7 @@ const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf
 
 describe("Rutas rediseñadas", () => {
   it("reconoce las pantallas ya rediseñadas", () => {
-    for (const path of ["/", "/rutinas", "/rutinas/nueva", "/perfil"]) {
+    for (const path of ["/", "/rutinas", "/rutinas/nueva", "/perfil", "/progreso"]) {
       expect(isRedesigned(path)).toBe(true);
     }
   });
@@ -21,9 +21,16 @@ describe("Rutas rediseñadas", () => {
   });
 
   it("deja el chrome viejo en las pantallas que faltan", () => {
-    for (const path of ["/login", "/historial", "/progreso", "/dashboard/coach"]) {
+    for (const path of ["/login", "/historial", "/dashboard/coach"]) {
       expect(isRedesigned(path)).toBe(false);
     }
+  });
+
+  it("la lista de progreso está rediseñada pero el detalle de un ejercicio no", () => {
+    // La coincidencia de /progreso es exacta: /progreso/press sigue con el
+    // chrome viejo hasta que se rediseñe, en vez de quedar sin navegación.
+    expect(isRedesigned("/progreso")).toBe(true);
+    expect(isRedesigned("/progreso/press-banca")).toBe(false);
   });
 
   it("no se come una ruta más profunda que no existe todavía", () => {
