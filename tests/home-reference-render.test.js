@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -161,17 +162,37 @@ describe("Semana de la portada", () => {
   });
 });
 
-describe("Barra flotante de cuatro destinos", () => {
-  it("conserva el orden visual de la referencia y un único destino activo", () => {
+describe("Barra flotante de cinco destinos", () => {
+  it("lleva los mismos destinos y en el mismo orden que la barra anterior", () => {
+    // Mientras el rediseño no cubra toda la app conviven las dos barras: si no
+    // coinciden, tocar el mismo lugar lleva a pantallas distintas según dónde
+    // estés parado.
     const html = render(TabBar);
-    expect(hrefs(html)).toEqual(["/", "/progreso", "/rutinas", "/perfil"]);
+    expect(hrefs(html)).toEqual(["/", "/rutinas", "/historial", "/progreso", "/perfil"]);
     expect(html.match(/aria-current="page"/g)).toHaveLength(1);
-    for (const label of ["Inicio", "Progreso", "Rutinas", "Perfil"]) expect(html).toContain(`aria-label="${label}"`);
-    expect(html).not.toContain('href="/historial"');
+    for (const label of ["Inicio", "Rutinas", "Historial", "Progreso", "Perfil"]) {
+      expect(html).toContain(`aria-label="${label}"`);
+    }
+  });
+
+  it("no se queda atrás de la barra vieja", () => {
+    // El rediseño arrancó con cuatro destinos y la barra vieja tiene cinco, así
+    // que faltaba Historial. Esta comprobación es para que no vuelva a pasar
+    // al revés: agregar un destino en una y olvidarlo en la otra.
+    const legacy = readFileSync(
+      new URL("../components/nav/BottomNav.js", import.meta.url),
+      "utf8",
+    );
+    const destinosViejos = [...legacy.matchAll(/href: "([^"]+)"/g)].map((m) => m[1]);
+    expect(hrefs(render(TabBar))).toEqual(destinosViejos);
   });
 
   it.each([
-    ["/", "Inicio"], ["/progreso", "Progreso"], ["/rutinas/rutina-1", "Rutinas"], ["/perfil", "Perfil"],
+    ["/", "Inicio"],
+    ["/progreso", "Progreso"],
+    ["/rutinas/rutina-1", "Rutinas"],
+    ["/historial/sesion-1", "Historial"],
+    ["/perfil", "Perfil"],
   ])("marca %s sin activar otra sección", (pathname, label) => {
     runtime.pathname = pathname;
     const html = render(TabBar);

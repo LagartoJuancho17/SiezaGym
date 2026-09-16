@@ -867,7 +867,9 @@
 .d2-signout { display: flex; align-items: center; justify-content: center; width: 100%; min-height: calc(50 * var(--d2-u)); margin-top: calc(24 * var(--d2-u)); border-radius: 999px; border: 1px solid var(--d2-border); color: var(--d2-text-2); font-size: calc(14 * var(--d2-u)); }
 
 .d2-tabbar { position: fixed; bottom: max(calc(16 * var(--d2-u)), env(safe-area-inset-bottom)); inset-inline: 0; z-index: 50; display: flex; justify-content: center; pointer-events: none; padding-inline: calc(20 * var(--d2-u)); }
-.d2-tabbar-shell { display: flex; align-items: center; gap: calc(5 * var(--d2-u)); width: calc(296 * var(--d2-u)); max-width: 100%; height: calc(52 * var(--d2-u)); padding: calc(4 * var(--d2-u)); border-radius: 999px; pointer-events: auto; border-color: var(--d2-border-strong); box-shadow: inset 1px 1px 1px var(--d2-ring-track); }
+/* Con cinco destinos, la pastilla activa necesita mas ancho para que quepa
+   la etiqueta mas larga sin cortarse. */
+.d2-tabbar-shell { display: flex; align-items: center; gap: calc(5 * var(--d2-u)); width: calc(330 * var(--d2-u)); max-width: 100%; height: calc(52 * var(--d2-u)); padding: calc(4 * var(--d2-u)); border-radius: 999px; pointer-events: auto; border-color: var(--d2-border-strong); box-shadow: inset 1px 1px 1px var(--d2-ring-track); }
 .d2-tab { display: flex; align-items: center; justify-content: center; flex: 0 0 calc(44 * var(--d2-u)); width: calc(44 * var(--d2-u)); height: calc(44 * var(--d2-u)); border-radius: 999px; }
 .d2-tab > svg { width: calc(20 * var(--d2-u)); height: calc(20 * var(--d2-u)); }
 .d2-tab-active { flex: 1; min-width: 0; gap: calc(6 * var(--d2-u)); padding: calc(4 * var(--d2-u)); padding-left: calc(14 * var(--d2-u)); background: var(--d2-ink); color: var(--d2-on-ink); }

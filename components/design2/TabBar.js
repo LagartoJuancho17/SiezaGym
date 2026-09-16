@@ -2,12 +2,20 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { HomeIcon, PlayIcon, TrendIcon, UserIcon } from "./Icons";
+import { ClockIcon, HomeIcon, PlayIcon, TrendIcon, UserIcon } from "./Icons";
 
+/**
+ * Los cinco destinos, en el mismo orden que la barra anterior.
+ *
+ * El orden importa mientras el rediseño no cubra toda la app: las pantallas que
+ * todavía no pasaron muestran la barra vieja, y si las dos no coinciden, tocar
+ * el mismo lugar lleva a pantallas distintas según dónde estés parado.
+ */
 const TABS = [
   { href: "/", label: "Inicio", Icon: HomeIcon, match: (path) => path === "/" },
-  { href: "/progreso", label: "Progreso", Icon: TrendIcon, match: (path) => path.startsWith("/progreso") },
   { href: "/rutinas", label: "Rutinas", Icon: PlayIcon, match: (path) => path.startsWith("/rutinas") },
+  { href: "/historial", label: "Historial", Icon: ClockIcon, match: (path) => path.startsWith("/historial") },
+  { href: "/progreso", label: "Progreso", Icon: TrendIcon, match: (path) => path.startsWith("/progreso") },
   { href: "/perfil", label: "Perfil", Icon: UserIcon, match: (path) => path.startsWith("/perfil") },
 ];
 
@@ -24,7 +32,6 @@ export default function TabBar({ activePath } = {}) {
       aria-label="Navegación principal"
       className="d2-tabbar"
     >
-      {/* Historial se abre desde «Ver todo» en Actividad reciente. */}
       <div className="d2-glass d2-tabbar-shell">
         {TABS.map(({ href, label, Icon, match }) => {
           const isActive = match(pathname);
