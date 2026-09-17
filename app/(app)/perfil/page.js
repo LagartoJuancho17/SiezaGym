@@ -12,6 +12,7 @@ import Backdrop from "@/components/design2/Backdrop";
 import ProfileForm from "@/components/design2/ProfileForm";
 import ThemePicker from "@/components/design2/ThemePicker";
 import TabBar from "@/components/design2/TabBar";
+import CoachConnection from "@/components/design2/CoachConnection";
 import { ChevronRightIcon } from "@/components/design2/Icons";
 
 export const dynamic = "force-dynamic";
@@ -115,6 +116,13 @@ export default async function PerfilPage() {
 
         <p className="d2-label">Configuración</p>
         <div className="d2-panel">
+          <Link href="/dashboard" className="d2-setting">
+            <span className="d2-setting-body">
+              <span className="d2-setting-name">Dashboard</span>
+              <span className="d2-setting-hint">Tu resumen y accesos</span>
+            </span>
+            <ChevronRightIcon size={16} width={1.6} className="d2-setting-go" />
+          </Link>
           <div>
             <div className="d2-setting">
               <span className="d2-setting-body">
@@ -159,6 +167,8 @@ export default async function PerfilPage() {
             </span>
           </div>
         </div>
+
+        {!isCoach && <><p className="d2-label">Tu profesor</p><CoachConnection coach={linkedCoach} /></>}
 
         {sessions.length === SESSION_LIMIT && (
           <p className="d2-form-note">

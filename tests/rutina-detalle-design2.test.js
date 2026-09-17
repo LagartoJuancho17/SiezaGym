@@ -27,7 +27,8 @@ describe("Pantalla del detalle de una rutina", () => {
   it("manda al cliente solo lo que la pantalla dibuja", () => {
     // El catálogo son 94 ejercicios con descripciones largas en dos idiomas.
     expect(pageSource).toContain("mediaUrl: exercise?.mediaUrl || null");
-    expect(pageSource).not.toContain("descriptionEs");
+    expect(pageSource).toContain('description: exercise?.descriptionEs || ""');
+    expect(pageSource).not.toContain("descriptionEn");
   });
 
   it("no fija colores a mano: todo sale del tema", () => {

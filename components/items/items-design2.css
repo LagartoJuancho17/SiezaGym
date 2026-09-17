@@ -1,0 +1,28 @@
+.d2-items-intro { margin-top: 24px; padding: 24px; border-radius: var(--d2-radius-lg); }
+.d2-items-intro h2 { font-size: 22px; font-weight: 500; letter-spacing: -0.025em; overflow-wrap: anywhere; }
+.d2-items-intro p { margin-top: 8px; color: var(--d2-text-2); font-size: 13px; overflow-wrap: anywhere; }
+.d2-items-heading { margin-bottom: 12px; font-size: 18px; font-weight: 500; }
+.d2-items-form { border-radius: var(--d2-radius-lg); }
+.d2-items-label { display: block; }
+.d2-items-textarea { min-height: 112px; padding-block: 12px; resize: vertical; }
+.d2-items-list { margin-top: 14px; }
+.d2-items-row { padding: 18px; }
+.d2-items-row + .d2-items-row { border-top: 1px solid var(--d2-border); }
+.d2-items-row-heading { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.d2-items-row-heading h3 { flex: 1; min-width: 0; font-weight: 500; overflow-wrap: anywhere; }
+.d2-items-status { color: var(--d2-text-2); font-size: 11px; }
+.d2-items-description { margin-top: 10px; color: var(--d2-text-2); font-size: 14px; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+.d2-items-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.d2-items-button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 8px 16px; border: 1px solid var(--d2-border); border-radius: var(--d2-radius); color: var(--d2-text-2); font-size: 13px; cursor: pointer; }
+.d2-items-button:hover { border-color: var(--d2-border-strong); color: var(--d2-text); }
+.d2-items-button:focus-visible { outline: 2px solid var(--d2-text); outline-offset: 3px; }
+.d2-items-logout { display: flex; justify-content: center; margin-top: 28px; }
+.d2-items-metric { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px; padding: 14px 18px; }
+.d2-items-metric + .d2-items-metric { border-top: 1px solid var(--d2-border); }
+.d2-items-metric dt { color: var(--d2-text-2); font-size: 12px; }
+.d2-items-metric dd { font-size: 14px; font-variant-numeric: tabular-nums; }
+.d2-items-metric-note { color: var(--d2-text-2); font-size: 12px; line-height: 1.6; margin-block: 12px; }
+.d2-items-details { margin-top: 16px; }
+.d2-items-details summary { padding: 18px; cursor: pointer; font-size: 14px; }
+.d2-items-details h3 { font-size: 14px; font-weight: 500; margin-top: 14px; }
+.d2-items-metric-sequence { display: flex; flex-wrap: wrap; gap: 8px 20px; list-style: decimal inside; margin-block: 14px; font-size: 12px; color: var(--d2-text-2); }

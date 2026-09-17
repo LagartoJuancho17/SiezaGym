@@ -35,6 +35,7 @@ function shapeExercise(item, position, lookup) {
     name: exercise?.nameEs || item.exerciseId,
     muscle: primaryMuscleLabel(exercise) || "Sin datos",
     mediaUrl: exercise?.mediaUrl || null,
+    description: exercise?.descriptionEs || "",
     timeBased,
     // El peso se pide solo donde tiene sentido: en peso corporal o en plancha no.
     showWeight: exercise?.registrationType === "peso_reps",

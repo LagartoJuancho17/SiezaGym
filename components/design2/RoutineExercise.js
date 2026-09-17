@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import "./routine-technique.css";
 import { useId } from "react";
 import { CheckIcon, CheckRingIcon, ChevronDownIcon, WeightIcon } from "./Icons";
 
@@ -53,7 +54,7 @@ function Plan({ exercise }) {
  * sesión: la planilla arranca con el plan, y guardar el plan sin confirmarlo
  * sería inventar un entrenamiento.
  */
-function Log({ exercise, rows, onRowChange, onToggleDone, onAddSet, onDropSet, savingSet }) {
+function Log({ exercise, rows, onRowChange, onToggleDone, onAddSet, onDropSet, savingSet, allowFailed }) {
   const repsLabel = exercise.timeBased ? "Tiempo (s)" : "Reps";
 
   return (
@@ -106,6 +107,17 @@ function Log({ exercise, rows, onRowChange, onToggleDone, onAddSet, onDropSet, s
                 />
               )}
 
+              {allowFailed && (
+                <button
+                  type="button"
+                  className="d2-log-failed"
+                  aria-pressed={!!row.failed}
+                  aria-label={`Serie ${index + 1} fallada de ${exercise.name}`}
+                  onClick={() => onRowChange(index, { failed: !row.failed })}
+                >
+                  {row.failed ? "Fallada" : "Fallo"}
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => onToggleDone(index)}
@@ -152,6 +164,7 @@ export default function RoutineExercise({
   onAddSet,
   onDropSet,
   savingSet = null,
+  allowFailed = true,
 }) {
   const detailId = useId();
 
@@ -201,6 +214,7 @@ export default function RoutineExercise({
               onAddSet={onAddSet}
               onDropSet={onDropSet}
               savingSet={savingSet}
+              allowFailed={allowFailed}
             />
           ) : (
             <>
@@ -214,6 +228,15 @@ export default function RoutineExercise({
               )}
             </>
           )}
+          <details className="d2-technique">
+            <summary>Ver técnica</summary>
+            {exercise.mediaUrl && (
+              <Image src={exercise.mediaUrl} alt={`Técnica de ${exercise.name}`} width={300} height={300} unoptimized className="d2-technique-image" />
+            )}
+            <p>{exercise.description || "Todavía no hay una descripción de técnica para este ejercicio."}</p>
+            {exercise.techniqueNote && <p><strong>Nota de la rutina:</strong> {exercise.techniqueNote}</p>}
+            {exercise.mediaUrl && <p className="d2-technique-credit">Animación © <a href="https://gymvisual.com/" target="_blank" rel="noopener noreferrer">Gym visual</a></p>}
+          </details>
         </div>
       )}
     </div>

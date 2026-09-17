@@ -4,6 +4,8 @@ import Image from "next/image";
 import { useMemo, useState } from "react";
 import { MUSCLE_REGIONS, filterExercises, primaryMuscleLabel } from "@/lib/exercises/browse";
 import { CheckIcon, CloseIcon, SearchIcon, WeightIcon } from "./Icons";
+import CustomExerciseForm from "@/components/routines/CustomExerciseForm";
+import { chosenExercises } from "@/lib/routines/compose";
 
 /**
  * Selector de ejercicios a pantalla completa.
@@ -11,10 +13,11 @@ import { CheckIcon, CloseIcon, SearchIcon, WeightIcon } from "./Icons";
  * Se eligen varios y se confirman de una: volver al armador por cada ejercicio
  * obliga a repetir busqueda y filtro cada vez.
  */
-export default function ExercisePicker({ exercises, alreadyAdded, onCancel, onConfirm }) {
+export default function ExercisePicker({ exercises, alreadyAdded, onCancel, onConfirm, onCreated }) {
   const [query, setQuery] = useState("");
   const [region, setRegion] = useState(null);
   const [chosen, setChosen] = useState(() => new Set());
+  const [creating, setCreating] = useState(false);
 
   const results = useMemo(
     () => filterExercises(exercises, { query, region }),
@@ -75,6 +78,16 @@ export default function ExercisePicker({ exercises, alreadyAdded, onCancel, onCo
         </div>
 
         <div className="d2-picks">
+          {onCreated && <button type="button" onClick={() => setCreating((value) => !value)} className="d2-add" aria-expanded={creating}>
+            {creating ? "Volver al catálogo" : "Crear ejercicio propio"}
+          </button>}
+          {creating && <CustomExerciseForm onCancel={() => setCreating(false)} onCreated={(exercise) => {
+            onCreated(exercise);
+            setChosen((current) => new Set([...current, exercise.id]));
+            setCreating(false);
+            setQuery("");
+            setRegion(null);
+          }} />}
           {results.length === 0 ? (
             <p className="d2-glass d2-empty">Ningún ejercicio coincide.</p>
           ) : (
@@ -127,7 +140,7 @@ export default function ExercisePicker({ exercises, alreadyAdded, onCancel, onCo
         <button
           type="button"
           disabled={chosen.size === 0}
-          onClick={() => onConfirm(results.filter((item) => chosen.has(item.id)))}
+          onClick={() => onConfirm(chosenExercises(exercises, chosen))}
           className="d2-sheet-confirm"
         >
           {chosen.size === 0

@@ -11,7 +11,7 @@ export default defineConfig({
     async transform(code, id) {
       // Next acepta JSX en .js. Vite necesita reconocerlo antes de analizar
       // imports; su propio transformador evita añadir otra dependencia.
-      if (!/\/(components\/design2\/[^/]+|app\/design-preview\/page)\.js$/.test(id)) return;
+      if (!/\/(components|app)\/.*\.js$/.test(id) || id.includes("node_modules")) return;
       return transformWithOxc(code, id, { lang: "jsx", jsx: { runtime: "automatic" } });
     },
   }],

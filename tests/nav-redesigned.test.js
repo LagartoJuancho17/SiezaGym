@@ -20,17 +20,16 @@ describe("Rutas rediseñadas", () => {
     expect(isRedesigned("/rutinas/ibOocKMG3dz2Qqpj1dkO/editar")).toBe(true);
   });
 
-  it("deja el chrome viejo en las pantallas que faltan", () => {
-    for (const path of ["/login", "/historial", "/dashboard/coach"]) {
+  it("no aplica el chrome privado a autenticación", () => {
+    for (const path of ["/login", "/register"]) {
       expect(isRedesigned(path)).toBe(false);
     }
   });
 
-  it("la lista de progreso está rediseñada pero el detalle de un ejercicio no", () => {
-    // La coincidencia de /progreso es exacta: /progreso/press sigue con el
-    // chrome viejo hasta que se rediseñe, en vez de quedar sin navegación.
-    expect(isRedesigned("/progreso")).toBe(true);
-    expect(isRedesigned("/progreso/press-banca")).toBe(false);
+  it("cubre historial, progreso y todo el dashboard sin barras duplicadas", () => {
+    for (const path of ["/historial", "/historial/sesion-1", "/progreso/press-banca", "/dashboard", "/dashboard/items", "/dashboard/items/item-1/edit", "/dashboard/coach", "/dashboard/coach/alumnos/student-1"]) {
+      expect(isRedesigned(path)).toBe(true);
+    }
   });
 
   it("no se come una ruta más profunda que no existe todavía", () => {

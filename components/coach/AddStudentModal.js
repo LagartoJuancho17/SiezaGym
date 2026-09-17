@@ -1,5 +1,6 @@
 "use client";
 
+import "./coach-design2.css";
 import { useEffect, useRef, useState } from "react";
 import {
   generateInvitationCode,
@@ -7,31 +8,23 @@ import {
 } from "@/app/dashboard/coach/actions";
 
 export default function AddStudentModal({ open, onClose }) {
+  return open ? <InvitationDialog onClose={onClose} /> : null;
+}
+
+function InvitationDialog({ onClose }) {
   const [code, setCode] = useState(null);
   const [expiresAt, setExpiresAt] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState(null);
   const [countdown, setCountdown] = useState("");
   const overlayRef = useRef(null);
-  const fetchedForOpen = useRef(false);
 
   useEffect(() => {
-    if (!open) {
-      fetchedForOpen.current = false;
-      return;
-    }
+    if (overlayRef.current && !overlayRef.current.open) overlayRef.current.showModal();
+  }, []);
 
-    if (fetchedForOpen.current) return;
-    fetchedForOpen.current = true;
-
-    setCode(null);
-    setExpiresAt(null);
-    setCopied(false);
-    setError(null);
-    setCountdown("");
-    setLoading(true);
-
+  useEffect(() => {
     let cancelled = false;
 
     async function fetchCode() {
@@ -54,7 +47,7 @@ export default function AddStudentModal({ open, onClose }) {
     return () => {
       cancelled = true;
     };
-  }, [open]);
+  }, []);
 
   useEffect(() => {
     if (!expiresAt) return;
@@ -112,23 +105,24 @@ export default function AddStudentModal({ open, onClose }) {
     }
   }
 
-  if (!open) return null;
-
   return (
-    <div
+    <dialog
       ref={overlayRef}
       onClick={handleOverlayClick}
-      className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+      onCancel={onClose}
+      aria-labelledby="coach-invitation-title"
+      className="d2-coach-dialog"
     >
-      <div className="mx-4 w-full max-w-sm rounded-[24px] border border-hair bg-deep p-6 shadow-2xl">
+      <div className="d2-glass-strong d2-modal-card">
         <div className="flex items-center justify-between">
-          <h3 className="font-display text-lg uppercase tracking-wide text-text">
+          <h3 id="coach-invitation-title" className="d2-modal-title">
             Agregar alumno
           </h3>
           <button
             type="button"
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-faint transition hover:bg-glass2 hover:text-text"
+            aria-label="Cerrar invitación"
+            className="d2-coach-icon-button"
           >
             <svg
               viewBox="0 0 24 24"
@@ -145,39 +139,39 @@ export default function AddStudentModal({ open, onClose }) {
           </button>
         </div>
 
-        <p className="mt-3 text-sm text-muted">
+        <p className="d2-modal-text">
           Compartí este código con tu alumno para vincularlo a tu cuenta.
         </p>
 
         <div className="mt-6 flex flex-col items-center gap-3">
           {loading && (
             <div className="flex h-20 items-center justify-center">
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-hair border-t-teal2" />
+              <span role="status">Generando código…</span>
             </div>
           )}
 
           {error && (
-            <div className="rounded-[14px] border border-red-500/30 bg-red-500/10 p-4 text-center text-sm text-red-300">
+            <div role="alert" className="d2-glass d2-coach-error">
               {error}
             </div>
           )}
 
           {code && !loading && (
             <>
-              <div className="w-full rounded-[16px] border border-hair bg-glass p-5 text-center">
-                <p className="font-mono-digit text-3xl tracking-[0.12em] text-teal2">
+              <div className="d2-glass d2-coach-code">
+                <p className="d2-coach-code-value">
                   {code}
                 </p>
               </div>
 
               {countdown && (
-                <p className="text-xs text-faint">{countdown}</p>
+                <p className="d2-coach-muted">{countdown}</p>
               )}
 
               <button
                 type="button"
                 onClick={handleCopy}
-                className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-white text-sm font-semibold text-onlight transition hover:opacity-90"
+                className="d2-modal-primary w-full gap-2"
               >
                 {copied ? (
                   <>
@@ -218,7 +212,7 @@ export default function AddStudentModal({ open, onClose }) {
                 type="button"
                 onClick={handleRegenerate}
                 disabled={loading}
-                className="flex h-10 w-full items-center justify-center gap-2 rounded-full border border-hair text-xs font-medium text-faint transition hover:bg-glass2 hover:text-text"
+                className="d2-modal-secondary w-full gap-2"
               >
                 <svg
                   viewBox="0 0 24 24"
@@ -239,14 +233,15 @@ export default function AddStudentModal({ open, onClose }) {
           )}
         </div>
 
+        {error && <button type="button" onClick={handleRegenerate} disabled={loading} className="d2-modal-primary w-full mt-4">Reintentar</button>}
         <button
           type="button"
           onClick={onClose}
-          className="mt-4 flex h-11 w-full items-center justify-center rounded-full border border-hair text-sm font-medium text-muted transition hover:bg-glass2 hover:text-text"
+          className="d2-modal-secondary w-full mt-4"
         >
           Cerrar
         </button>
       </div>
-    </div>
+    </dialog>
   );
 }

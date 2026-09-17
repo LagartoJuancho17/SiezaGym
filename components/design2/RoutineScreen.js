@@ -400,6 +400,7 @@ export default function RoutineScreen({ routine }) {
                   setOpenId((current) => (current === exercise.position ? null : exercise.position))
                 }
                 running={running}
+                allowFailed={!routine.isAssigned}
                 rows={sheet[exercise.position] || []}
                 done={running && isExerciseDone(sheet, exercise.position)}
                 savingSet={

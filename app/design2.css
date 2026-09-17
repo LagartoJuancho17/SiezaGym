@@ -939,3 +939,35 @@
     transition-duration: 0.001ms !important;
   }
 }
+
+/* Shared frames: one navigation and one visual language across the app. */
+.d2-workspace { min-height: 100dvh; }
+.d2-page-heading { min-width: 0; flex: 1; }
+.d2-page-heading .d2-page-title { overflow-wrap: anywhere; }
+.d2-page-eyebrow { margin-bottom: 6px; color: var(--d2-text-2); font-size: 12px; }
+.d2-stack { display: grid; gap: 16px; }
+.d2-workspace > .d2-stack { margin-top: 24px; }
+.d2-inline-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.d2-textarea { min-height: 96px; resize: vertical; padding-block: 12px; }
+.d2-form select { color-scheme: light dark; }
+.d2-form option { color: CanvasText; background: Canvas; }
+.d2-form input[type="range"], .d2-form input[type="checkbox"] { accent-color: var(--d2-ink); }
+.d2-form [disabled] { opacity: .5; cursor: wait; }
+.d2-form-field { display: grid; gap: 8px; color: var(--d2-text-2); font-size: 13px; }
+/* Los dos controles nativos que quedaban con el aspecto del navegador. El
+   acento sale del tema, asi el deslizador y la casilla se ven como el resto
+   de la app en los cinco fondos. */
+.d2-checkbox, .d2-range { accent-color: var(--d2-ink); }
+.d2-checkbox { width: calc(18 * var(--d2-u)); height: calc(18 * var(--d2-u)); flex: none; }
+.d2-range { height: calc(22 * var(--d2-u)); background: transparent; }
+.d2-range-row { display: grid; grid-template-columns: minmax(80px, 1fr) minmax(70px, 1fr) 36px; gap: 10px; align-items: center; font-size: 12px; }
+.d2-range-row input { width: 100%; min-width: 0; }
+.d2-custom-form { margin-block: 16px; }
+.d2-custom-form .d2-modal-secondary { min-height: 46px; }
+.d2-reorder { display: flex; justify-content: flex-end; gap: 8px; padding: 0 14px 10px; }
+.d2-reorder button { min-width: 44px; min-height: 44px; border: 1px solid var(--d2-border); border-radius: 50%; }
+.d2-reorder button[disabled] { opacity: .3; }
+@media (min-width: 900px) { .d2-page.d2-page-wide { max-width: 960px; } }
+.d2-workspace > .d2-compose-head { margin-bottom: 24px; }
+.d2-coach-stack, .d2-student-body { min-width: 0; }
+.d2-form-field span { font-size: inherit; }

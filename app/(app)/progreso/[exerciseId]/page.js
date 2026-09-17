@@ -1,4 +1,6 @@
 import Link from "next/link";
+import PageShell from "@/components/design2/PageShell";
+import { getCustomExercise } from "@/lib/customExercises/customExercises";
 import { notFound, redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/firebase/session";
 import { getExerciseById } from "@/lib/exercises/exercises";
@@ -23,7 +25,7 @@ export default async function ExerciseProgressPage({ params }) {
 
   const { exerciseId } = await params;
   const [exercise, sessions] = await Promise.all([
-    getExerciseById(exerciseId),
+    getExerciseById(exerciseId).then((exercise) => exercise || getCustomExercise(user.uid, exerciseId)),
     listSessionsForExercise(user.uid, exerciseId),
   ]);
 
@@ -65,73 +67,42 @@ export default async function ExerciseProgressPage({ params }) {
   }, 0);
 
   return (
-    <div className="flex flex-col gap-5 px-[18px] pb-[100px] lg:px-0">
-      <header className="flex items-center gap-3">
-        <Link
-          href="/progreso"
-          aria-label="Volver"
-          className="flex h-8 w-8 items-center justify-center rounded-full text-faint transition hover:bg-glass hover:text-text"
-        >
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M19 12H5" />
-            <path d="M12 19l-7-7 7-7" />
-          </svg>
-        </Link>
-        <div className="min-w-0">
-          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-faint">Progreso</p>
-          <h1 className="font-display truncate text-[26px] uppercase leading-none text-white">
-            {exercise.nameEs}
-          </h1>
-        </div>
-      </header>
-
-      <div className="grid grid-cols-3 gap-2.5">
-        <div className="rounded-[18px] border border-orange-500/25 bg-orange-500/[0.06] p-[15px]">
-          <p className="text-[11px] font-medium uppercase tracking-wider text-faint">Peso máximo</p>
-          <p className="font-mono-digit mt-1 text-2xl text-orange-400">
-            {maxWeightKg > 0 ? `${maxWeightKg}kg` : "—"}
-          </p>
-        </div>
-        <div className="rounded-[18px] border border-hair bg-glass p-[15px]">
-          <p className="text-[11px] font-medium uppercase tracking-wider text-faint">1RM estimado</p>
-          <p className="font-mono-digit mt-1 text-2xl text-teal2">
-            {currentBest > 0 ? `${currentBest.toFixed(1)}kg` : "—"}
-          </p>
-        </div>
-        <div className="rounded-[18px] border border-hair bg-glass p-[15px]">
-          <p className="text-[11px] font-medium uppercase tracking-wider text-faint">Sesiones</p>
-          <p className="font-mono-digit mt-1 text-2xl text-white">{rows.length}</p>
-        </div>
+    <PageShell title={exercise.nameEs} eyebrow="Progreso por ejercicio" backHref="/progreso" backLabel="Progreso">
+      <div className="d2-glass d2-stats">
+        <div className="d2-stat"><span className="d2-stat-value">{maxWeightKg > 0 ? `${maxWeightKg} kg` : "—"}</span><span className="d2-stat-label">peso máximo</span></div>
+        <div className="d2-stat"><span className="d2-stat-value">{currentBest > 0 ? `${currentBest.toFixed(1)} kg` : "—"}</span><span className="d2-stat-label">1RM estimado</span></div>
+        <div className="d2-stat"><span className="d2-stat-value">{rows.length}</span><span className="d2-stat-label">sesiones</span></div>
       </div>
-
+      <p className="d2-label">Evolución del 1RM estimado</p>
       <ExerciseProgressChart points={chartPoints} />
 
       {rowsWithPR.length > 0 && (
         <section>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-teal2">
+          <p className="d2-label">
             Historial en este ejercicio
           </p>
-          <div className="flex flex-col gap-2">
+          <div className="d2-routine-list">
             {rowsWithPR.map((row) => (
               <Link
                 key={row.sessionId}
                 href={`/historial/${row.sessionId}`}
-                className="flex items-center justify-between gap-3 rounded-2xl border border-hair bg-glass px-4 py-3 transition hover:border-white/20"
+                className="d2-routine"
               >
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-text">{formatDate(row.finishedAt)}</p>
-                  <p className="text-xs text-faint">
+                <div className="d2-routine-body">
+                  <p className="d2-routine-name">{formatDate(row.finishedAt)}</p>
+                  <p className="d2-routine-meta">
                     Mejor serie: {row.weight}kg × {row.reps}
                   </p>
                 </div>
-                <div className="flex shrink-0 items-center gap-2">
+                <div className="d2-routine-value">
                   {row.isPR && (
-                    <span className="rounded-full bg-teal/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-teal2">
+                    <span className="d2-progress-record">
                       PR
                     </span>
                   )}
-                  <span className="font-mono-digit text-sm text-white">
-                    {row.estimatedOneRepMax.toFixed(1)}kg
+                  <span className="d2-session-set-value">
+                    {row.estimatedOneRepMax.toFixed(1)} kg
+                    <span className="d2-routine-unit">1RM est.</span>
                   </span>
                 </div>
               </Link>
@@ -139,6 +110,6 @@ export default async function ExerciseProgressPage({ params }) {
           </div>
         </section>
       )}
-    </div>
+    </PageShell>
   );
 }

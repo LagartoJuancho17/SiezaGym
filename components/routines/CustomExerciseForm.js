@@ -97,20 +97,20 @@ export default function CustomExerciseForm({ onCreated, onCancel }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-1">
+    <form onSubmit={handleSubmit} className="d2-panel d2-form d2-custom-form">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-teal2">
+        <p className="d2-setting-name">
           Ejercicio propio
         </p>
-        <p className="mt-1 text-[11px] text-faint">
-          No lo encontrás en el catálogo — creá el tuyo. Es privado, solo lo ves vos.
+        <p className="d2-setting-hint">
+          No lo encontrás en el catálogo. creá el tuyo. Es privado, solo lo ves vos.
         </p>
       </div>
 
-      <label className="grid gap-1.5 text-sm text-muted">
+      <label className="d2-form-field">
         <span>Nombre</span>
         <input
-          className="h-11 rounded-xl border border-hair bg-glass2 px-3 text-text outline-none focus:border-teal2"
+          className="d2-input"
           value={nameEs}
           onChange={(e) => setNameEs(e.target.value)}
           placeholder="Ej: Press en banco Smith a un brazo"
@@ -118,11 +118,11 @@ export default function CustomExerciseForm({ onCreated, onCancel }) {
         />
       </label>
 
-      <div className="grid grid-cols-2 gap-3">
-        <label className="grid gap-1.5 text-sm text-muted">
+      <div className="d2-pair">
+        <label className="d2-form-field">
           <span>Equipamiento</span>
           <select
-            className="h-11 rounded-xl border border-hair bg-glass2 px-3 text-text outline-none focus:border-teal2"
+            className="d2-input"
             value={equipment}
             onChange={(e) => setEquipment(e.target.value)}
           >
@@ -133,10 +133,10 @@ export default function CustomExerciseForm({ onCreated, onCancel }) {
             ))}
           </select>
         </label>
-        <label className="grid gap-1.5 text-sm text-muted">
+        <label className="d2-form-field">
           <span>Patrón</span>
           <select
-            className="h-11 rounded-xl border border-hair bg-glass2 px-3 text-text outline-none focus:border-teal2"
+            className="d2-input"
             value={pattern}
             onChange={(e) => setPattern(e.target.value)}
           >
@@ -149,11 +149,11 @@ export default function CustomExerciseForm({ onCreated, onCancel }) {
         </label>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <label className="grid gap-1.5 text-sm text-muted">
+      <div className="d2-pair">
+        <label className="d2-form-field">
           <span>Tipo de registro</span>
           <select
-            className="h-11 rounded-xl border border-hair bg-glass2 px-3 text-text outline-none focus:border-teal2"
+            className="d2-input"
             value={registrationType}
             onChange={(e) => setRegistrationType(e.target.value)}
           >
@@ -164,21 +164,21 @@ export default function CustomExerciseForm({ onCreated, onCancel }) {
             ))}
           </select>
         </label>
-        <label className="flex items-center gap-2 self-end pb-2.5 text-sm text-muted">
+        <label className="d2-inline-actions">
           <input
             type="checkbox"
             checked={unilateral}
             onChange={(e) => setUnilateral(e.target.checked)}
-            className="h-4 w-4 accent-teal"
+            className="d2-checkbox"
           />
           Unilateral
         </label>
       </div>
 
-      <label className="grid gap-1.5 text-sm text-muted">
+      <label className="d2-form-field">
         <span>Descripción (opcional)</span>
         <textarea
-          className="min-h-16 resize-y rounded-xl border border-hair bg-glass2 px-3 py-2.5 text-text outline-none focus:border-teal2"
+          className="d2-input d2-textarea"
           value={descriptionEs}
           onChange={(e) => setDescriptionEs(e.target.value)}
           placeholder="2-3 líneas de técnica"
@@ -186,19 +186,19 @@ export default function CustomExerciseForm({ onCreated, onCancel }) {
       </label>
 
       <div>
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-sm text-muted">Músculos que trabaja</span>
+        <div className="d2-inline-actions">
+          <span className="d2-form-note">Músculos que trabaja</span>
           <span
-            className={`font-mono-digit text-xs ${sumOk ? "text-teal2" : "text-destructive"}`}
+            className="d2-form-note" role="status"
           >
             Total: {sum.toFixed(2)}
           </span>
         </div>
-        <p className="mt-1 text-[11px] text-faint">
-          Elegí uno o más y repartí el peso entre todos hasta que sumen 1.0 — así entra bien en
+        <p className="d2-setting-hint">
+          Elegí uno o más y repartí el peso entre todos hasta que sumen 1.0. así entra bien en
           las estadísticas de progreso.
         </p>
-        <div className="mt-3 flex flex-wrap gap-1.5">
+        <div className="d2-segs">
           {MUSCLE_GROUPS.map((muscle) => {
             const active = selectedMuscles.includes(muscle);
             return (
@@ -206,11 +206,8 @@ export default function CustomExerciseForm({ onCreated, onCancel }) {
                 key={muscle}
                 type="button"
                 onClick={() => toggleMuscle(muscle)}
-                className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
-                  active
-                    ? "border-teal2 bg-teal2 text-onlight"
-                    : "border-hair text-muted hover:border-teal2 hover:text-text"
-                }`}
+                aria-pressed={active}
+                className={active ? "d2-seg d2-seg-on" : "d2-seg"}
               >
                 {MUSCLE_GROUP_LABELS[muscle]}
               </button>
@@ -219,22 +216,23 @@ export default function CustomExerciseForm({ onCreated, onCancel }) {
         </div>
 
         {selectedMuscles.length > 0 ? (
-          <div className="mt-3 flex flex-col gap-2">
+          <div className="d2-stack">
             {selectedMuscles.map((muscle) => (
-              <div key={muscle} className="flex items-center gap-3">
-                <span className="w-40 shrink-0 truncate text-xs text-muted">
+              <div key={muscle} className="d2-range-row">
+                <span className="d2-form-note">
                   {MUSCLE_GROUP_LABELS[muscle]}
                 </span>
                 <input
+                  aria-label={`Participación de ${MUSCLE_GROUP_LABELS[muscle]}`}
                   type="range"
                   min="0"
                   max="1"
                   step="0.05"
                   value={weights[muscle] ?? 0}
                   onChange={(e) => setWeight(muscle, e.target.value)}
-                  className="h-1.5 flex-1 accent-teal"
+                  className="d2-range"
                 />
-                <span className="font-mono-digit w-10 shrink-0 text-right text-xs text-text">
+                <span className="d2-form-note">
                   {(weights[muscle] ?? 0).toFixed(2)}
                 </span>
               </div>
@@ -244,23 +242,23 @@ export default function CustomExerciseForm({ onCreated, onCancel }) {
       </div>
 
       {error ? (
-        <p className="rounded-xl border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+        <p className="d2-error" role="alert">
           {error}
         </p>
       ) : null}
 
-      <div className="flex gap-2">
+      <div className="d2-modal-actions">
         <button
           type="button"
           onClick={onCancel}
-          className="h-11 flex-1 rounded-full border border-hair text-sm font-semibold text-text transition hover:bg-glass2"
+          className="d2-modal-secondary"
         >
           Cancelar
         </button>
         <button
           type="submit"
           disabled={saving || !sumOk || !nameEs.trim()}
-          className="h-11 flex-1 rounded-full bg-teal2 text-sm font-semibold text-onlight transition hover:opacity-90 disabled:opacity-40"
+          className="d2-form-save"
         >
           {saving ? "Creando..." : "Crear ejercicio"}
         </button>

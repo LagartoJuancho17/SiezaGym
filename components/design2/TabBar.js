@@ -16,7 +16,7 @@ const TABS = [
   { href: "/rutinas", label: "Rutinas", Icon: PlayIcon, match: (path) => path.startsWith("/rutinas") },
   { href: "/historial", label: "Historial", Icon: ClockIcon, match: (path) => path.startsWith("/historial") },
   { href: "/progreso", label: "Progreso", Icon: TrendIcon, match: (path) => path.startsWith("/progreso") },
-  { href: "/perfil", label: "Perfil", Icon: UserIcon, match: (path) => path.startsWith("/perfil") },
+  { href: "/perfil", label: "Perfil", Icon: UserIcon, match: (path) => path.startsWith("/perfil") || path === "/dashboard" || path.startsWith("/dashboard/") },
 ];
 
 /**

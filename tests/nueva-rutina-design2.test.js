@@ -60,7 +60,7 @@ describe("Armador", () => {
 describe("Selector de ejercicios", () => {
   it("permite elegir varios y confirmarlos de una", () => {
     // Volver al armador por cada ejercicio obliga a repetir búsqueda y filtro.
-    expect(pickerSource).toContain("onConfirm(results.filter");
+    expect(pickerSource).toContain("onConfirm(chosenExercises");
     expect(pickerSource).toContain("chosen.size === 1 ? \"ejercicio\" : \"ejercicios\"");
   });
 

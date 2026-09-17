@@ -9,6 +9,7 @@ import { muscleDistribution } from "@/lib/routines/summary";
 import { ArrowLeftIcon, PlusIcon } from "./Icons";
 import ExerciseItem from "./ExerciseItem";
 import ExercisePicker from "./ExercisePicker";
+import { moveExercise } from "@/lib/routines/compose";
 
 /** Lo que se prescribe por defecto al agregar un ejercicio. */
 function defaultItemFor(exercise) {
@@ -37,12 +38,15 @@ export default function RoutineComposer({ exercises, routine = null }) {
   const router = useRouter();
   const editing = !!routine;
   const [name, setName] = useState(routine?.name || "");
+  const [note, setNote] = useState(routine?.note || "");
+  const [createdExercises, setCreatedExercises] = useState([]);
   const [items, setItems] = useState(routine?.exercises || []);
   const [picking, setPicking] = useState(false);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const lookup = useMemo(() => new Map(exercises.map((item) => [item.id, item])), [exercises]);
+  const availableExercises = useMemo(() => [...exercises, ...createdExercises], [exercises, createdExercises]);
+  const lookup = useMemo(() => new Map(availableExercises.map((item) => [item.id, item])), [availableExercises]);
   const addedIds = useMemo(() => new Set(items.map((item) => item.exerciseId)), [items]);
 
   // El reparto sale de muscleWeights del catalogo, no de una estimacion.
@@ -70,7 +74,7 @@ export default function RoutineComposer({ exercises, routine = null }) {
 
     setSaving(true);
     try {
-      const payload = { name: name.trim(), note: routine?.note || "", exercises: items };
+      const payload = { name: name.trim(), note: note.trim(), exercises: items };
       if (editing) {
         await updateRoutine(routine.id, payload);
         router.push(`/rutinas/${routine.id}`);
@@ -114,7 +118,8 @@ export default function RoutineComposer({ exercises, routine = null }) {
 
       {items.length > 0 && (
         <div className="d2-panel">
-          {items.map((item) => (
+          {items.map((item, index) => (
+            <div key={item.exerciseId}>
             <ExerciseItem
               key={item.exerciseId}
               item={item}
@@ -124,6 +129,13 @@ export default function RoutineComposer({ exercises, routine = null }) {
                 setItems((current) => current.filter((row) => row.exerciseId !== item.exerciseId))
               }
             />
+            {items.length > 1 && <div className="d2-reorder">
+              <button type="button" aria-label={`Subir ${lookup.get(item.exerciseId)?.nameEs || "ejercicio"}`} disabled={index === 0}
+                onClick={() => setItems((current) => moveExercise(current, index, index - 1))}>↑</button>
+              <button type="button" aria-label={`Bajar ${lookup.get(item.exerciseId)?.nameEs || "ejercicio"}`} disabled={index === items.length - 1}
+                onClick={() => setItems((current) => moveExercise(current, index, index + 1))}>↓</button>
+            </div>}
+            </div>
           ))}
         </div>
       )}
@@ -132,6 +144,12 @@ export default function RoutineComposer({ exercises, routine = null }) {
         <PlusIcon size={17} width={1.8} />
         Agregar ejercicio
       </button>
+
+      <label className="d2-form-field">
+        Nota de la rutina (opcional)
+        <textarea value={note} onChange={(event) => setNote(event.target.value)} maxLength={2000}
+          className="d2-input d2-textarea" placeholder="Indicaciones para este entrenamiento" />
+      </label>
 
       {muscles.length > 0 && (
         <>
@@ -156,7 +174,8 @@ export default function RoutineComposer({ exercises, routine = null }) {
 
       {picking && (
         <ExercisePicker
-          exercises={exercises}
+          exercises={availableExercises}
+          onCreated={(exercise) => setCreatedExercises((current) => [...current, exercise])}
           alreadyAdded={addedIds}
           onCancel={() => setPicking(false)}
           onConfirm={addChosen}

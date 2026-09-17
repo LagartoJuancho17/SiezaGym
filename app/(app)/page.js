@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { getCurrentUser } from "@/lib/firebase/session";
 import { getUserProfile } from "@/lib/users/users";
 import { listUserRoutines } from "@/lib/routines/routines";
@@ -138,6 +139,18 @@ export default async function Home() {
         <GoalRail cards={cards} />
 
         <RecentActivity activities={activities} />
+
+        <p className="d2-label">Tu espacio</p>
+        <div className="d2-panel">
+          <Link href="/dashboard" className="d2-setting">
+            <span className="d2-setting-body"><span className="d2-setting-name">Dashboard</span><span className="d2-setting-hint">Resumen, métricas y accesos</span></span>
+            <span aria-hidden="true">↗</span>
+          </Link>
+          <Link href={profile?.isCoach || profile?.isAdmin ? "/dashboard/coach" : "/perfil"} className="d2-setting">
+            <span className="d2-setting-body"><span className="d2-setting-name">{profile?.isCoach || profile?.isAdmin ? "Mis alumnos" : "Tu profesor"}</span><span className="d2-setting-hint">{profile?.isCoach || profile?.isAdmin ? "Invitaciones y seguimiento" : "Vinculá tu cuenta desde Perfil"}</span></span>
+            <span aria-hidden="true">↗</span>
+          </Link>
+        </div>
       </div>
 
       <TabBar />
