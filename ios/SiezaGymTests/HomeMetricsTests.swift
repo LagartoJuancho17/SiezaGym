@@ -45,7 +45,8 @@ private func exercise(
         registrationType: .pesoReps,
         unilateral: false,
         descriptionEs: "",
-        mediaURL: nil
+        mediaURL: nil,
+        source: .catalog
     )
 }
 

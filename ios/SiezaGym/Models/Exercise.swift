@@ -104,6 +104,11 @@ nonisolated enum RegistrationType: String, Sendable {
     }
 }
 
+nonisolated enum ExerciseSource: String, Sendable, Hashable {
+    case catalog
+    case custom
+}
+
 nonisolated struct Exercise: Identifiable, Sendable, Hashable {
     let id: String
     let nameEs: String
@@ -116,6 +121,7 @@ nonisolated struct Exercise: Identifiable, Sendable, Hashable {
     let unilateral: Bool
     let descriptionEs: String
     let mediaURL: URL?
+    let source: ExerciseSource
 
     var primaryMuscle: MuscleGroup? {
         muscleWeights.max { $0.value < $1.value }?.key
@@ -123,7 +129,7 @@ nonisolated struct Exercise: Identifiable, Sendable, Hashable {
 }
 
 nonisolated extension Exercise {
-    init(id: String, data: [String: Any]) {
+    init(id: String, data: [String: Any], source: ExerciseSource = .catalog) {
         self.id = id
         nameEs = data["nameEs"] as? String ?? id
         nameEn = data["nameEn"] as? String ?? ""
@@ -134,6 +140,7 @@ nonisolated extension Exercise {
         unilateral = FirestoreValue.bool(data["unilateral"]) ?? false
         descriptionEs = data["descriptionEs"] as? String ?? ""
         mediaURL = (data["mediaUrl"] as? String).flatMap(URL.init(string:))
+        self.source = source
 
         var weights: [MuscleGroup: Double] = [:]
         for (key, value) in data["muscleWeights"] as? [String: Any] ?? [:] {

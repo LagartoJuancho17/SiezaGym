@@ -35,7 +35,7 @@ final class GymStore {
 
         do {
             // Las cuatro consultas son independientes: van en paralelo.
-            async let catalog = repository.exercises()
+            async let catalog = repository.exercises(uid: uid)
             async let profile = repository.profile(uid: uid)
             async let routines = repository.routines(uid: uid)
             async let sessions = repository.sessions(uid: uid)
@@ -106,6 +106,11 @@ final class GymStore {
             startedAt: startedAt,
             exercises: exercises
         )
+        await load()
+    }
+
+    func createRoutine(name: String, note: String, exercises: [RoutineDraftExercise]) async throws {
+        try await repository.createRoutine(uid: uid, name: name, note: note, exercises: exercises)
         await load()
     }
 

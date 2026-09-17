@@ -97,7 +97,7 @@ struct RoutineSummaryTests {
             id: id, nameEs: id, nameEn: id, equipment: nil, pattern: nil,
             muscleWeights: muscles,
             registrationType: time ? .tiempo : .pesoReps,
-            unilateral: false, descriptionEs: "", mediaURL: nil
+            unilateral: false, descriptionEs: "", mediaURL: nil, source: .catalog
         )
     }
 

@@ -30,6 +30,24 @@ nonisolated struct GymRepository: Sendable {
         return catalog
     }
 
+    /// Combina el catálogo global con los ejercicios propios del usuario. Los
+    /// últimos viven en una subcolección protegida por las reglas de Firestore.
+    func exercises(uid: String) async throws -> [String: Exercise] {
+        async let catalog = exercises()
+        async let customSnapshot = db.collection("users").document(uid)
+            .collection("customExercises").order(by: "nameEs").getDocuments()
+
+        var all = try await catalog
+        for document in try await customSnapshot.documents {
+            all[document.documentID] = Exercise(
+                id: document.documentID,
+                data: document.data(),
+                source: .custom
+            )
+        }
+        return all
+    }
+
     // MARK: - Perfil
 
     func profile(uid: String) async throws -> UserProfile? {
@@ -102,6 +120,34 @@ nonisolated struct GymRepository: Sendable {
         let document = try await db.collection(collection).document(id).getDocument()
         guard let data = document.data() else { return nil }
         return Routine(id: id, data: data, isAssigned: isAssigned)
+    }
+
+    /// Crea una rutina propia con exactamente el contrato que usa la web.
+    @discardableResult
+    func createRoutine(
+        uid: String,
+        name: String,
+        note: String,
+        exercises: [RoutineDraftExercise]
+    ) async throws -> String {
+        try RoutineDraftValidation.validate(name: name, exercises: exercises)
+
+        let now = FieldValue.serverTimestamp()
+        let payload: [String: Any] = [
+            "ownerId": uid,
+            "name": name.trimmingCharacters(in: .whitespacesAndNewlines),
+            "note": note.trimmingCharacters(in: .whitespacesAndNewlines),
+            "exercises": exercises.enumerated().map { index, exercise in
+                exercise.firestoreValue(order: index)
+            },
+            "lastUsedAt": NSNull(),
+            "createdAt": now,
+            "updatedAt": now,
+        ]
+
+        let reference = try await db.collection("routines").addDocument(data: payload)
+        log.info("rutina creada \(reference.documentID, privacy: .public), \(exercises.count) ejercicios")
+        return reference.documentID
     }
 
     // MARK: - Sesiones
