@@ -62,7 +62,10 @@ struct BottomNav: View {
             }
         }
         .padding(4)
-        .frame(width: 296, height: Self.height)
+        // 340 y no 296: con cinco destinos, en 296 la etiqueta más larga
+        // ("Historial") no entra y se corta.
+        .frame(maxWidth: 340)
+        .frame(height: Self.height)
         .background(.ultraThinMaterial.opacity(0.7), in: .capsule)
         .background(tema.vidrio(1), in: .capsule)
         .overlay { Capsule().strokeBorder(tema.bordeFuerte, lineWidth: 1) }

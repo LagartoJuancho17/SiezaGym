@@ -1,145 +1,213 @@
 import SwiftUI
 
-/// Progreso por ejercicio: mejor 1RM estimado y la evolucion del peso.
-/// Se llama ProgressScreen y no ProgressView para no chocar con la de SwiftUI.
+/// Progreso, igual que `/progreso` en la web: los tres números de la semana,
+/// el volumen semana a semana, los días entrenados, dónde fue el volumen, el
+/// balance empuje/tracción y una fila por ejercicio.
 struct ProgressScreen: View {
     @Environment(\.tema) private var tema
     let store: GymStore
 
-    /// Un renglon por ejercicio entrenado, ordenado por 1RM estimado.
-    private var rows: [ExerciseProgress] {
-        let bests = HomeMetrics.bestOneRepMaxByExercise(store.sessions)
-        return bests
-            .map { id, oneRM in
-                ExerciseProgress(
-                    id: id,
-                    name: store.name(of: id),
-                    oneRepMax: oneRM,
-                    maxWeight: maxWeight(for: id),
-                    points: series(for: id)
-                )
-            }
-            .sorted { $0.oneRepMax > $1.oneRepMax }
+    private static let semanasGrilla = 26
+
+    private var barras: [ProgressMetrics.WeekBar] {
+        ProgressMetrics.volumeByWeek(store.sessions, weeks: 12)
+    }
+    private var grilla: ProgressMetrics.Grid {
+        ProgressMetrics.trainedGrid(store.trainedDayKeys, weeks: Self.semanasGrilla)
+    }
+    private var ejercicios: [ProgressMetrics.ExerciseRow] {
+        ProgressMetrics.byExercise(store.sessions)
+    }
+    private var entrenamientosSemana: Int { store.weekSessions.count }
+    private var hayGifs: Bool {
+        ejercicios.contains { store.exercise($0.exerciseID)?.mediaURL != nil }
     }
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                LazyVStack(spacing: 8) {
-                    if rows.isEmpty && store.hasLoaded {
-                        SurfaceCard(padding: 24) {
-                            Text("Registrá entrenamientos con peso para ver tu progreso.")
-                                .font(.system(size: 14))
-                                .foregroundStyle(tema.texto2)
+            Pantalla(titulo: "Progreso") {
+                StatsCard(datos: [
+                    (ProgressMetrics.formatKg(store.weeklyVolumeKg), "esta semana"),
+                    ("\(entrenamientosSemana)", entrenamientosSemana == 1 ? "entrenamiento" : "entrenamientos"),
+                    (ProgressMetrics.trendLabel(efectividad), "vs semana anterior"),
+                ])
+                .padding(.top, 20)
+
+                if store.sessions.isEmpty {
+                    Vacio(texto: "Todavía no terminaste ningún entrenamiento. Cuando termines el primero, acá vas a ver tu volumen semana a semana.")
+                        .padding(.top, 24)
+                } else {
+                    volumenPorSemana
+                    diasEntrenados
+                    dondeFueElVolumen
+                    empujeYTraccion
+                    porEjercicio
+                    if hayGifs { CreditoGifs() }
+                }
+            }
+            .bottomNavInset()
+        }
+    }
+
+    /// Entrenamientos de esta semana contra los de la anterior.
+    private var efectividad: Int? {
+        let anterior = HomeMetrics.sessionsInLastDays(store.sessions, days: 14).count - entrenamientosSemana
+        guard anterior > 0 else { return nil }
+        return Int((Double(entrenamientosSemana - anterior) / Double(anterior) * 100).rounded())
+    }
+
+    private var volumenPorSemana: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            SectionLabel("Volumen por semana").padding(.top, 24).padding(.bottom, 10)
+            GlassCard(padding: 16) {
+                VStack(spacing: 12) {
+                    HStack(alignment: .bottom, spacing: 4) {
+                        ForEach(barras) { barra in
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(barra.isEmpty ? tema.texto3.opacity(0.35) : tema.solido)
+                                .frame(height: max(4, 96 * barra.height))
                                 .frame(maxWidth: .infinity)
                         }
                     }
+                    .frame(height: 96, alignment: .bottom)
 
-                    ForEach(rows) { row in
-                        SurfaceCard(padding: 12) {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text(row.name)
-                                    .font(.system(size: 15, weight: .bold))
-                                    .foregroundStyle(tema.texto)
+                    HStack {
+                        Text("hace \(barras.count) semanas")
+                        Spacer()
+                        Text(mejorSemana).foregroundStyle(tema.texto3)
+                        Spacer()
+                        Text("esta semana")
+                    }
+                    .font(.system(size: 10))
+                    .foregroundStyle(tema.texto2)
+                }
+            }
+        }
+    }
 
-                                HStack(spacing: 18) {
-                                    stat(row.oneRepMax.formatted(.number.precision(.fractionLength(0))), "1RM est.")
-                                    stat(row.maxWeight.formatted(), "máximo real")
-                                    stat("\(row.points.count)", "sesiones")
+    private var mejorSemana: String {
+        let mejor = barras.map(\.kg).max() ?? 0
+        return mejor > 0 ? "mejor \(ProgressMetrics.formatKg(mejor))" : "sin volumen todavía"
+    }
+
+    private var diasEntrenados: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            SectionLabel("Días entrenados").padding(.top, 24).padding(.bottom, 10)
+            GlassCard(padding: 16) {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack(spacing: 3) {
+                        ForEach(Array(grilla.columns.enumerated()), id: \.offset) { _, columna in
+                            VStack(spacing: 3) {
+                                ForEach(columna) { dia in
+                                    RoundedRectangle(cornerRadius: 2.5)
+                                        .fill(dia.trained ? tema.solido : tema.texto3.opacity(0.3))
+                                        .opacity(dia.isFuture ? 0.25 : 1)
+                                        .frame(maxWidth: .infinity)
+                                        .aspectRatio(1, contentMode: .fit)
                                 }
-
-                                if row.points.count > 1 {
-                                    Sparkline(values: row.points)
-                                        .frame(height: 44)
-                                }
-
-                                // Epley es una formula, no una medicion: el 1RM
-                                // real solo se sabe intentandolo.
-                                Text("1RM estimado con Epley: peso × (1 + reps/30).")
-                                    .font(.system(size: 9))
-                                    .foregroundStyle(tema.texto2)
                             }
                         }
                     }
+                    .accessibilityElement()
+                    .accessibilityLabel("\(grilla.total) días entrenados en las últimas \(grilla.columns.count) semanas")
+
+                    HStack {
+                        Text("\(grilla.total) \(grilla.total == 1 ? "día entrenado" : "días entrenados")")
+                        Spacer()
+                        Text("últimas \(grilla.columns.count) semanas")
+                    }
+                    .font(.system(size: 10))
+                    .foregroundStyle(tema.texto2)
                 }
-                .padding(12)
             }
-            .background { Backdrop() }
-            .bottomNavInset()
-            .scrollIndicators(.hidden)
-            .navigationTitle("Progreso")
-            .refreshable { await store.load() }
         }
     }
 
-    private func maxWeight(for exerciseID: String) -> Double {
-        store.sessions
-            .flatMap(\.exercises)
-            .filter { $0.exerciseID == exerciseID }
-            .flatMap(\.sets)
-            .filter { !$0.failed }
-            .map(\.weight)
-            .max() ?? 0
-    }
-
-    /// Mejor 1RM estimado de cada sesion, de la mas vieja a la mas nueva.
-    private func series(for exerciseID: String) -> [Double] {
-        store.sessions
-            .reversed()
-            .compactMap { session in
-                let sets = session.exercises
-                    .filter { $0.exerciseID == exerciseID }
-                    .flatMap(\.sets)
-                guard let best = Epley.bestSet(sets) else { return nil }
-                return Epley.estimatedOneRepMax(best)
-            }
-    }
-
-    private func stat(_ value: String, _ label: String) -> some View {
-        VStack(alignment: .leading, spacing: 1) {
-            Text(value)
-                .font(.system(size: 17, weight: .bold, design: .rounded))
-                .foregroundStyle(tema.texto)
-            Text(label)
-                .font(.system(size: 9))
-                .foregroundStyle(tema.texto2)
-        }
-    }
-}
-
-struct ExerciseProgress: Identifiable {
-    let id: String
-    let name: String
-    let oneRepMax: Double
-    let maxWeight: Double
-    let points: [Double]
-}
-
-/// Linea simple de evolucion. Normaliza entre el minimo y el maximo para que la
-/// forma se vea aunque los valores esten todos cerca.
-struct Sparkline: View {
-    @Environment(\.tema) private var tema
-    let values: [Double]
-
-    var body: some View {
-        GeometryReader { proxy in
-            let size = proxy.size
-            let low = values.min() ?? 0
-            let high = values.max() ?? 1
-            let span = high - low
-
-            Path { path in
-                for (index, value) in values.enumerated() {
-                    let x = values.count > 1
-                        ? size.width * Double(index) / Double(values.count - 1)
-                        : size.width / 2
-                    let normalized = span > 0 ? (value - low) / span : 0.5
-                    let y = size.height * (1 - normalized)
-                    if index == 0 { path.move(to: CGPoint(x: x, y: y)) }
-                    else { path.addLine(to: CGPoint(x: x, y: y)) }
+    @ViewBuilder private var dondeFueElVolumen: some View {
+        let musculos = store.muscleVolume
+        if !musculos.rows.isEmpty {
+            VStack(alignment: .leading, spacing: 0) {
+                SectionLabel("Dónde fue el volumen").padding(.top, 24).padding(.bottom, 10)
+                GlassCard(padding: 16) {
+                    VStack(spacing: 11) {
+                        ForEach(musculos.rows.prefix(6)) { fila in
+                            VStack(spacing: 5) {
+                                HStack {
+                                    Text(fila.label).font(.system(size: 12)).foregroundStyle(tema.texto)
+                                    Spacer()
+                                    Text(ProgressMetrics.formatKg(Double(fila.kg)))
+                                        .font(.system(size: 12)).foregroundStyle(tema.texto2)
+                                }
+                                WidgetMeter(value: fila.pct)
+                            }
+                        }
+                        // Sale de muscleWeights del catálogo cruzado con el peso
+                        // y las reps de cada serie, no de una estimación por
+                        // tipo de rutina.
+                        Text("Repartido sobre tus últimos \(store.sessions.count) entrenamientos")
+                            .font(.system(size: 10))
+                            .foregroundStyle(tema.texto3)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
                 }
             }
-            .stroke(tema.solido, style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
+        }
+    }
+
+    @ViewBuilder private var empujeYTraccion: some View {
+        let balance = store.pushPull
+        if balance.hasData {
+            VStack(alignment: .leading, spacing: 0) {
+                SectionLabel("Empuje y tracción").padding(.top, 24).padding(.bottom, 10)
+                GlassCard(padding: 16) {
+                    VStack(spacing: 12) {
+                        GeometryReader { proxy in
+                            HStack(spacing: 0) {
+                                Rectangle().fill(tema.solido)
+                                    .frame(width: proxy.size.width * Double(balance.pct) / 100)
+                                Rectangle().fill(tema.vidrio(3))
+                            }
+                        }
+                        .frame(height: 26)
+                        .clipShape(.rect(cornerRadius: 9))
+                        .accessibilityElement()
+                        .accessibilityLabel("Empuje \(balance.pushKg) kilos, tracción \(balance.pullKg) kilos. \(balance.label).")
+
+                        HStack {
+                            Text("empuje \(ProgressMetrics.formatKg(Double(balance.pushKg)))")
+                            Spacer()
+                            Text(balance.label).foregroundStyle(tema.texto3)
+                            Spacer()
+                            Text("tracción \(ProgressMetrics.formatKg(Double(balance.pullKg)))")
+                        }
+                        .font(.system(size: 10))
+                        .foregroundStyle(tema.texto2)
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder private var porEjercicio: some View {
+        if !ejercicios.isEmpty {
+            VStack(alignment: .leading, spacing: 0) {
+                SectionLabel("Por ejercicio").padding(.top, 24).padding(.bottom, 10)
+                PanelLista {
+                    ForEach(Array(ejercicios.enumerated()), id: \.element.id) { indice, fila in
+                        if indice > 0 {
+                            Rectangle().fill(tema.borde).frame(height: 1)
+                        }
+                        FilaLista(
+                            nombre: store.name(of: fila.exerciseID),
+                            detalle: "\(fila.sessions) \(fila.sessions == 1 ? "entrenamiento" : "entrenamientos")",
+                            valor: fila.bestOneRepMax > 0 ? "\(fila.bestOneRepMax.formatted()) kg" : nil,
+                            unidad: fila.bestOneRepMax > 0 ? "1RM est." : nil,
+                            miniatura: store.exercise(fila.exerciseID)?.mediaURL,
+                            chevron: false
+                        )
+                    }
+                }
+            }
         }
     }
 }

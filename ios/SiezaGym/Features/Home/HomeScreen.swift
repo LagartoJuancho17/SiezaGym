@@ -185,7 +185,7 @@ struct HomeScreen: View {
                             Rectangle().fill(tema.borde).frame(height: 1)
                         }
                         NavigationLink {
-                            RoutineDetailView(routine: rutina, store: store) { elegida in
+                            RoutineDetailScreen(routine: rutina, store: store) { elegida in
                                 workout = WorkoutTarget(routine: elegida)
                             }
                         } label: {
