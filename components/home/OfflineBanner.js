@@ -1,27 +1,30 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
+
+/**
+ * El estado de la conexión es un sistema externo al de React, así que se lee
+ * con useSyncExternalStore y no con un efecto que escribe estado: leerlo en un
+ * efecto pinta primero "con conexión" y recién después corrige, y además rompe
+ * la regla set-state-in-effect de React 19.
+ */
+function subscribe(onChange) {
+  window.addEventListener("online", onChange);
+  window.addEventListener("offline", onChange);
+  return () => {
+    window.removeEventListener("online", onChange);
+    window.removeEventListener("offline", onChange);
+  };
+}
+
+const readOffline = () => !navigator.onLine;
+
+// En el servidor no hay navigator: se asume con conexión, que es lo que después
+// confirma o corrige el cliente en el primer render.
+const serverSnapshot = () => false;
 
 export default function OfflineBanner() {
-  const [offline, setOffline] = useState(false);
-
-  useEffect(() => {
-    setOffline(!navigator.onLine);
-
-    function handleOnline() {
-      setOffline(false);
-    }
-    function handleOffline() {
-      setOffline(true);
-    }
-
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
-    return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
-    };
-  }, []);
+  const offline = useSyncExternalStore(subscribe, readOffline, serverSnapshot);
 
   if (!offline) {
     return null;

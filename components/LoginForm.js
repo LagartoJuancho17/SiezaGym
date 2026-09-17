@@ -18,195 +18,271 @@ async function persistSession(user) {
   });
 
   if (!response.ok) {
-    throw new Error("No se pudo crear la sesion en el servidor.");
+    throw new Error("No se pudo crear la sesión en el servidor.");
   }
 }
 
+/**
+ * Los códigos de Firebase no se le muestran a nadie: dicen poco y asustan.
+ * Cada uno se traduce a qué pasó y qué hacer.
+ */
+function getFriendlyErrorMessage(err) {
+  const code = err?.code || "";
+  const msg = err?.message || "";
+
+  if (code === "auth/invalid-credential" || code === "auth/wrong-password") {
+    return "Email o contraseña incorrectos.";
+  }
+  if (code === "auth/user-not-found") {
+    return "No existe una cuenta con este email.";
+  }
+  if (code === "auth/email-already-in-use") {
+    return "Ya existe una cuenta con este email. Probá iniciando sesión.";
+  }
+  if (code === "auth/weak-password") {
+    return "La contraseña tiene que tener al menos 6 caracteres.";
+  }
+  if (code === "auth/invalid-email") {
+    return "Ese email no tiene un formato válido.";
+  }
+  if (code === "auth/popup-closed-by-user") {
+    return "Se canceló el inicio de sesión con Google.";
+  }
+  if (code === "auth/popup-blocked") {
+    return "El navegador bloqueó la ventana de Google.";
+  }
+  if (code === "auth/network-request-failed") {
+    return "Error de red. Revisá tu conexión.";
+  }
+  if (code === "auth/too-many-requests") {
+    return "Demasiados intentos. Esperá unos minutos.";
+  }
+  return msg || "No se pudo completar. Probá de nuevo.";
+}
+
+/**
+ * La G de Google va con sus colores de marca y no con los del tema: Google
+ * exige que su marca no se recolore. Es la única excepción de la app.
+ */
 function GoogleIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
-      <path
-        fill="#4285F4"
-        d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.57 2.7-3.87 2.7-6.62z"
-      />
-      <path
-        fill="#34A853"
-        d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.96v2.33A9 9 0 0 0 9 18z"
-      />
-      <path
-        fill="#FBBC05"
-        d="M3.95 10.7A5.4 5.4 0 0 1 3.67 9c0-.59.1-1.17.28-1.7V4.97H.96A9 9 0 0 0 0 9c0 1.45.35 2.83.96 4.03z"
-      />
-      <path
-        fill="#EA4335"
-        d="M9 3.58c1.32 0 2.51.46 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .96 4.97L3.95 7.3C4.66 5.17 6.65 3.58 9 3.58z"
-      />
+      <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.57 2.7-3.87 2.7-6.62z" />
+      <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.96v2.33A9 9 0 0 0 9 18z" />
+      <path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 0 1 3.67 9c0-.59.1-1.17.28-1.7V4.97H.96A9 9 0 0 0 0 9c0 1.45.35 2.83.96 4.03z" />
+      <path fill="#EA4335" d="M9 3.58c1.32 0 2.51.46 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .96 4.97L3.95 7.3C4.66 5.17 6.65 3.58 9 3.58z" />
     </svg>
   );
 }
 
-export default function LoginForm() {
+/**
+ * Entrar o crear la cuenta.
+ *
+ * Las dos cosas viven en la misma pantalla y cambian con las pestañas de
+ * arriba: son el mismo formulario más un campo, y mandar a otra página para
+ * agregar una línea obliga a volver a escribir el email.
+ */
+export default function LoginForm({ initialMode }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextUrl = searchParams.get("next") || "/";
-  const [mode, setMode] = useState("signin");
+  const queryMode = searchParams.get("mode");
+
+  const [mode, setMode] = useState(initialMode || (queryMode === "signup" ? "signup" : "signin"));
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [visible, setVisible] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showEmailForm, setShowEmailForm] = useState(false);
 
-  async function finishLogin(userCredential) {
-    await persistSession(userCredential.user);
+  const signup = mode === "signup";
+
+  function changeMode(next) {
+    if (next === mode) return;
+    setMode(next);
+    setError("");
+    setPassword("");
+    setConfirmPassword("");
+    // La barra de direcciones acompaña sin recargar: compartir el link o
+    // recargar tiene que traer de vuelta la misma pestaña.
+    if (typeof window !== "undefined") {
+      const base = next === "signup" ? "/register" : "/login";
+      const url = nextUrl !== "/" ? `${base}?next=${encodeURIComponent(nextUrl)}` : base;
+      window.history.replaceState(null, "", url);
+    }
+  }
+
+  async function finishLogin(credential) {
+    await persistSession(credential.user);
     router.push(nextUrl);
     router.refresh();
   }
 
-  async function handleEmailSubmit(event) {
+  async function submit(event) {
     event.preventDefault();
-    setLoading(true);
     setError("");
 
-    try {
-      const action =
-        mode === "signup"
-          ? createUserWithEmailAndPassword
-          : signInWithEmailAndPassword;
+    if (signup) {
+      if (password.length < 6) {
+        setError("La contraseña tiene que tener al menos 6 caracteres.");
+        return;
+      }
+      if (password !== confirmPassword) {
+        setError("Las dos contraseñas no coinciden.");
+        return;
+      }
+    }
 
-      await finishLogin(await action(getClientAuth(), email, password));
+    setLoading(true);
+    try {
+      const action = signup ? createUserWithEmailAndPassword : signInWithEmailAndPassword;
+      await finishLogin(await action(getClientAuth(), email.trim(), password));
     } catch (err) {
-      setError(err.message || "No se pudo iniciar sesion.");
+      setError(getFriendlyErrorMessage(err));
     } finally {
       setLoading(false);
     }
   }
 
-  async function handleGoogleLogin() {
+  async function withGoogle() {
     setLoading(true);
     setError("");
-
     try {
       await finishLogin(await signInWithPopup(getClientAuth(), getGoogleProvider()));
     } catch (err) {
-      setError(err.message || "No se pudo iniciar sesion con Google.");
+      setError(getFriendlyErrorMessage(err));
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <section
-      className="w-full max-w-md border border-zinc-800 bg-zinc-950 p-7 shadow-[0_24px_80px_rgba(0,0,0,0.35)]"
-      aria-labelledby="login-title"
-    >
-      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-cyan-300">
-        Bienvenido
-      </p>
-      <h1
-        id="login-title"
-        className="mt-3 text-3xl font-semibold tracking-normal text-zinc-50"
-      >
-        SiezaGym
+    <section className="d2-auth" aria-labelledby="auth-title">
+      <p className="d2-auth-brand">SiezaGym</p>
+      <h1 id="auth-title" className="d2-page-title">
+        {signup ? "Creá tu cuenta" : "Bienvenido de nuevo"}
       </h1>
-      <p className="mt-3 text-sm leading-6 text-zinc-400">
-        Iniciá sesión o registrate con Google para empezar. También podés
-        usar tu email.
-      </p>
 
-      <button
-        type="button"
-        className="mt-7 flex h-12 w-full items-center justify-center gap-3 border border-zinc-200 bg-white text-sm font-semibold text-zinc-900 transition hover:bg-zinc-100 disabled:hover:bg-white"
-        onClick={handleGoogleLogin}
-        disabled={loading}
-      >
-        <GoogleIcon />
-        Continuar con Google
-      </button>
-
-      {!showEmailForm ? (
+      <div className="d2-segs d2-auth-modes" role="tablist" aria-label="Entrar o crear cuenta">
         <button
           type="button"
-          className="mt-4 w-full text-center text-sm font-medium text-zinc-500 underline-offset-4 transition hover:text-zinc-300 hover:underline"
-          onClick={() => setShowEmailForm(true)}
+          role="tab"
+          aria-selected={!signup}
+          onClick={() => changeMode("signin")}
+          className={!signup ? "d2-seg d2-seg-on" : "d2-seg"}
         >
-          Usar email y contraseña
+          Iniciar sesión
         </button>
-      ) : (
-        <>
-          <div className="my-6 flex items-center gap-3 text-xs text-zinc-500">
-            <span className="h-px flex-1 bg-zinc-800" />
-            <span>o con email</span>
-            <span className="h-px flex-1 bg-zinc-800" />
-          </div>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={signup}
+          onClick={() => changeMode("signup")}
+          className={signup ? "d2-seg d2-seg-on" : "d2-seg"}
+        >
+          Crear cuenta
+        </button>
+      </div>
 
-          <div
-            className="mb-5 grid grid-cols-2 border border-zinc-800 bg-zinc-900/60 p-1"
-            aria-label="Modo de autenticacion"
-          >
-            <button
-              type="button"
-              className={`h-10 text-sm font-semibold transition ${
-                mode === "signin"
-                  ? "border border-zinc-700 bg-zinc-800 text-zinc-50"
-                  : "border border-transparent text-zinc-500 hover:text-zinc-300"
-              }`}
-              onClick={() => setMode("signin")}
-            >
-              Ingresar
-            </button>
-            <button
-              type="button"
-              className={`h-10 text-sm font-semibold transition ${
-                mode === "signup"
-                  ? "border border-zinc-700 bg-zinc-800 text-zinc-50"
-                  : "border border-transparent text-zinc-500 hover:text-zinc-300"
-              }`}
-              onClick={() => setMode("signup")}
-            >
-              Crear cuenta
-            </button>
-          </div>
+      <div className="d2-panel d2-form">
+        <button type="button" onClick={withGoogle} disabled={loading} className="d2-google">
+          <GoogleIcon />
+          {signup ? "Registrarme con Google" : "Continuar con Google"}
+        </button>
 
-          <form onSubmit={handleEmailSubmit} className="grid gap-4">
-            <label className="grid gap-2 text-sm font-medium text-zinc-300">
-              <span>Email</span>
-              <input
-                className="h-11 border border-zinc-800 bg-zinc-950 px-3 text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-cyan-400"
-                type="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                autoComplete="email"
-                required
-              />
+        <p className="d2-divider">
+          <span>o con tu email</span>
+        </p>
+
+        <form onSubmit={submit} className="d2-authform">
+          <div>
+            <label className="d2-form-label" htmlFor="auth-email">
+              Email
             </label>
-            <label className="grid gap-2 text-sm font-medium text-zinc-300">
-              <span>Password</span>
+            <input
+              id="auth-email"
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="tu@email.com"
+              autoComplete="email"
+              required
+              disabled={loading}
+              className="d2-input"
+            />
+          </div>
+
+          <div>
+            <p className="d2-field-head">
+              <label className="d2-form-label" htmlFor="auth-password">
+                Contraseña
+              </label>
+              {/* Texto y no un ojo: "mostrar" dice lo que hace y además
+                  anuncia el estado sin depender de reconocer el icono. */}
+              <button
+                type="button"
+                onClick={() => setVisible((value) => !value)}
+                aria-pressed={visible}
+                className="d2-reveal"
+              >
+                {visible ? "Ocultar" : "Mostrar"}
+              </button>
+            </p>
+            <input
+              id="auth-password"
+              type={visible ? "text" : "password"}
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder={signup ? "Al menos 6 caracteres" : "Tu contraseña"}
+              autoComplete={signup ? "new-password" : "current-password"}
+              minLength={6}
+              required
+              disabled={loading}
+              className="d2-input"
+            />
+          </div>
+
+          {signup && (
+            <div>
+              <label className="d2-form-label" htmlFor="auth-confirm">
+                Repetir contraseña
+              </label>
               <input
-                className="h-11 border border-zinc-800 bg-zinc-950 px-3 text-zinc-100 outline-none transition placeholder:text-zinc-600 focus:border-cyan-400"
-                type="password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                id="auth-confirm"
+                // Sigue al mismo botón de mostrar: son la misma contraseña y
+                // dos interruptores para lo mismo confunden.
+                type={visible ? "text" : "password"}
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+                placeholder="La misma de arriba"
+                autoComplete="new-password"
                 minLength={6}
                 required
+                disabled={loading}
+                className="d2-input"
               />
-            </label>
-            <button
-              type="submit"
-              className="mt-2 h-11 border border-cyan-400 bg-cyan-400 px-4 text-sm font-semibold text-zinc-950 transition hover:border-cyan-300 hover:bg-cyan-300 disabled:hover:border-cyan-400 disabled:hover:bg-cyan-400"
-              disabled={loading}
-            >
-              {mode === "signup" ? "Crear cuenta" : "Ingresar"}
-            </button>
-          </form>
-        </>
-      )}
+            </div>
+          )}
 
-      {error ? (
-        <p className="mt-5 border border-red-900/70 bg-red-950/40 p-3 text-sm leading-6 text-red-300">
-          {error}
-        </p>
-      ) : null}
+          {error && (
+            <p role="alert" className="d2-glass d2-error">
+              {error}
+            </p>
+          )}
+
+          <button type="submit" disabled={loading} className="d2-submit">
+            {loading ? "Un momento…" : signup ? "Crear mi cuenta" : "Ingresar"}
+          </button>
+        </form>
+      </div>
+
+      <p className="d2-auth-foot">
+        {signup ? "¿Ya tenés cuenta? " : "¿Todavía no tenés cuenta? "}
+        <button type="button" onClick={() => changeMode(signup ? "signin" : "signup")}>
+          {signup ? "Iniciá sesión" : "Creá una gratis"}
+        </button>
+      </p>
     </section>
   );
 }

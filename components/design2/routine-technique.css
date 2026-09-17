@@ -1,0 +1,8 @@
+.d2-technique { margin-top: 18px; color: var(--d2-text-2); font-size: 13px; line-height: 1.65; }
+.d2-technique summary { cursor: pointer; color: var(--d2-text); font-weight: 500; }
+.d2-technique p { margin-top: 12px; white-space: pre-line; }
+.d2-technique-image { width: min(100%, 300px); height: auto; margin-top: 14px; border-radius: var(--d2-radius-sm); }
+.d2-technique-credit { font-size: 10px; color: var(--d2-text-3); }
+.d2-technique-credit a { text-decoration: underline; }
+.d2-log-failed { flex: none; min-height: 40px; padding: 4px 7px; border: 1px solid var(--d2-border); border-radius: var(--d2-radius-sm); color: var(--d2-text-3); font-size: 11px; }
+.d2-log-failed[aria-pressed="true"] { border-color: var(--d2-border-strong); color: var(--d2-on-ink); background: var(--d2-ink); }
