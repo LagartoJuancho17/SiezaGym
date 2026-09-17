@@ -2,6 +2,7 @@ import GoogleSignInSwift
 import SwiftUI
 
 struct LoginView: View {
+    @Environment(\.tema) private var tema
     @Environment(AuthService.self) private var auth
 
     @State private var mode: Mode = .signIn
@@ -38,7 +39,7 @@ struct LoginView: View {
                 if let message = auth.errorMessage {
                     Label(message, systemImage: "exclamationmark.triangle.fill")
                         .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(Theme.accentLight)
+                        .foregroundStyle(tema.texto)
                         .transition(.move(edge: .top).combined(with: .opacity))
                 }
 
@@ -69,7 +70,7 @@ struct LoginView: View {
                 } label: {
                     Text(mode == .signIn ? "No tengo cuenta" : "Ya tengo cuenta")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(Theme.onDarkMuted)
+                        .foregroundStyle(tema.texto2)
                         .frame(maxWidth: .infinity)
                 }
             }
@@ -89,7 +90,7 @@ struct LoginView: View {
             line
             Text("o")
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(Theme.onDarkFaint)
+                .foregroundStyle(tema.texto3)
             line
         }
         .padding(.vertical, 2)
@@ -106,45 +107,45 @@ struct LoginView: View {
             Text("BIENVENIDO")
                 .font(.system(size: 11, weight: .bold))
                 .tracking(1.6)
-                .foregroundStyle(Theme.accent)
+                .foregroundStyle(tema.texto)
             Text("SiezaGym")
                 .font(.system(size: 44, weight: .bold, design: .default))
-                .foregroundStyle(Theme.onDark)
+                .foregroundStyle(tema.texto)
             Text("Entrá para ver tus rutinas y registrar tus entrenamientos.")
                 .font(.system(size: 15))
-                .foregroundStyle(Theme.onDarkMuted)
+                .foregroundStyle(tema.texto2)
         }
         .padding(.top, 60)
         .padding(.bottom, 6)
     }
 
     private func field(_ label: String, text: Binding<String>, field: Field) -> some View {
-        TextField("", text: text, prompt: Text(label).foregroundStyle(Theme.onDarkFaint))
+        TextField("", text: text, prompt: Text(label).foregroundStyle(tema.texto3))
             .focused($focus, equals: field)
             .textFieldStyle(.plain)
-            .foregroundStyle(Theme.onDark)
+            .foregroundStyle(tema.texto)
             .padding(.horizontal, 16)
             .frame(height: 52)
             .background(.white.opacity(0.08), in: .rect(cornerRadius: Theme.radius))
             .overlay {
                 RoundedRectangle(cornerRadius: Theme.radius)
-                    .strokeBorder(focus == field ? Theme.accent : Theme.crimson, lineWidth: 1)
+                    .strokeBorder(focus == field ? tema.solido : tema.borde, lineWidth: 1)
             }
             .animation(.snappy(duration: 0.15), value: focus)
     }
 
     private var secureField: some View {
-        SecureField("", text: $password, prompt: Text("Contraseña").foregroundStyle(Theme.onDarkFaint))
+        SecureField("", text: $password, prompt: Text("Contraseña").foregroundStyle(tema.texto3))
             .focused($focus, equals: .password)
             .textContentType(mode == .signIn ? .password : .newPassword)
             .textFieldStyle(.plain)
-            .foregroundStyle(Theme.onDark)
+            .foregroundStyle(tema.texto)
             .padding(.horizontal, 16)
             .frame(height: 52)
             .background(.white.opacity(0.08), in: .rect(cornerRadius: Theme.radius))
             .overlay {
                 RoundedRectangle(cornerRadius: Theme.radius)
-                    .strokeBorder(focus == .password ? Theme.accent : Theme.crimson, lineWidth: 1)
+                    .strokeBorder(focus == .password ? tema.solido : tema.borde, lineWidth: 1)
             }
             .onSubmit(submit)
             .animation(.snappy(duration: 0.15), value: focus)

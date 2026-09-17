@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct WorkoutView: View {
+    @Environment(\.tema) private var tema
     let store: GymStore
     let routine: Routine?
 
@@ -28,7 +29,7 @@ struct WorkoutView: View {
                 if let saveError {
                     Text(saveError)
                         .font(.system(size: 13))
-                        .foregroundStyle(Theme.accentLight)
+                        .foregroundStyle(tema.texto)
                 }
 
                 Button("Terminar entrenamiento") { showFinishConfirm = true }
@@ -40,8 +41,8 @@ struct WorkoutView: View {
             }
             .padding(12)
         }
-        .background(Theme.background)
         .scrollDismissesKeyboard(.interactively)
+        .background { Backdrop() }
         .navigationTitle(routine?.name ?? "Entrenamiento")
         .navigationBarTitleDisplayMode(.inline)
         .confirmationDialog(
@@ -78,11 +79,11 @@ struct WorkoutView: View {
         VStack(spacing: 2) {
             Text(value)
                 .font(.system(size: 20, weight: .bold, design: .rounded))
-                .foregroundStyle(Theme.cardText)
+                .foregroundStyle(tema.texto)
                 .monospacedDigit()
             Text(label)
                 .font(.system(size: 10))
-                .foregroundStyle(Theme.cardMuted)
+                .foregroundStyle(tema.texto2)
         }
     }
 
@@ -111,6 +112,7 @@ struct WorkoutView: View {
 }
 
 private struct ExerciseCard: View {
+    @Environment(\.tema) private var tema
     @Binding var exercise: WorkoutDraft.ExerciseDraft
     let draft: WorkoutDraft
 
@@ -120,12 +122,12 @@ private struct ExerciseCard: View {
                 HStack {
                     Text(exercise.name)
                         .font(.system(size: 15, weight: .bold))
-                        .foregroundStyle(Theme.cardText)
+                        .foregroundStyle(tema.texto)
                     Spacer()
                     Text("\(exercise.completedCount)/\(exercise.sets.count)")
                         .font(.system(size: 12, weight: .bold))
                         .foregroundStyle(exercise.completedCount == exercise.sets.count
-                                         ? Theme.accent : Theme.cardMuted)
+                                         ? tema.solido : tema.texto2)
                 }
 
                 ForEach($exercise.sets) { $set in
@@ -137,7 +139,7 @@ private struct ExerciseCard: View {
                 } label: {
                     Label("Agregar serie", systemImage: "plus")
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(Theme.accent)
+                        .foregroundStyle(tema.texto)
                 }
                 .buttonStyle(.plain)
                 .padding(.top, 2)
@@ -151,6 +153,7 @@ private struct ExerciseCard: View {
 }
 
 private struct SetRow: View {
+    @Environment(\.tema) private var tema
     @Binding var set: WorkoutDraft.SetDraft
     let index: Int
     let isTimeBased: Bool
@@ -159,7 +162,7 @@ private struct SetRow: View {
         HStack(spacing: 8) {
             Text("\(index)")
                 .font(.system(size: 12, weight: .bold))
-                .foregroundStyle(Theme.cardMuted)
+                .foregroundStyle(tema.texto2)
                 .frame(width: 18)
 
             if !isTimeBased {
@@ -176,7 +179,7 @@ private struct SetRow: View {
             } label: {
                 Image(systemName: set.failed ? "xmark.circle.fill" : "xmark.circle")
                     .font(.system(size: 20))
-                    .foregroundStyle(set.failed ? Theme.accentHover : Theme.cardMuted.opacity(0.5))
+                    .foregroundStyle(set.failed ? tema.solido : tema.texto2.opacity(0.5))
             }
             .buttonStyle(.plain)
 
@@ -186,7 +189,7 @@ private struct SetRow: View {
             } label: {
                 Image(systemName: set.done ? "checkmark.circle.fill" : "circle")
                     .font(.system(size: 24))
-                    .foregroundStyle(set.done ? Theme.accent : Theme.cardMuted.opacity(0.5))
+                    .foregroundStyle(set.done ? tema.solido : tema.texto2.opacity(0.5))
             }
             .buttonStyle(.plain)
             .sensoryFeedback(.selection, trigger: set.done)
@@ -201,11 +204,11 @@ private struct SetRow: View {
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.trailing)
                 .font(.system(size: 15, weight: .semibold, design: .rounded))
-                .foregroundStyle(Theme.cardText)
+                .foregroundStyle(tema.texto)
                 .frame(width: 52)
             Text(unit)
                 .font(.system(size: 11))
-                .foregroundStyle(Theme.cardMuted)
+                .foregroundStyle(tema.texto2)
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 6)
@@ -218,11 +221,11 @@ private struct SetRow: View {
                 .keyboardType(.numberPad)
                 .multilineTextAlignment(.trailing)
                 .font(.system(size: 15, weight: .semibold, design: .rounded))
-                .foregroundStyle(Theme.cardText)
+                .foregroundStyle(tema.texto)
                 .frame(width: 40)
             Text(unit)
                 .font(.system(size: 11))
-                .foregroundStyle(Theme.cardMuted)
+                .foregroundStyle(tema.texto2)
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 6)

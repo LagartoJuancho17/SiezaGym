@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct HistoryView: View {
+    @Environment(\.tema) private var tema
     let store: GymStore
 
     var body: some View {
@@ -11,7 +12,7 @@ struct HistoryView: View {
                         SurfaceCard(padding: 24) {
                             Text("Todavía no registraste entrenamientos.")
                                 .font(.system(size: 14))
-                                .foregroundStyle(Theme.cardMuted)
+                                .foregroundStyle(tema.texto2)
                                 .frame(maxWidth: .infinity)
                         }
                     }
@@ -27,7 +28,7 @@ struct HistoryView: View {
                 }
                 .padding(12)
             }
-            .background(Theme.background)
+            .background { Backdrop() }
             .bottomNavInset()
             .scrollIndicators(.hidden)
             .navigationTitle("Historial")
@@ -37,6 +38,7 @@ struct HistoryView: View {
 }
 
 struct SessionRow: View {
+    @Environment(\.tema) private var tema
     let session: WorkoutSession
     let store: GymStore
 
@@ -46,12 +48,12 @@ struct SessionRow: View {
                 HStack {
                     Text(session.routineName ?? "Entrenamiento libre")
                         .font(.system(size: 15, weight: .bold))
-                        .foregroundStyle(Theme.cardText)
+                        .foregroundStyle(tema.texto)
                     Spacer()
                     if let finishedAt = session.finishedAt {
                         Text(finishedAt.formatted(.dateTime.day().month(.abbreviated)))
                             .font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(Theme.cardMuted)
+                            .foregroundStyle(tema.texto2)
                     }
                 }
                 HStack(spacing: 12) {
@@ -68,11 +70,12 @@ struct SessionRow: View {
             Image(systemName: symbol).font(.system(size: 9))
             Text(text).font(.system(size: 11))
         }
-        .foregroundStyle(Theme.cardMuted)
+        .foregroundStyle(tema.texto2)
     }
 }
 
 struct SessionDetailView: View {
+    @Environment(\.tema) private var tema
     let session: WorkoutSession
     let store: GymStore
 
@@ -99,22 +102,22 @@ struct SessionDetailView: View {
                         VStack(alignment: .leading, spacing: 6) {
                             Text(store.name(of: exercise.exerciseID))
                                 .font(.system(size: 15, weight: .bold))
-                                .foregroundStyle(Theme.cardText)
+                                .foregroundStyle(tema.texto)
 
                             ForEach(exercise.sets) { set in
                                 HStack {
                                     Text("Serie \(set.setNumber)")
                                         .font(.system(size: 12))
-                                        .foregroundStyle(Theme.cardMuted)
+                                        .foregroundStyle(tema.texto2)
                                     Spacer()
                                     if set.failed {
                                         Text("fallada")
                                             .font(.system(size: 10, weight: .bold))
-                                            .foregroundStyle(Theme.accentHover)
+                                            .foregroundStyle(tema.texto)
                                     }
                                     Text("\(set.weight.formatted()) kg × \(set.reps)")
                                         .font(.system(size: 13, weight: .semibold, design: .rounded))
-                                        .foregroundStyle(Theme.cardText)
+                                        .foregroundStyle(tema.texto)
                                         .strikethrough(set.failed)
                                 }
                                 .frame(minHeight: 28)
@@ -125,7 +128,6 @@ struct SessionDetailView: View {
             }
             .padding(12)
         }
-        .background(Theme.background)
         .navigationTitle(session.finishedAt?.formatted(.dateTime.day().month().year()) ?? "Sesión")
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -134,10 +136,10 @@ struct SessionDetailView: View {
         VStack(spacing: 2) {
             Text(value)
                 .font(.system(size: 18, weight: .bold, design: .rounded))
-                .foregroundStyle(Theme.cardText)
+                .foregroundStyle(tema.texto)
             Text(label)
                 .font(.system(size: 10))
-                .foregroundStyle(Theme.cardMuted)
+                .foregroundStyle(tema.texto2)
         }
     }
 }

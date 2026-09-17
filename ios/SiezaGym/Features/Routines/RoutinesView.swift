@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct RoutinesView: View {
+    @Environment(\.tema) private var tema
     let store: GymStore
     @State private var workout: WorkoutTarget?
 
@@ -18,10 +19,10 @@ struct RoutinesView: View {
                             VStack(spacing: 10) {
                                 Text("Todavía no tenés rutinas.")
                                     .font(.system(size: 14, weight: .semibold))
-                                    .foregroundStyle(Theme.cardText)
+                                    .foregroundStyle(tema.texto)
                                 Text("Creá una desde la web y aparece acá.")
                                     .font(.system(size: 12))
-                                    .foregroundStyle(Theme.cardMuted)
+                                    .foregroundStyle(tema.texto2)
                             }
                             .frame(maxWidth: .infinity)
                         }
@@ -37,7 +38,7 @@ struct RoutinesView: View {
                 }
                 .padding(.bottom, 24)
             }
-            .background(Theme.background)
+            .background { Backdrop() }
             .bottomNavInset()
             .scrollIndicators(.hidden)
             .refreshable { await store.load() }
@@ -106,6 +107,7 @@ struct MonthGroup: Identifiable {
 }
 
 private struct MonthSection: View {
+    @Environment(\.tema) private var tema
     let month: MonthGroup
     let store: GymStore
     let onStart: (Routine) -> Void
@@ -130,21 +132,21 @@ private struct MonthSection: View {
                 HStack {
                     Label(month.label, systemImage: "calendar")
                         .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(Theme.cardText)
+                        .foregroundStyle(tema.texto)
                     Spacer()
                     Text("\(month.total) \(month.total == 1 ? "rutina" : "rutinas")")
                         .font(.system(size: 12))
-                        .foregroundStyle(Theme.cardMuted)
+                        .foregroundStyle(tema.texto2)
                     Image(systemName: "chevron.down")
                         .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(Theme.cardText)
+                        .foregroundStyle(tema.texto)
                         .rotationEffect(.degrees(isOpen ? 180 : 0))
                 }
                 .padding(14)
-                .background(Theme.surface, in: .rect(cornerRadius: Theme.radius))
+                .background(tema.vidrio(1), in: .rect(cornerRadius: Theme.radius))
                 .overlay {
                     RoundedRectangle(cornerRadius: Theme.radius)
-                        .strokeBorder(Theme.hairline, lineWidth: 1)
+                        .strokeBorder(tema.borde, lineWidth: 1)
                 }
             }
             .buttonStyle(.plain)
@@ -159,6 +161,7 @@ private struct MonthSection: View {
 }
 
 private struct WeekSection: View {
+    @Environment(\.tema) private var tema
     let week: MonthGroup.WeekGroup
     let store: GymStore
     let onStart: (Routine) -> Void
@@ -173,22 +176,22 @@ private struct WeekSection: View {
                 HStack {
                     Text(week.label)
                         .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(Theme.cardText)
+                        .foregroundStyle(tema.texto)
                     Spacer()
                     Text("\(week.routines.count)")
                         .font(.system(size: 12))
-                        .foregroundStyle(Theme.cardMuted)
+                        .foregroundStyle(tema.texto2)
                     Image(systemName: "chevron.down")
                         .font(.system(size: 11, weight: .bold))
-                        .foregroundStyle(Theme.cardText)
+                        .foregroundStyle(tema.texto)
                         .rotationEffect(.degrees(isOpen ? 180 : 0))
                 }
                 .padding(.horizontal, 14)
                 .padding(.vertical, 10)
-                .background(Theme.surface.opacity(0.9), in: .rect(cornerRadius: Theme.radius))
+                .background(tema.vidrio(1).opacity(0.9), in: .rect(cornerRadius: Theme.radius))
                 .overlay {
                     RoundedRectangle(cornerRadius: Theme.radius)
-                        .strokeBorder(Theme.hairline.opacity(0.6), lineWidth: 1)
+                        .strokeBorder(tema.borde.opacity(0.6), lineWidth: 1)
                 }
             }
             .buttonStyle(.plain)
@@ -210,6 +213,7 @@ private struct WeekSection: View {
 }
 
 struct RoutineRow: View {
+    @Environment(\.tema) private var tema
     let routine: Routine
     let store: GymStore
 
@@ -221,16 +225,16 @@ struct RoutineRow: View {
                 HStack(alignment: .top) {
                     Text(routine.name)
                         .font(.system(size: 15, weight: .bold))
-                        .foregroundStyle(Theme.cardText)
+                        .foregroundStyle(tema.texto)
                         .lineLimit(1)
                     Spacer(minLength: 6)
                     if routine.isAssigned {
                         Text("ASIGNADA")
                             .font(.system(size: 9, weight: .bold))
-                            .foregroundStyle(Theme.accent)
+                            .foregroundStyle(tema.texto)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
-                            .background(Theme.accent.opacity(0.12), in: .capsule)
+                            .background(tema.solido.opacity(0.12), in: .capsule)
                     }
                 }
 
@@ -247,14 +251,14 @@ struct RoutineRow: View {
 
             Image(systemName: "chevron.right")
                 .font(.system(size: 12, weight: .bold))
-                .foregroundStyle(Theme.cardMuted)
+                .foregroundStyle(tema.texto2)
                 .padding(.trailing, 12)
         }
         .frame(height: 72)
-        .background(Theme.surface, in: .rect(cornerRadius: Theme.radius))
+        .background(tema.vidrio(1), in: .rect(cornerRadius: Theme.radius))
         .overlay {
             RoundedRectangle(cornerRadius: Theme.radius)
-                .strokeBorder(Theme.hairline, lineWidth: 1)
+                .strokeBorder(tema.borde, lineWidth: 1)
         }
         .clipShape(.rect(cornerRadius: Theme.radius))
     }
@@ -264,6 +268,6 @@ struct RoutineRow: View {
             Image(systemName: symbol).font(.system(size: 9))
             Text(text).font(.system(size: 11))
         }
-        .foregroundStyle(Theme.cardMuted)
+        .foregroundStyle(tema.texto2)
     }
 }

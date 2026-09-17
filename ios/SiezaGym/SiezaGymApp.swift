@@ -34,29 +34,30 @@ struct SiezaGymApp: App {
             }
             // Google vuelve del navegador por el esquema de URL de la app.
             .onOpenURL { GIDSignIn.sharedInstance.handle($0) }
-            // La app es bordo siempre: no tiene modo claro alternativo.
+            // Los cinco temas del diseño son oscuros: no hay modo claro.
             .preferredColorScheme(.dark)
-            .tint(Theme.accent)
+            .tint(Theme.porDefecto.solido)
         }
     }
 }
 
 private struct MissingConfigView: View {
+    @Environment(\.tema) private var tema
     var body: some View {
         ZStack {
-            Theme.background.ignoresSafeArea()
+            Theme.porDefecto.fondoPlano.ignoresSafeArea()
             VStack(alignment: .leading, spacing: 14) {
                 Label("Falta GoogleService-Info.plist", systemImage: "exclamationmark.triangle.fill")
                     .font(.system(size: 18, weight: .bold))
-                    .foregroundStyle(Theme.accent)
+                    .foregroundStyle(Theme.porDefecto.solido)
 
                 Text("No está en el repo porque es público. Generalo desde la raíz del proyecto:")
                     .font(.system(size: 14))
-                    .foregroundStyle(Theme.onDarkMuted)
+                    .foregroundStyle(tema.texto2)
 
                 Text("node --env-file=.env --env-file=.env.local \\\nios/scripts/fetch-google-service-info.mjs")
                     .font(.system(size: 12, design: .monospaced))
-                    .foregroundStyle(Theme.onDark)
+                    .foregroundStyle(tema.texto)
                     .padding(12)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(.white.opacity(0.08), in: .rect(cornerRadius: Theme.radius))

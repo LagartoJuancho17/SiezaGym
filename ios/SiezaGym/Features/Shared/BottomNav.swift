@@ -5,59 +5,69 @@ enum AppTab: Hashable, CaseIterable {
     case home, routines, history, progress, profile
 }
 
-/// Barra inferior, copiada de `components/nav/BottomNav.js` de la web: 292x60,
-/// fondo gris, el item activo en naranja con radio 10 y separadores finos entre
-/// los inactivos. No usa la TabView nativa a proposito -- la barra del sistema
-/// es de vidrio y no tiene nada que ver con este diseno.
+/// Barra inferior, igual a la de la web: una pastilla de vidrio flotando, con
+/// la sección activa marcada con el sólido del tema y su nombre escrito. No usa
+/// la TabView nativa a proposito -- la barra del sistema no tiene nada que ver
+/// con este diseño.
 struct BottomNav: View {
+    @Environment(\.tema) private var tema
     @Binding var selection: AppTab
 
-    static let height: CGFloat = 60
-    /// Separacion del borde inferior, como el `bottom-6` de la web.
+    static let height: CGFloat = 52
+    /// Separacion del borde inferior.
     static let bottomGap: CGFloat = 16
-
-    private static let background = Color(hex: 0xB9B4B4)
-    private static let active = Color(hex: 0xF1602F)
-    private static let divider = Color(hex: 0xAFAAA9)
 
     private let tabs = AppTab.allCases
 
     var body: some View {
-        HStack(spacing: 0) {
-            ForEach(Array(tabs.enumerated()), id: \.element) { index, tab in
+        HStack(spacing: 5) {
+            ForEach(tabs, id: \.self) { tab in
                 let isActive = tab == selection
-                let nextIsActive = index < tabs.count - 1 && tabs[index + 1] == selection
 
                 Button {
                     selection = tab
                 } label: {
-                    NavIcon(tab: tab)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .background {
-                            if isActive {
-                                RoundedRectangle(cornerRadius: 10).fill(Self.active)
-                            }
+                    if isActive {
+                        // La sección activa lleva su nombre: el icono solo
+                        // alcanza para reconocer dónde estás parado.
+                        HStack(spacing: 6) {
+                            Text(tab.label)
+                                .font(.system(size: 13))
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.8)
+                                .frame(maxWidth: .infinity)
+                            NavIcon(tab: tab)
+                                .frame(width: 36, height: 36)
+                                .background(tema.sobreSolido, in: .circle)
+                                .foregroundStyle(tema.solido)
                         }
+                        .padding(.leading, 14)
+                        .padding(4)
+                        .foregroundStyle(tema.sobreSolido)
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                        .background(tema.solido, in: .capsule)
                         .contentShape(.rect)
+                    } else {
+                        NavIcon(tab: tab)
+                            .foregroundStyle(tema.texto)
+                            .frame(width: 44, height: 44)
+                            .background(tema.vidrio(1), in: .circle)
+                            .overlay { Circle().strokeBorder(tema.borde, lineWidth: 1) }
+                            .contentShape(.rect)
+                    }
                 }
                 .buttonStyle(NavButtonStyle())
                 .accessibilityLabel(tab.label)
                 .accessibilityAddTraits(isActive ? [.isSelected] : [])
-
-                // El separador solo aparece entre dos inactivos: al lado del
-                // naranja quedaria pegado al borde de la pastilla.
-                if index < tabs.count - 1, !isActive, !nextIsActive {
-                    Rectangle()
-                        .fill(Self.divider)
-                        .frame(width: 1)
-                }
             }
         }
         .padding(4)
-        .frame(width: 292, height: Self.height)
-        .background(Self.background, in: .rect(cornerRadius: 10))
-        .shadow(color: .black.opacity(0.18), radius: 15, y: 8)
-        .animation(.snappy(duration: 0.2), value: selection)
+        .frame(width: 296, height: Self.height)
+        .background(.ultraThinMaterial.opacity(0.7), in: .capsule)
+        .background(tema.vidrio(1), in: .capsule)
+        .overlay { Capsule().strokeBorder(tema.bordeFuerte, lineWidth: 1) }
+        .shadow(color: .black.opacity(0.28), radius: 18, y: 8)
+        .animation(.snappy(duration: 0.22), value: selection)
     }
 }
 

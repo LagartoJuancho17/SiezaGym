@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct RoutineDetailView: View {
+    @Environment(\.tema) private var tema
     let routine: Routine
     let store: GymStore
     let onStart: (Routine) -> Void
@@ -17,7 +18,7 @@ struct RoutineDetailView: View {
                         WidgetHeader(title: routine.isAssigned ? "Rutina asignada" : "Rutina")
                         Text(routine.name)
                             .font(.system(size: 24, weight: .bold))
-                            .foregroundStyle(Theme.cardText)
+                            .foregroundStyle(tema.texto)
                         HStack(spacing: 14) {
                             stat("\(routine.exercises.count)", "ejercicios")
                             stat("\(routine.totalSets)", "series")
@@ -26,7 +27,7 @@ struct RoutineDetailView: View {
                         if !routine.note.isEmpty {
                             Text(routine.note)
                                 .font(.system(size: 13))
-                                .foregroundStyle(Theme.cardMuted)
+                                .foregroundStyle(tema.texto2)
                         }
                     }
                 }
@@ -40,11 +41,11 @@ struct RoutineDetailView: View {
                                     HStack {
                                         Text(share.muscle.label)
                                             .font(.system(size: 12, weight: .semibold))
-                                            .foregroundStyle(Theme.cardText)
+                                            .foregroundStyle(tema.texto)
                                         Spacer()
                                         Text("\(Int(share.pct * 100))%")
                                             .font(.system(size: 12, weight: .bold))
-                                            .foregroundStyle(Theme.cardMuted)
+                                            .foregroundStyle(tema.texto2)
                                     }
                                     WidgetMeter(value: share.pct)
                                 }
@@ -58,14 +59,14 @@ struct RoutineDetailView: View {
                         VStack(alignment: .leading, spacing: 6) {
                             Text(store.name(of: item.exerciseID))
                                 .font(.system(size: 15, weight: .bold))
-                                .foregroundStyle(Theme.cardText)
+                                .foregroundStyle(tema.texto)
                             Text(targetLine(item))
                                 .font(.system(size: 12))
-                                .foregroundStyle(Theme.cardMuted)
+                                .foregroundStyle(tema.texto2)
                             if !item.techniqueNote.isEmpty {
                                 Text(item.techniqueNote)
                                     .font(.system(size: 12))
-                                    .foregroundStyle(Theme.cardMuted)
+                                    .foregroundStyle(tema.texto2)
                                     .italic()
                             }
                         }
@@ -78,7 +79,7 @@ struct RoutineDetailView: View {
             }
             .padding(12)
         }
-        .background(Theme.background)
+        .background { Backdrop() }
         .navigationTitle(routine.name)
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -96,10 +97,10 @@ struct RoutineDetailView: View {
         VStack(alignment: .leading, spacing: 1) {
             Text(value)
                 .font(.system(size: 18, weight: .bold, design: .rounded))
-                .foregroundStyle(Theme.cardText)
+                .foregroundStyle(tema.texto)
             Text(label)
                 .font(.system(size: 10))
-                .foregroundStyle(Theme.cardMuted)
+                .foregroundStyle(tema.texto2)
         }
     }
 }

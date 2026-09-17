@@ -2,14 +2,17 @@ import SwiftUI
 
 struct RootView: View {
     @Environment(AuthService.self) private var auth
+    /// El tema elegido vive acá arriba y baja por el entorno a toda la app,
+    /// igual que `ThemeRoot` en la web.
+    @State private var temas = ThemeStore()
 
     var body: some View {
         ZStack {
-            Theme.background.ignoresSafeArea()
+            Backdrop()
 
             switch auth.state {
             case .loading:
-                ProgressView().tint(Theme.accent)
+                ProgressView().tint(temas.actual.texto)
             case .signedOut:
                 LoginView()
             case let .signedIn(uid, _):
@@ -19,6 +22,8 @@ struct RootView: View {
                     .id(uid)
             }
         }
+        .environment(\.tema, temas.actual)
+        .environment(temas)
         .animation(.smooth(duration: 0.3), value: auth.state)
     }
 }
@@ -39,7 +44,7 @@ struct MainTabView: View {
         // navegacion al ir y volver. La barra del sistema se esconde porque la
         // de la app es la de `BottomNav`, igual a la de la web.
         TabView(selection: $tab) {
-            HomeView(store: store)
+            HomeScreen(store: store)
                 .tag(AppTab.home)
                 .toolbar(.hidden, for: .tabBar)
             RoutinesView(store: store)

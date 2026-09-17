@@ -3,6 +3,7 @@ import SwiftUI
 /// Progreso por ejercicio: mejor 1RM estimado y la evolucion del peso.
 /// Se llama ProgressScreen y no ProgressView para no chocar con la de SwiftUI.
 struct ProgressScreen: View {
+    @Environment(\.tema) private var tema
     let store: GymStore
 
     /// Un renglon por ejercicio entrenado, ordenado por 1RM estimado.
@@ -29,7 +30,7 @@ struct ProgressScreen: View {
                         SurfaceCard(padding: 24) {
                             Text("Registrá entrenamientos con peso para ver tu progreso.")
                                 .font(.system(size: 14))
-                                .foregroundStyle(Theme.cardMuted)
+                                .foregroundStyle(tema.texto2)
                                 .frame(maxWidth: .infinity)
                         }
                     }
@@ -39,7 +40,7 @@ struct ProgressScreen: View {
                             VStack(alignment: .leading, spacing: 8) {
                                 Text(row.name)
                                     .font(.system(size: 15, weight: .bold))
-                                    .foregroundStyle(Theme.cardText)
+                                    .foregroundStyle(tema.texto)
 
                                 HStack(spacing: 18) {
                                     stat(row.oneRepMax.formatted(.number.precision(.fractionLength(0))), "1RM est.")
@@ -56,14 +57,14 @@ struct ProgressScreen: View {
                                 // real solo se sabe intentandolo.
                                 Text("1RM estimado con Epley: peso × (1 + reps/30).")
                                     .font(.system(size: 9))
-                                    .foregroundStyle(Theme.cardMuted)
+                                    .foregroundStyle(tema.texto2)
                             }
                         }
                     }
                 }
                 .padding(12)
             }
-            .background(Theme.background)
+            .background { Backdrop() }
             .bottomNavInset()
             .scrollIndicators(.hidden)
             .navigationTitle("Progreso")
@@ -98,10 +99,10 @@ struct ProgressScreen: View {
         VStack(alignment: .leading, spacing: 1) {
             Text(value)
                 .font(.system(size: 17, weight: .bold, design: .rounded))
-                .foregroundStyle(Theme.cardText)
+                .foregroundStyle(tema.texto)
             Text(label)
                 .font(.system(size: 9))
-                .foregroundStyle(Theme.cardMuted)
+                .foregroundStyle(tema.texto2)
         }
     }
 }
@@ -117,6 +118,7 @@ struct ExerciseProgress: Identifiable {
 /// Linea simple de evolucion. Normaliza entre el minimo y el maximo para que la
 /// forma se vea aunque los valores esten todos cerca.
 struct Sparkline: View {
+    @Environment(\.tema) private var tema
     let values: [Double]
 
     var body: some View {
@@ -137,7 +139,7 @@ struct Sparkline: View {
                     else { path.addLine(to: CGPoint(x: x, y: y)) }
                 }
             }
-            .stroke(Theme.accent, style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
+            .stroke(tema.solido, style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
         }
     }
 }
