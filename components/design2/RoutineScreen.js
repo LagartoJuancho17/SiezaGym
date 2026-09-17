@@ -383,6 +383,11 @@ export default function RoutineScreen({ routine }) {
 
         {!running && routine.note && <p className="d2-glass d2-note">{routine.note}</p>}
 
+        {/* En escritorio los ejercicios ocupan la columna ancha y el reparto
+            muscular queda al costado, a la vista mientras se recorre la
+            lista. En teléfono se apilan igual que siempre. */}
+        <div className="d2-split">
+          <div>
         <p className="d2-label">
           {running ? `Planilla · ${pluralSets(planned)}` : `Ejercicios · ${routine.exercises.length}`}
         </p>
@@ -427,6 +432,9 @@ export default function RoutineScreen({ routine }) {
           </div>
         )}
 
+          </div>
+
+          <div>
         {!running && routine.muscles.length > 0 && (
           <>
             <p className="d2-label">Músculos que trabaja</p>
@@ -445,6 +453,8 @@ export default function RoutineScreen({ routine }) {
             </div>
           </>
         )}
+          </div>
+        </div>
 
         {error && <p className="d2-glass d2-error">{error}</p>}
 

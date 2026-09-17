@@ -134,14 +134,20 @@ export default async function Home() {
           actionLabel={featured ? `Abrir rutina ${featured.name}` : "Nueva rutina"}
         />
 
-        <TrainingWeek trainedDayKeys={trainedDates} todayKey={todayKey} streak={streak} />
+        {/* En escritorio la semana y los objetivos van a la izquierda, y lo
+            que se consulta —actividad y accesos— a la derecha. En teléfono la
+            clase no hace nada y se apilan igual que antes. */}
+        <div className="d2-split">
+          <div>
+            <TrainingWeek trainedDayKeys={trainedDates} todayKey={todayKey} streak={streak} />
+            <GoalRail cards={cards} />
+          </div>
 
-        <GoalRail cards={cards} />
+          <div>
+            <RecentActivity activities={activities} />
 
-        <RecentActivity activities={activities} />
-
-        <p className="d2-label">Tu espacio</p>
-        <div className="d2-panel">
+            <p className="d2-label">Tu espacio</p>
+            <div className="d2-panel">
           <Link href="/dashboard" className="d2-setting">
             <span className="d2-setting-body"><span className="d2-setting-name">Dashboard</span><span className="d2-setting-hint">Resumen, métricas y accesos</span></span>
             <span aria-hidden="true">↗</span>
@@ -150,6 +156,8 @@ export default async function Home() {
             <span className="d2-setting-body"><span className="d2-setting-name">{profile?.isCoach || profile?.isAdmin ? "Mis alumnos" : "Tu profesor"}</span><span className="d2-setting-hint">{profile?.isCoach || profile?.isAdmin ? "Invitaciones y seguimiento" : "Vinculá tu cuenta desde Perfil"}</span></span>
             <span aria-hidden="true">↗</span>
           </Link>
+            </div>
+          </div>
         </div>
       </div>
 

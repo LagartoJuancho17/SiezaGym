@@ -1,5 +1,7 @@
 import Link from "next/link";
+import Image from "next/image";
 import PageShell from "@/components/design2/PageShell";
+import { WeightIcon } from "@/components/design2/Icons";
 import { listCustomExercises } from "@/lib/customExercises/customExercises";
 import "@/components/progress/progress-design2.css";
 import { notFound, redirect } from "next/navigation";
@@ -59,9 +61,18 @@ export default async function SesionDetallePage({ params }) {
             >
               <Link
                 href={`/progreso/${exercise.exerciseId}`}
-                className="d2-session-exercise-name"
+                className="d2-session-exercise-head"
               >
-                {catalogExercise?.nameEs || "Ejercicio"}
+                <span className="d2-ex-thumb d2-ex-thumb-sm">
+                  {catalogExercise?.mediaUrl ? (
+                    <Image src={catalogExercise.mediaUrl} alt="" width={40} height={40} unoptimized />
+                  ) : (
+                    <WeightIcon size={17} width={1.5} />
+                  )}
+                </span>
+                <span className="d2-session-exercise-name">
+                  {catalogExercise?.nameEs || "Ejercicio"}
+                </span>
               </Link>
               <div className="d2-session-sets">
                 {(exercise.sets || []).map((set, setIndex) => (
@@ -89,6 +100,15 @@ export default async function SesionDetallePage({ params }) {
           );
         })}
       </section>
+
+      {session.exercises.some((exercise) => exerciseLookup.get(exercise.exerciseId)?.mediaUrl) && (
+        <p className="d2-credit">
+          Animaciones de ejercicios ©{" "}
+          <a href="https://gymvisual.com/" target="_blank" rel="noopener noreferrer">
+            Gym visual
+          </a>
+        </p>
+      )}
     </PageShell>
   );
 }

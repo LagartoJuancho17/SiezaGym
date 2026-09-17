@@ -111,10 +111,16 @@ export default async function PerfilPage() {
           </span>
         </p>
 
-        <p className="d2-label">Tus datos</p>
-        <ProfileForm profile={profile} />
+        {/* En escritorio: lo que se edita a la izquierda, lo que se ajusta
+            una vez a la derecha. */}
+        <div className="d2-split">
+          <div>
+            <p className="d2-label">Tus datos</p>
+            <ProfileForm profile={profile} />
+          </div>
 
-        <p className="d2-label">Configuración</p>
+          <div>
+            <p className="d2-label">Configuración</p>
         <div className="d2-panel">
           <Link href="/dashboard" className="d2-setting">
             <span className="d2-setting-body">
@@ -176,11 +182,13 @@ export default async function PerfilPage() {
           </p>
         )}
 
-        <form action={logout}>
-          <button type="submit" className="d2-signout">
-            Cerrar sesión
-          </button>
-        </form>
+            <form action={logout}>
+              <button type="submit" className="d2-signout">
+                Cerrar sesión
+              </button>
+            </form>
+          </div>
+        </div>
       </div>
 
       <TabBar />

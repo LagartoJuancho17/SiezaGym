@@ -20,8 +20,15 @@ const TABS = [
 ];
 
 /**
- * Barra inferior del rediseño: la sección activa es una pastilla negra con la
- * etiqueta y un disco blanco; el resto son discos de vidrio sin texto.
+ * Navegación principal.
+ *
+ * En teléfono es la barra flotante de abajo: la sección activa es una pastilla
+ * con la etiqueta y un disco; el resto, discos de vidrio sin texto.
+ *
+ * En pantalla ancha es un panel vertical a la izquierda con las cinco
+ * etiquetas siempre a la vista. El marcado es el mismo en los dos casos y la
+ * diferencia la hace el CSS: una barra que en escritorio esconde los nombres
+ * obliga a adivinar por el icono, con lugar de sobra para escribirlos.
  */
 export default function TabBar({ activePath } = {}) {
   const currentPath = usePathname();
@@ -44,16 +51,10 @@ export default function TabBar({ activePath } = {}) {
               aria-current={isActive ? "page" : undefined}
               className={isActive ? "d2-tab d2-tab-active" : "d2-orb d2-tab"}
             >
-              {isActive ? (
-                <>
-                  <span className="d2-tab-label">{label}</span>
-                  <span className="d2-tab-active-icon">
-                    <Icon size={16} width={1.5} />
-                  </span>
-                </>
-              ) : (
-                <Icon size={20} width={1.5} />
-              )}
+              <span className="d2-tab-label">{label}</span>
+              <span className="d2-tab-icon">
+                <Icon size={isActive ? 16 : 20} width={1.5} />
+              </span>
             </Link>
           );
         })}
