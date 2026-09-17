@@ -1,9 +1,10 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/firebase/session";
 import { listExercises } from "@/lib/exercises/exercises";
 import { listCustomExercises } from "@/lib/customExercises/customExercises";
-import RoutineBuilder from "@/components/routines/RoutineBuilder";
+import ThemeRoot from "@/components/design2/ThemeRoot";
+import Backdrop from "@/components/design2/Backdrop";
+import RoutineComposer from "@/components/design2/RoutineComposer";
 
 export const dynamic = "force-dynamic";
 
@@ -16,24 +17,24 @@ export default async function NuevaRutinaPage() {
     listCustomExercises(user.uid),
   ]);
 
-  return (
-    <div className="flex flex-col gap-5 px-[18px] pb-[100px]">
-      <header className="flex items-center justify-between gap-3">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-teal2">Nueva</p>
-          <h1 className="font-display mt-1 text-[26px] uppercase leading-none">Rutina</h1>
-        </div>
-        <Link href="/rutinas" className="text-sm font-medium text-faint transition hover:text-text">
-          Cancelar
-        </Link>
-      </header>
+  // Solo lo que la pantalla dibuja: el catalogo entero son 94 ejercicios con
+  // descripciones largas que no hacen falta del lado del cliente.
+  const exercises = [...catalogExercises, ...customExercises].map((exercise) => ({
+    id: exercise.id,
+    nameEs: exercise.nameEs,
+    nameEn: exercise.nameEn,
+    mediaUrl: exercise.mediaUrl || null,
+    muscleWeights: exercise.muscleWeights || {},
+    registrationType: exercise.registrationType,
+    source: exercise.source,
+  }));
 
-      <RoutineBuilder
-        mode="create"
-        routine={null}
-        catalogExercises={catalogExercises}
-        customExercises={customExercises}
-      />
-    </div>
+  return (
+    <ThemeRoot>
+      <Backdrop />
+      <div className="d2-page">
+        <RoutineComposer exercises={exercises} />
+      </div>
+    </ThemeRoot>
   );
 }

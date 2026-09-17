@@ -1,0 +1,1194 @@
+/*
+ * design2 — sistema de diseño del rediseño.
+ *
+ * Todo sale de variables: color, vidrio (opacidad, desenfoque, saturación),
+ * textura, sombras y radios. Cambiar un tema es cambiar este bloque de
+ * variables, no tocar componentes.
+ *
+ * Los temas se eligen con `data-d2-theme` sobre el contenedor `.d2`.
+ * El default es "plata". Para fijar otro sin pasar por el selector, cambiá
+ * DEFAULT_THEME en components/design2/themes.js.
+ *
+ * Vive todo bajo `.d2` a propósito: las pantallas que todavía no se
+ * rediseñaron siguen con la paleta bordo de globals.css y no se pisan.
+ */
+
+.d2 {
+  /* ---- forma ---- */
+  --d2-radius: 26px;
+  --d2-radius-lg: 30px;
+  --d2-radius-sm: 18px;
+
+  /* ---- vidrio ----
+     El vidrio no tiene color propio: es blanco (o negro) translúcido y el color
+     se lo da el fondo que difumina. Por eso los niveles son la misma tinta a
+     distinta opacidad, y lo que cambia entre temas es sobre qué se apoya. */
+  --d2-glass-tint: 255, 255, 255;
+  --d2-glass-1: 0.13;
+  --d2-glass-2: 0.19;
+  --d2-glass-3: 0.28;
+  /* El filtro va entero en una variable y no como blur(var(--x)): Lightning
+     CSS, el compilador de Tailwind v4, no sabe parsear una var() adentro de
+     blur() y descarta la declaracion completa en silencio. El vidrio se queda
+     sin esmerilar y no hay ningun error que lo avise. */
+  --d2-glass-filter: blur(22px) saturate(140%);
+  --d2-glass-filter-strong: blur(26px) saturate(140%);
+
+  /* Canto de cristal: luz arriba, sombra abajo. Sin esto el vidrio se ve como
+     un rectángulo translúcido y pierde el volumen. */
+  --d2-edge-top: rgba(255, 255, 255, 0.28);
+  --d2-edge-bottom: rgba(0, 0, 0, 0.06);
+  --d2-border: rgba(255, 255, 255, 0.16);
+  --d2-border-strong: rgba(255, 255, 255, 0.3);
+  --d2-shadow: 0 8px 28px rgba(31, 38, 48, 0.12);
+  --d2-shadow-strong: 0 10px 34px rgba(31, 38, 48, 0.14);
+
+  /* ---- texto ---- */
+  --d2-text: #ffffff;
+  --d2-text-2: rgba(255, 255, 255, 0.74);
+  --d2-text-3: rgba(255, 255, 255, 0.52);
+
+  /* ---- elemento sólido (FAB, pastilla activa de la barra) ----
+     En temas claros es negro sobre claro; en temas oscuros se invierte, porque
+     un botón negro sobre fondo negro desaparece. */
+  --d2-ink: #111315;
+  --d2-on-ink: #ffffff;
+  --d2-ink-shadow: 0 10px 26px rgba(17, 19, 21, 0.35);
+
+  /* ---- anillos de progreso ---- */
+  --d2-ring-track: rgba(255, 255, 255, 0.28);
+  --d2-ring-fill: #15181b;
+  --d2-ring-core: rgba(255, 255, 255, 0.25);
+  --d2-ring-core-border: rgba(255, 255, 255, 0.35);
+
+  /* ---- fondo ---- */
+  --d2-bg-a: #d9dde3;
+  --d2-bg-b: #c4c9d1;
+  --d2-bg-c: #9ba2ad;
+  --d2-bg-grad: linear-gradient(168deg, #c3c8d0 0%, #aeb4bd 46%, #c9ced5 100%);
+
+  /* Las manchas son lo que le da algo que difuminar al vidrio: sobre un color
+     plano el backdrop-filter no se percibe. */
+  --d2-blob-1: rgba(122, 131, 145, 0.55);
+  --d2-blob-2: rgba(232, 236, 241, 0.6);
+  --d2-blob-3: rgba(104, 112, 126, 0.5);
+  --d2-blob-filter: blur(70px);
+
+  /* ---- textura ---- */
+  /* Estrias verticales, como un vidrio acanalado. Apagadas salvo en los temas
+     que las traen. Van en una capa propia arriba de las manchas: en la
+     referencia el acanalado es la superficie de adelante, no el fondo. */
+  --d2-ribs: none;
+  --d2-noise-opacity: 0;
+  --d2-noise-blend: overlay;
+
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--d2-text);
+}
+
+/* El piso completo: el degradado de base con las tres luces encima. Lo usan el
+   fondo de la pantalla y la muestra de cada tema en Configuracion, asi la
+   muestra dibuja la composicion real del tema y no una aproximacion que se
+   desactualiza al retocarlo.
+
+   Va tambien sobre [data-d2-vars] y no solo sobre .d2 porque un var() adentro
+   de otra variable se resuelve en el elemento donde se declara la variable, no
+   donde se usa. Declarado solo en .d2, cada muestra heredaria el piso ya
+   resuelto del tema activo y las cinco se verian iguales. */
+.d2,
+[data-d2-vars] {
+  --d2-ground:
+    radial-gradient(120% 80% at 18% 8%, var(--d2-bg-a) 0%, transparent 55%),
+    radial-gradient(90% 70% at 88% 22%, var(--d2-bg-b) 0%, transparent 60%),
+    radial-gradient(130% 90% at 50% 105%, var(--d2-bg-c) 0%, transparent 60%),
+    var(--d2-bg-grad);
+}
+
+/* ============================================================
+   TEMAS
+   ============================================================ */
+
+/* Cada tema se puede aplicar de dos formas: `data-d2-theme` sobre el
+   contenedor `.d2`, que pinta la app entera, y `data-d2-vars` sobre cualquier
+   elemento suelto, que le presta las variables de ese tema sin arrastrar el
+   layout de `.d2`. Lo segundo es lo que hace que la muestra de cada tema en
+   Configuración dibuje su fondo real y no una copia escrita a mano que se
+   desactualiza al retocar el tema. */
+
+/* Noche. */
+.d2[data-d2-theme="noche"],
+[data-d2-vars="noche"] {
+  --d2-glass-1: 0.07;
+  --d2-glass-2: 0.11;
+  --d2-glass-3: 0.16;
+  --d2-glass-filter: blur(26px) saturate(120%);
+  --d2-glass-filter-strong: blur(32px) saturate(120%);
+
+  --d2-edge-top: rgba(255, 255, 255, 0.16);
+  --d2-edge-bottom: rgba(0, 0, 0, 0.45);
+  --d2-border: rgba(255, 255, 255, 0.11);
+  --d2-border-strong: rgba(255, 255, 255, 0.2);
+  --d2-shadow: 0 10px 34px rgba(0, 0, 0, 0.5);
+  --d2-shadow-strong: 0 14px 44px rgba(0, 0, 0, 0.6);
+
+  --d2-text: #ffffff;
+  --d2-text-2: rgba(255, 255, 255, 0.66);
+  --d2-text-3: rgba(255, 255, 255, 0.42);
+
+  /* Invertido: el sólido es claro sobre el fondo negro. */
+  --d2-ink: #f4f5f7;
+  --d2-on-ink: #0b0c0e;
+  --d2-ink-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+
+  --d2-ring-track: rgba(255, 255, 255, 0.14);
+  --d2-ring-fill: #ffffff;
+  --d2-ring-core: rgba(255, 255, 255, 0.09);
+  --d2-ring-core-border: rgba(255, 255, 255, 0.16);
+
+  --d2-bg-a: #23262c;
+  --d2-bg-b: #16181c;
+  --d2-bg-c: #000000;
+  --d2-bg-grad: linear-gradient(168deg, #1a1d22 0%, #0b0c0e 52%, #000000 100%);
+
+  --d2-blob-1: rgba(96, 108, 128, 0.5);
+  --d2-blob-2: rgba(210, 220, 236, 0.12);
+  --d2-blob-3: rgba(20, 22, 27, 0.9);
+  --d2-blob-filter: blur(84px);
+
+  --d2-noise-opacity: 0.05;
+  --d2-noise-blend: overlay;
+}
+
+/* Plata: gris humo medido sobre el interior de la referencia, sin el marco
+   exterior del teléfono. La sombra central queda detrás del vidrio. */
+.d2[data-d2-theme="plata"],
+[data-d2-vars="plata"] {
+  --d2-glass-1: 0.19;
+  --d2-glass-2: 0.16;
+  --d2-glass-3: 0.24;
+  --d2-glass-filter: blur(20px) saturate(100%);
+  --d2-glass-filter-strong: blur(24px) saturate(100%);
+  --d2-edge-top: rgba(255, 255, 255, 0.22);
+  --d2-edge-bottom: rgba(255, 255, 255, 0.015);
+  --d2-border: rgba(255, 255, 255, 0.22);
+  --d2-border-strong: rgba(255, 255, 255, 0.3);
+  --d2-shadow: 0 2px 5px rgba(36, 39, 44, 0.015);
+  --d2-shadow-strong: 0 2px 8px rgba(36, 39, 44, 0.04);
+  --d2-text: #fafcfc;
+  --d2-text-2: rgba(247, 250, 253, 0.65);
+  --d2-text-3: rgba(247, 250, 253, 0.57);
+  --d2-ink: #23221e;
+  --d2-on-ink: #f7fdfd;
+  --d2-ink-shadow: none;
+  --d2-ring-track: rgba(244, 247, 255, 0.55);
+  --d2-ring-fill: #252721;
+  --d2-ring-core: rgba(255, 255, 255, 0.07);
+  --d2-ring-core-border: rgba(255, 255, 255, 0.18);
+  --d2-bg-a: rgba(170, 176, 183, 0.22);
+  --d2-bg-b: rgba(178, 183, 189, 0.14);
+  --d2-bg-c: rgba(59, 62, 70, 0.68);
+  --d2-bg-grad: linear-gradient(180deg, #7f848b 0%, #858a91 22%, #686c74 60%, #63666e 100%);
+  --d2-blob-1: rgba(187, 193, 199, 0.2);
+  --d2-blob-2: rgba(182, 186, 193, 0.22);
+  --d2-blob-3: rgba(42, 45, 53, 0.7);
+  --d2-blob-filter: blur(48px);
+  --d2-noise-opacity: 0.025;
+  --d2-noise-blend: soft-light;
+
+  /* Plata mide su piso contra la referencia: elipses propias en vez de las
+     tres luces genericas. */
+  --d2-ground:
+    radial-gradient(ellipse 29% 36% at 52% 69%, rgba(37, 40, 48, 0.68), transparent 100%),
+    radial-gradient(ellipse 29% 38% at 4% 48%, rgba(206, 211, 214, 0.29), transparent 100%),
+    radial-gradient(ellipse 34% 34% at 105% 63%, rgba(185, 190, 197, 0.22), transparent 100%),
+    var(--d2-bg-grad);
+}
+
+/* Brasa — el bordo de SiezaGym, para que el rediseño pueda seguir siendo la
+   misma marca que la web actual. */
+.d2[data-d2-theme="brasa"],
+[data-d2-vars="brasa"] {
+  --d2-glass-1: 0.09;
+  --d2-glass-2: 0.14;
+  --d2-glass-3: 0.2;
+  --d2-glass-filter: blur(24px) saturate(130%);
+  --d2-glass-filter-strong: blur(28px) saturate(130%);
+
+  --d2-edge-top: rgba(255, 255, 255, 0.2);
+  --d2-edge-bottom: rgba(0, 0, 0, 0.35);
+  --d2-border: rgba(255, 255, 255, 0.13);
+  --d2-border-strong: rgba(255, 176, 150, 0.28);
+  --d2-shadow: 0 10px 34px rgba(30, 4, 6, 0.5);
+  --d2-shadow-strong: 0 14px 44px rgba(30, 4, 6, 0.6);
+
+  --d2-text-2: rgba(255, 236, 232, 0.7);
+  --d2-text-3: rgba(255, 236, 232, 0.45);
+
+  --d2-ink: #ff5733;
+  --d2-on-ink: #ffffff;
+  --d2-ink-shadow: 0 10px 30px rgba(255, 87, 51, 0.4);
+
+  --d2-ring-track: rgba(255, 255, 255, 0.16);
+  --d2-ring-fill: #ff5733;
+  --d2-ring-core: rgba(255, 255, 255, 0.1);
+  --d2-ring-core-border: rgba(255, 255, 255, 0.18);
+
+  --d2-bg-a: #520f13;
+  --d2-bg-b: #2c0709;
+  --d2-bg-c: #120203;
+  --d2-bg-grad: linear-gradient(168deg, #3b0a0c 0%, #1e0405 55%, #0b0102 100%);
+
+  --d2-blob-1: rgba(255, 87, 51, 0.24);
+  --d2-blob-2: rgba(255, 190, 170, 0.1);
+  --d2-blob-3: rgba(60, 10, 13, 0.85);
+  --d2-blob-filter: blur(80px);
+
+  --d2-noise-opacity: 0.05;
+  --d2-noise-blend: overlay;
+}
+
+/* Luz entre pliegues — el fondo es el SVG que trajo Tobias, servido tal cual
+   desde /public/themes. No se recrea con degradados: el archivo ya es la obra,
+   franja por franja. Lo unico que sale de acá es la paleta de la interfaz que
+   va encima, medida contra esa imagen. */
+.d2[data-d2-theme="pliegues"],
+[data-d2-vars="pliegues"] {
+  --d2-glass-1: 0.07;
+  --d2-glass-2: 0.12;
+  --d2-glass-3: 0.18;
+  --d2-glass-filter: blur(26px) saturate(135%);
+  --d2-glass-filter-strong: blur(32px) saturate(135%);
+
+  --d2-edge-top: rgba(255, 226, 206, 0.18);
+  --d2-edge-bottom: rgba(0, 0, 0, 0.5);
+  --d2-border: rgba(255, 219, 199, 0.12);
+  --d2-border-strong: rgba(255, 186, 140, 0.3);
+  --d2-shadow: 0 10px 34px rgba(12, 4, 6, 0.55);
+  --d2-shadow-strong: 0 14px 44px rgba(12, 4, 6, 0.65);
+
+  --d2-text: #fdf4ee;
+  --d2-text-2: rgba(253, 236, 226, 0.7);
+  --d2-text-3: rgba(253, 236, 226, 0.46);
+
+  /* El ambar de la obra. Como es un solido claro, el texto de encima va
+     oscuro, igual que en noche. */
+  --d2-ink: #df7b47;
+  --d2-on-ink: #1c0a05;
+  --d2-ink-shadow: 0 10px 30px rgba(223, 123, 71, 0.38);
+
+  --d2-ring-track: rgba(255, 255, 255, 0.14);
+  --d2-ring-fill: #df7b47;
+  --d2-ring-core: rgba(255, 255, 255, 0.08);
+  --d2-ring-core-border: rgba(255, 255, 255, 0.16);
+
+  --d2-bg-grad: #000;
+  --d2-ground: url("/themes/luz-entre-pliegues.svg");
+
+  /* Las estrias y el grano ya estan dibujados adentro del SVG. */
+  --d2-ribs: none;
+  --d2-noise-opacity: 0;
+}
+
+/* Azul electrico — mismo criterio: el SVG que trajo Tobias, servido tal cual.
+   El solido es el rosa de la obra: un boton azul sobre fondo azul se pierde. */
+.d2[data-d2-theme="electrico"],
+[data-d2-vars="electrico"] {
+  --d2-glass-1: 0.1;
+  --d2-glass-2: 0.15;
+  --d2-glass-3: 0.22;
+  --d2-glass-filter: blur(28px) saturate(130%);
+  --d2-glass-filter-strong: blur(34px) saturate(130%);
+
+  --d2-edge-top: rgba(226, 232, 255, 0.22);
+  --d2-edge-bottom: rgba(0, 0, 0, 0.42);
+  --d2-border: rgba(214, 224, 255, 0.16);
+  --d2-border-strong: rgba(198, 212, 255, 0.34);
+  --d2-shadow: 0 10px 34px rgba(3, 6, 26, 0.6);
+  --d2-shadow-strong: 0 14px 44px rgba(3, 6, 26, 0.7);
+
+  --d2-text: #f2f5ff;
+  --d2-text-2: rgba(234, 239, 255, 0.74);
+  --d2-text-3: rgba(234, 239, 255, 0.5);
+
+  --d2-ink: #e54587;
+  --d2-on-ink: #1a0210;
+  --d2-ink-shadow: 0 10px 30px rgba(229, 69, 135, 0.42);
+
+  --d2-ring-track: rgba(255, 255, 255, 0.18);
+  --d2-ring-fill: #e54587;
+  --d2-ring-core: rgba(255, 255, 255, 0.1);
+  --d2-ring-core-border: rgba(255, 255, 255, 0.2);
+
+  --d2-bg-grad: #000;
+  --d2-ground: url("/themes/azul-electrico.svg");
+
+  --d2-ribs: none;
+  --d2-noise-opacity: 0;
+}
+
+/* ============================================================
+   PIEZAS
+   ============================================================ */
+
+.d2-glass {
+  background: rgba(var(--d2-glass-tint), var(--d2-glass-1));
+  border: 1px solid var(--d2-border);
+  -webkit-backdrop-filter: var(--d2-glass-filter);
+  backdrop-filter: var(--d2-glass-filter);
+  box-shadow:
+    inset 0 1px 0 var(--d2-edge-top),
+    inset 0 -1px 0 var(--d2-edge-bottom),
+    var(--d2-shadow);
+}
+
+.d2-glass-strong {
+  background: rgba(var(--d2-glass-tint), var(--d2-glass-2));
+  border: 1px solid var(--d2-border-strong);
+  -webkit-backdrop-filter: var(--d2-glass-filter-strong);
+  backdrop-filter: var(--d2-glass-filter-strong);
+  box-shadow:
+    inset 0 1px 0 var(--d2-edge-top),
+    var(--d2-shadow-strong);
+}
+
+.d2-backdrop {
+  background: var(--d2-ground);
+  /* cover + centro para los temas cuyo piso es una imagen: la obra sangra a
+     toda la pantalla en vez de quedar con franjas negras al costado. En los
+     temas de degradado no cambia nada, porque un degradado ya llena la caja. */
+  background-size: cover;
+  background-position: center;
+}
+
+.d2-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: var(--d2-blob-filter);
+  will-change: transform;
+}
+
+.d2-ribs {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: var(--d2-ribs);
+}
+
+/* Grano. Rompe las bandas del degradado, que en negro se ven mucho, y le saca
+   el aspecto plano al fondo. Se apaga con --d2-noise-opacity: 0. */
+.d2-noise {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: var(--d2-noise-opacity);
+  mix-blend-mode: var(--d2-noise-blend);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+}
+
+/* Relleno de vidrio suelto, para piezas que no son una tarjeta entera. */
+.d2-fill {
+  background: rgba(var(--d2-glass-tint), var(--d2-glass-1));
+}
+.d2-fill-strong {
+  background: rgba(var(--d2-glass-tint), var(--d2-glass-3));
+}
+/* El variante hover: de Tailwind no alcanza a las clases propias, asi que el
+   estado va escrito aca. */
+.d2-fill-hover:hover {
+  background: rgba(var(--d2-glass-tint), var(--d2-glass-1));
+}
+
+.d2-rail {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.d2-rail::-webkit-scrollbar {
+  display: none;
+}
+
+/* Proporciones del interior de la referencia: base 390 × 844.
+   Una única unidad conserva la escala entre 320 y 520 px. La escala queda
+   apenas contenida para que el contenido respire en móviles reales; los
+   márgenes laterales siguen siendo 18 px. El contenido largo puede aumentar
+   su altura y desplazarse; nunca queda tapado por la barra. */
+.d2 {
+  --d2-u: clamp(0.77px, 0.241025641vw, 1.253333px);
+  position: relative;
+  isolation: isolate;
+  min-height: 100svh;
+  /* El piso del tema va en el contenedor y no solo en la capa fija de atras:
+     el <body> de la app es bordo, y mientras el fondo fijo no pinto se lo ve
+     asomar. Las manchas del Backdrop se dibujan encima igual, porque un hijo
+     con z-index negativo pinta arriba del fondo de su padre. */
+  background: var(--d2-bg-grad);
+  color-scheme: dark;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+}
+
+.d2-home,
+.d2-page {
+  width: 100%;
+  max-width: 520px;
+  margin-inline: auto;
+  padding-top: max(calc(54 * var(--d2-u)), env(safe-area-inset-top));
+  padding-right: 18px;
+  padding-bottom: max(calc(96 * var(--d2-u)), calc(78 * var(--d2-u) + env(safe-area-inset-bottom)));
+  padding-left: 18px;
+}
+
+.d2-backdrop { z-index: -1; }
+/* Las manchas desenfocadas existen para darle algo que difuminar al vidrio
+   sobre un fondo plano. Los temas que traen una obra de fondo ya tienen forma
+   propia, y encima la ensucian. */
+.d2[data-d2-theme="plata"] .d2-blob,
+.d2[data-d2-theme="pliegues"] .d2-blob,
+.d2[data-d2-theme="electrico"] .d2-blob { display: none; }
+
+.d2-header { display: flex; align-items: center; gap: calc(14 * var(--d2-u)); }
+.d2-avatar {
+  position: relative;
+  flex: none;
+  width: calc(65 * var(--d2-u));
+  height: calc(65 * var(--d2-u));
+  overflow: hidden;
+  border-radius: 50%;
+  background: radial-gradient(circle at 36% 25%, var(--d2-border-strong), transparent 70%), var(--d2-ring-core);
+  box-shadow: inset 0 1px 5px var(--d2-edge-bottom);
+}
+.d2-avatar img { filter: grayscale(1); opacity: 0.78; }
+.d2-avatar-initial { display: grid; height: 100%; place-items: center; font-size: calc(26 * var(--d2-u)); font-weight: 500; }
+.d2-greeting { min-width: 0; flex: 1; }
+.d2-greeting-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: calc(21 * var(--d2-u)); font-weight: 500; line-height: 1.3; letter-spacing: -0.025em; }
+.d2-greeting-progress { display: flex; align-items: center; gap: calc(7 * var(--d2-u)); margin-top: calc(5 * var(--d2-u)); font-size: calc(14 * var(--d2-u)); line-height: 1.35; color: var(--d2-text-2); }
+.d2-greeting-progress svg { width: calc(19 * var(--d2-u)); height: calc(19 * var(--d2-u)); flex: none; color: var(--d2-text); }
+
+.d2-orb {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--d2-border);
+  border-radius: 50%;
+  background: radial-gradient(circle at 28% 15%, rgba(var(--d2-glass-tint), 0.18), transparent 63%), rgba(var(--d2-glass-tint), 0.065);
+  box-shadow: inset 0 1px 3px var(--d2-edge-top), inset 0 -2px 6px rgba(var(--d2-glass-tint), 0.14), 0 1px 4px var(--d2-edge-bottom);
+  -webkit-backdrop-filter: var(--d2-glass-filter);
+  backdrop-filter: var(--d2-glass-filter);
+}
+.d2-profile-link { width: calc(65 * var(--d2-u)); height: calc(65 * var(--d2-u)); border-color: transparent; box-shadow: inset 0 0 3px var(--d2-border-strong); background: rgba(var(--d2-glass-tint), 0.025); }
+.d2-profile-link svg { width: calc(23 * var(--d2-u)); height: calc(23 * var(--d2-u)); }
+
+.d2-headline { display: flex; align-items: flex-end; gap: calc(14 * var(--d2-u)); margin-top: calc(37 * var(--d2-u)); }
+.d2-headline h1 { flex: 1; min-width: 0; margin: 0; font-size: calc(30 * var(--d2-u)); line-height: 1.2; letter-spacing: -0.02em; overflow-wrap: anywhere; }
+.d2-headline-lead { display: block; font-weight: 500; }
+.d2-headline-emphasis { display: block; font-weight: 750; font-style: italic; }
+.d2-fab { display: flex; flex: none; align-items: center; justify-content: center; width: calc(57 * var(--d2-u)); height: calc(57 * var(--d2-u)); border-radius: 50%; background: var(--d2-ink); color: var(--d2-on-ink); box-shadow: var(--d2-ink-shadow); }
+.d2-fab svg { width: calc(24 * var(--d2-u)); height: calc(24 * var(--d2-u)); }
+
+.d2-search { display: flex; align-items: center; gap: calc(9 * var(--d2-u)); height: calc(57 * var(--d2-u)); margin-top: calc(20 * var(--d2-u)); padding-inline: calc(20 * var(--d2-u)); border-radius: 999px; }
+.d2-search > svg { width: calc(25 * var(--d2-u)); height: calc(25 * var(--d2-u)); flex: none; }
+.d2-search-input { width: 100%; min-width: 0; background: transparent; border: 0; outline: none; font-size: max(16px, calc(15 * var(--d2-u))); font-weight: 400; color: var(--d2-text); }
+.d2-search-input::placeholder { color: var(--d2-text-2); opacity: 1; }
+.d2-search:focus-within { outline: 2px solid var(--d2-text); outline-offset: 3px; }
+
+.d2-goals { margin-top: calc(15 * var(--d2-u)); }
+.d2-section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: calc(8 * var(--d2-u)); min-height: calc(27 * var(--d2-u)); }
+.d2-section-heading h2 { font-size: calc(20 * var(--d2-u)); line-height: 1.35; font-weight: 500; letter-spacing: -0.02em; }
+.d2-goals .d2-section-heading h2 { color: var(--d2-text-2); }
+.d2-section-heading a { flex: none; padding-block: 5px; margin-block: -5px; font-size: calc(14 * var(--d2-u)); line-height: 1.4; color: var(--d2-text-2); text-underline-offset: 4px; }
+.d2-goal-rail { display: flex; gap: calc(16 * var(--d2-u)); overflow-x: auto; margin: calc(16 * var(--d2-u)) -18px 0; padding-inline: 18px; scroll-padding-inline: 18px; scroll-snap-type: x proximity; }
+.d2-goal-card { display: flex; flex-direction: column; justify-content: space-between; flex: 0 0 calc(150 * var(--d2-u)); min-width: 0; min-height: calc(151 * var(--d2-u)); padding: calc(14 * var(--d2-u)); border-radius: calc(33 * var(--d2-u)); scroll-snap-align: start; }
+.d2-goal-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: calc(14 * var(--d2-u)); line-height: 1.3; color: var(--d2-text-2); }
+.d2-goal-value { display: flex; flex-wrap: wrap; gap: 0 calc(4 * var(--d2-u)); margin-top: calc(6 * var(--d2-u)); font-size: calc(18 * var(--d2-u)); font-weight: 600; line-height: 1.2; letter-spacing: -0.035em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.d2-goal-footer { display: flex; align-items: flex-end; justify-content: space-between; gap: calc(4 * var(--d2-u)); margin-top: calc(18 * var(--d2-u)); }
+.d2-goal-badge { min-width: 0; max-width: calc(65 * var(--d2-u)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: calc(6 * var(--d2-u)) calc(8 * var(--d2-u)); border: 1px solid var(--d2-border); border-radius: 999px; background: rgba(var(--d2-glass-tint), 0.1); font-size: calc(9 * var(--d2-u)); line-height: 1.3; }
+.d2-ring { position: relative; flex: none; width: calc(var(--d2-ring-size) * var(--d2-u)); height: calc(var(--d2-ring-size) * var(--d2-u)); }
+.d2-ring > svg { width: 100%; height: 100%; overflow: visible; }
+.d2-ring-core { position: absolute; inset: calc(5 * var(--d2-u)); display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--d2-ring-core); border: 1px solid var(--d2-ring-core-border); color: var(--d2-text); box-shadow: inset 0 1px 4px var(--d2-edge-top), inset 0 -2px 4px var(--d2-edge-bottom); }
+.d2-ring-core > svg { width: calc(19 * var(--d2-u)); height: calc(19 * var(--d2-u)); }
+
+.d2-activity { margin-top: calc(17 * var(--d2-u)); }
+.d2-home-routines { margin-top: calc(17 * var(--d2-u)); }
+.d2-home-routines .d2-routine-list { margin-top: calc(14 * var(--d2-u)); }
+.d2-activity-list { display: flex; flex-direction: column; gap: calc(14 * var(--d2-u)); margin-top: calc(14 * var(--d2-u)); }
+.d2-activity-row { display: flex; align-items: center; gap: calc(13 * var(--d2-u)); min-height: calc(80 * var(--d2-u)); padding: calc(12 * var(--d2-u)); padding-right: calc(18 * var(--d2-u)); border-radius: calc(24 * var(--d2-u)); }
+.d2-activity-icon { width: calc(55 * var(--d2-u)); height: calc(55 * var(--d2-u)); }
+.d2-activity-icon svg { width: calc(26 * var(--d2-u)); height: calc(26 * var(--d2-u)); }
+.d2-activity-description { min-width: 0; flex: 1; }
+.d2-activity-name { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: calc(15 * var(--d2-u)); line-height: 1.3; font-weight: 500; letter-spacing: -0.015em; }
+.d2-activity-secondary { display: block; margin-top: calc(7 * var(--d2-u)); font-size: calc(11 * var(--d2-u)); line-height: 1.4; color: var(--d2-text-2); font-weight: 400; }
+.d2-activity-metrics { flex: none; text-align: right; max-width: 42%; }
+.d2-activity-volume { display: block; font-size: calc(15 * var(--d2-u)); line-height: 1.3; font-weight: 500; letter-spacing: -0.025em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.d2-activity-empty { margin-top: calc(14 * var(--d2-u)); padding: calc(24 * var(--d2-u)); border-radius: calc(24 * var(--d2-u)); font-size: calc(14 * var(--d2-u)); color: var(--d2-text-2); }
+
+/* ---------- Rutinas ---------- */
+
+.d2-page-head { display: flex; align-items: center; gap: calc(14 * var(--d2-u)); }
+.d2-page-title { flex: 1; min-width: 0; font-size: calc(30 * var(--d2-u)); line-height: 1.2; font-weight: 750; letter-spacing: -0.025em; }
+
+.d2-routine-section { margin-top: calc(24 * var(--d2-u)); }
+.d2-routine-month { margin-bottom: calc(10 * var(--d2-u)); padding-left: calc(4 * var(--d2-u)); font-size: calc(13 * var(--d2-u)); line-height: 1.4; font-weight: 400; color: var(--d2-text-2); }
+
+/* Un solo panel con las filas separadas por una linea fina, en vez de una
+   tarjeta por rutina: la lista se lee como un objeto y no como una pila. */
+.d2-routine-list { overflow: hidden; border-radius: calc(24 * var(--d2-u)); background: rgba(var(--d2-glass-tint), var(--d2-glass-1)); border: 1px solid var(--d2-border); -webkit-backdrop-filter: var(--d2-glass-filter); backdrop-filter: var(--d2-glass-filter); box-shadow: inset 0 1px 0 var(--d2-edge-top), var(--d2-shadow); }
+.d2-routine { display: flex; align-items: center; gap: calc(12 * var(--d2-u)); min-height: calc(64 * var(--d2-u)); padding: calc(13 * var(--d2-u)) calc(18 * var(--d2-u)); }
+.d2-routine + .d2-routine { border-top: 1px solid var(--d2-border); }
+.d2-routine-body { min-width: 0; flex: 1; }
+.d2-routine-name { display: flex; align-items: center; gap: calc(8 * var(--d2-u)); font-size: calc(15 * var(--d2-u)); line-height: 1.3; font-weight: 500; letter-spacing: -0.015em; }
+.d2-routine-name span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.d2-routine-tag { flex: none; font-size: calc(10 * var(--d2-u)); line-height: 1.4; font-weight: 400; color: var(--d2-text-2); }
+.d2-routine-meta { margin-top: calc(5 * var(--d2-u)); font-size: calc(11 * var(--d2-u)); line-height: 1.4; color: var(--d2-text-2); font-variant-numeric: tabular-nums; }
+.d2-routine-go { flex: none; width: calc(16 * var(--d2-u)); height: calc(16 * var(--d2-u)); color: var(--d2-text-3); }
+
+.d2-empty { margin-top: calc(24 * var(--d2-u)); padding: calc(28 * var(--d2-u)); border-radius: calc(24 * var(--d2-u)); text-align: center; font-size: calc(14 * var(--d2-u)); line-height: 1.5; color: var(--d2-text-2); }
+.d2-empty-action { display: inline-flex; align-items: center; justify-content: center; gap: calc(7 * var(--d2-u)); min-height: calc(46 * var(--d2-u)); margin-top: calc(16 * var(--d2-u)); padding-inline: calc(20 * var(--d2-u)); border-radius: 999px; background: var(--d2-ink); color: var(--d2-on-ink); font-size: calc(14 * var(--d2-u)); font-weight: 500; box-shadow: var(--d2-ink-shadow); }
+.d2-empty-action svg { width: calc(16 * var(--d2-u)); height: calc(16 * var(--d2-u)); }
+
+/* ---------- Armar una rutina ---------- */
+
+.d2-compose-head { display: flex; align-items: center; gap: calc(12 * var(--d2-u)); }
+.d2-compose-head .d2-page-title { font-size: calc(24 * var(--d2-u)); }
+.d2-back { display: flex; flex: none; align-items: center; justify-content: center; width: calc(44 * var(--d2-u)); height: calc(44 * var(--d2-u)); border-radius: 50%; color: var(--d2-text); }
+.d2-back svg { width: calc(20 * var(--d2-u)); height: calc(20 * var(--d2-u)); }
+.d2-save { display: flex; flex: none; align-items: center; min-height: calc(44 * var(--d2-u)); padding-inline: calc(18 * var(--d2-u)); border-radius: 999px; background: var(--d2-ink); color: var(--d2-on-ink); font-size: calc(14 * var(--d2-u)); font-weight: 500; box-shadow: var(--d2-ink-shadow); }
+.d2-save[disabled] { opacity: 0.45; box-shadow: none; }
+
+.d2-name-field { width: 100%; min-height: calc(60 * var(--d2-u)); margin-top: calc(20 * var(--d2-u)); padding-inline: calc(20 * var(--d2-u)); border-radius: calc(20 * var(--d2-u)); background: rgba(var(--d2-glass-tint), var(--d2-glass-1)); border: 1px solid var(--d2-border); -webkit-backdrop-filter: var(--d2-glass-filter); backdrop-filter: var(--d2-glass-filter); color: var(--d2-text); font-size: max(16px, calc(17 * var(--d2-u))); font-weight: 500; letter-spacing: -0.015em; }
+.d2-name-field::placeholder { color: var(--d2-text-3); }
+.d2-name-field:focus-visible { outline: 2px solid var(--d2-text); outline-offset: 3px; }
+
+.d2-label { margin: calc(24 * var(--d2-u)) 0 calc(10 * var(--d2-u)); padding-left: calc(4 * var(--d2-u)); font-size: calc(13 * var(--d2-u)); line-height: 1.4; font-weight: 400; color: var(--d2-text-2); }
+
+/* Un panel con las filas separadas por linea fina, igual que la lista de
+   rutinas, para que armar y mirar se vean como la misma cosa. */
+.d2-panel { overflow: hidden; border-radius: calc(24 * var(--d2-u)); background: rgba(var(--d2-glass-tint), var(--d2-glass-1)); border: 1px solid var(--d2-border); -webkit-backdrop-filter: var(--d2-glass-filter); backdrop-filter: var(--d2-glass-filter); box-shadow: inset 0 1px 0 var(--d2-edge-top), var(--d2-shadow); }
+.d2-panel > * + * { border-top: 1px solid var(--d2-border); }
+
+.d2-ex-head { display: flex; align-items: center; gap: calc(12 * var(--d2-u)); padding: calc(12 * var(--d2-u)) calc(14 * var(--d2-u)); }
+.d2-ex-toggle { display: flex; flex: 1; min-width: 0; align-items: center; gap: calc(12 * var(--d2-u)); text-align: left; color: var(--d2-text); }
+.d2-ex-summary { flex: none; font-size: calc(12 * var(--d2-u)); color: var(--d2-text-2); font-variant-numeric: tabular-nums; max-width: calc(120 * var(--d2-u)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.d2-ex-chevron { flex: none; width: calc(15 * var(--d2-u)); height: calc(15 * var(--d2-u)); color: var(--d2-text-3); transition: transform 180ms ease; }
+.d2-ex-toggle[aria-expanded="true"] .d2-ex-chevron { transform: rotate(180deg); }
+
+/* Panel de prescripcion. Se abre por ejercicio para que la lista siga siendo
+   legible cuando la rutina tiene diez. */
+.d2-ex-detail { padding: 0 calc(14 * var(--d2-u)) calc(14 * var(--d2-u)); }
+.d2-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(calc(68 * var(--d2-u)), 1fr)); gap: calc(8 * var(--d2-u)); }
+/* Con el detalle por serie activo solo queda "Series": sin esto se estira a
+   todo el ancho y queda un numero solo en el medio de la ficha. */
+.d2-fields-single { grid-template-columns: minmax(calc(68 * var(--d2-u)), calc(112 * var(--d2-u))); }
+.d2-field { display: flex; flex-direction: column; gap: calc(5 * var(--d2-u)); }
+.d2-field > span { font-size: calc(10 * var(--d2-u)); line-height: 1.3; color: var(--d2-text-2); }
+.d2-field input { width: 100%; min-height: calc(40 * var(--d2-u)); padding-inline: calc(10 * var(--d2-u)); border-radius: calc(12 * var(--d2-u)); border: 1px solid var(--d2-border); background: rgba(var(--d2-glass-tint), var(--d2-glass-1)); color: var(--d2-text); text-align: center; font-size: max(16px, calc(13 * var(--d2-u))); font-variant-numeric: tabular-nums; }
+.d2-field input::placeholder { color: var(--d2-text-3); }
+
+.d2-switch { display: flex; align-items: center; gap: calc(9 * var(--d2-u)); width: 100%; min-height: calc(42 * var(--d2-u)); margin-top: calc(10 * var(--d2-u)); font-size: calc(12 * var(--d2-u)); color: var(--d2-text-2); text-align: left; }
+.d2-switch-box { display: flex; flex: none; align-items: center; justify-content: center; width: calc(20 * var(--d2-u)); height: calc(20 * var(--d2-u)); border-radius: calc(7 * var(--d2-u)); border: 1px solid var(--d2-border-strong); }
+.d2-switch-box svg { width: calc(11 * var(--d2-u)); height: calc(11 * var(--d2-u)); }
+.d2-switch[aria-pressed="true"] { color: var(--d2-text); }
+.d2-switch[aria-pressed="true"] .d2-switch-box { background: var(--d2-ink); color: var(--d2-on-ink); border-color: transparent; }
+
+/* Una fila por serie, para prescribir rampas: 10, 12, 14, 16. */
+.d2-setrows { display: flex; flex-direction: column; gap: calc(7 * var(--d2-u)); margin-top: calc(10 * var(--d2-u)); }
+.d2-setrow { display: flex; align-items: center; gap: calc(7 * var(--d2-u)); }
+.d2-setrow-n { flex: none; width: calc(20 * var(--d2-u)); font-size: calc(11 * var(--d2-u)); color: var(--d2-text-3); font-variant-numeric: tabular-nums; }
+.d2-setrow .d2-field { flex: 1; min-width: 0; }
+.d2-setrow .d2-field > span { display: none; }
+.d2-setrow-legend { display: flex; align-items: center; gap: calc(7 * var(--d2-u)); margin-bottom: calc(2 * var(--d2-u)); font-size: calc(10 * var(--d2-u)); color: var(--d2-text-2); }
+.d2-setrow-legend > span:first-child { flex: none; width: calc(20 * var(--d2-u)); }
+.d2-setrow-legend > span { flex: 1; text-align: center; }
+.d2-ex-thumb { position: relative; display: flex; align-items: center; justify-content: center; flex: none; width: calc(54 * var(--d2-u)); height: calc(54 * var(--d2-u)); overflow: hidden; border-radius: calc(16 * var(--d2-u)); background: #f2f3f4; color: rgba(17, 19, 21, 0.28); }
+.d2-ex-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.d2-ex-thumb > svg { width: calc(22 * var(--d2-u)); height: calc(22 * var(--d2-u)); }
+.d2-ex-body { min-width: 0; flex: 1; }
+.d2-ex-name { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: calc(14 * var(--d2-u)); line-height: 1.3; font-weight: 500; letter-spacing: -0.015em; }
+.d2-ex-muscle { display: block; margin-top: calc(4 * var(--d2-u)); font-size: calc(11 * var(--d2-u)); line-height: 1.4; color: var(--d2-text-2); }
+.d2-ex-sets { display: flex; align-items: center; gap: calc(5 * var(--d2-u)); flex: none; font-size: calc(11 * var(--d2-u)); color: var(--d2-text-2); }
+.d2-num { width: calc(38 * var(--d2-u)); min-height: calc(34 * var(--d2-u)); padding-inline: calc(4 * var(--d2-u)); border-radius: calc(11 * var(--d2-u)); border: 1px solid var(--d2-border); background: rgba(var(--d2-glass-tint), var(--d2-glass-1)); color: var(--d2-text); text-align: center; font-size: max(16px, calc(13 * var(--d2-u))); font-variant-numeric: tabular-nums; }
+.d2-ex-remove { display: flex; flex: none; align-items: center; justify-content: center; width: calc(34 * var(--d2-u)); height: calc(34 * var(--d2-u)); border-radius: 50%; color: var(--d2-text-3); }
+.d2-ex-remove svg { width: calc(15 * var(--d2-u)); height: calc(15 * var(--d2-u)); }
+
+.d2-add { display: flex; align-items: center; justify-content: center; gap: calc(8 * var(--d2-u)); width: 100%; min-height: calc(52 * var(--d2-u)); margin-top: calc(12 * var(--d2-u)); border-radius: calc(20 * var(--d2-u)); border: 1px dashed var(--d2-border-strong); color: var(--d2-text); font-size: calc(14 * var(--d2-u)); font-weight: 500; }
+.d2-add svg { width: calc(17 * var(--d2-u)); height: calc(17 * var(--d2-u)); }
+
+/* Reparto muscular de lo que se lleva armado. Sale de muscleWeights del
+   catalogo, no de una estimacion. */
+.d2-muscles { padding: calc(16 * var(--d2-u)); }
+.d2-muscles > * + * { border-top: 0; }
+.d2-muscle-row + .d2-muscle-row { margin-top: calc(11 * var(--d2-u)); }
+.d2-muscle-head { display: flex; justify-content: space-between; gap: calc(8 * var(--d2-u)); font-size: calc(12 * var(--d2-u)); line-height: 1.3; }
+.d2-muscle-head span:last-child { color: var(--d2-text-2); font-variant-numeric: tabular-nums; }
+.d2-muscle-bar { display: block; height: calc(5 * var(--d2-u)); margin-top: calc(5 * var(--d2-u)); border-radius: 999px; background: var(--d2-ring-track); overflow: hidden; }
+.d2-muscle-bar > span { display: block; height: 100%; border-radius: 999px; background: var(--d2-ink); }
+
+.d2-error { margin-top: calc(14 * var(--d2-u)); padding: calc(14 * var(--d2-u)) calc(18 * var(--d2-u)); border-radius: calc(18 * var(--d2-u)); font-size: calc(13 * var(--d2-u)); line-height: 1.45; color: var(--d2-text); }
+
+/* ---------- Selector de ejercicios ---------- */
+
+.d2-sheet { position: fixed; inset: 0; z-index: 70; display: flex; flex-direction: column; }
+.d2-sheet-inner { display: flex; flex-direction: column; width: 100%; max-width: 520px; margin-inline: auto; flex: 1; min-height: 0; padding: max(calc(20 * var(--d2-u)), env(safe-area-inset-top)) 18px 0; }
+.d2-sheet-head { display: flex; align-items: center; gap: calc(12 * var(--d2-u)); }
+.d2-sheet-title { flex: 1; min-width: 0; font-size: calc(20 * var(--d2-u)); font-weight: 600; letter-spacing: -0.02em; }
+.d2-regions { display: flex; gap: calc(8 * var(--d2-u)); margin-top: calc(14 * var(--d2-u)); overflow-x: auto; padding-bottom: calc(2 * var(--d2-u)); }
+.d2-region { flex: none; min-height: calc(36 * var(--d2-u)); padding-inline: calc(14 * var(--d2-u)); border-radius: 999px; border: 1px solid var(--d2-border); background: rgba(var(--d2-glass-tint), var(--d2-glass-1)); color: var(--d2-text); font-size: calc(13 * var(--d2-u)); }
+.d2-region-active { background: var(--d2-ink); color: var(--d2-on-ink); border-color: transparent; }
+.d2-picks { flex: 1; min-height: 0; overflow-y: auto; margin-top: calc(14 * var(--d2-u)); padding-bottom: calc(24 * var(--d2-u)); }
+.d2-pick { display: flex; width: 100%; align-items: center; gap: calc(12 * var(--d2-u)); padding: calc(10 * var(--d2-u)) calc(14 * var(--d2-u)); text-align: left; color: var(--d2-text); }
+.d2-pick-check { display: flex; flex: none; align-items: center; justify-content: center; width: calc(24 * var(--d2-u)); height: calc(24 * var(--d2-u)); border-radius: 50%; border: 1px solid var(--d2-border-strong); }
+.d2-pick-check svg { width: calc(13 * var(--d2-u)); height: calc(13 * var(--d2-u)); }
+.d2-pick-on .d2-pick-check { background: var(--d2-ink); color: var(--d2-on-ink); border-color: transparent; }
+.d2-sheet-foot { padding: calc(12 * var(--d2-u)) 18px max(calc(16 * var(--d2-u)), env(safe-area-inset-bottom)); }
+.d2-sheet-confirm { display: flex; align-items: center; justify-content: center; width: 100%; min-height: calc(52 * var(--d2-u)); border-radius: 999px; background: var(--d2-ink); color: var(--d2-on-ink); font-size: calc(15 * var(--d2-u)); font-weight: 500; box-shadow: var(--d2-ink-shadow); }
+.d2-sheet-confirm[disabled] { opacity: 0.45; box-shadow: none; }
+.d2-credit { margin-top: calc(14 * var(--d2-u)); text-align: center; font-size: calc(10 * var(--d2-u)); color: var(--d2-text-3); }
+.d2-credit a { text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---------- Detalle de una rutina ---------- */
+
+/* El titulo de una rutina puede ser largo: se deja crecer a dos lineas en vez
+   de recortarlo con puntos suspensivos. */
+.d2-detail-title { flex: 1; min-width: 0; font-size: calc(24 * var(--d2-u)); line-height: 1.2; font-weight: 750; letter-spacing: -0.025em; overflow-wrap: anywhere; }
+.d2-detail-tag { display: block; margin-top: calc(4 * var(--d2-u)); font-size: calc(11 * var(--d2-u)); line-height: 1.4; font-weight: 400; color: var(--d2-text-2); }
+
+/* Tres numeros y nada mas: ejercicios, series y tiempo. */
+.d2-stats { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: calc(20 * var(--d2-u)); padding: calc(16 * var(--d2-u)) calc(10 * var(--d2-u)); }
+.d2-stats > * + * { border-top: 0; border-left: 1px solid var(--d2-border); }
+.d2-stat { display: flex; flex-direction: column; align-items: center; gap: calc(4 * var(--d2-u)); }
+.d2-stat-value { font-size: calc(22 * var(--d2-u)); line-height: 1.1; font-weight: 600; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.d2-stat-label { font-size: calc(10 * var(--d2-u)); line-height: 1.3; color: var(--d2-text-2); text-align: center; }
+
+/* Nota de la rutina, tal como la escribio quien la armo. */
+.d2-note { margin-top: calc(14 * var(--d2-u)); padding: calc(14 * var(--d2-u)) calc(18 * var(--d2-u)); border-radius: calc(18 * var(--d2-u)); font-size: calc(13 * var(--d2-u)); line-height: 1.5; color: var(--d2-text-2); }
+
+/* Anillo de terminado al lado del nombre, cuando el ejercicio ya esta hecho. */
+.d2-ex-check { display: flex; flex: none; align-items: center; justify-content: center; width: calc(18 * var(--d2-u)); height: calc(18 * var(--d2-u)); color: var(--d2-text); }
+.d2-ex-check svg { width: 100%; height: 100%; }
+
+/* Lo prescrito, una fila por serie. Es una tabla de lectura: mismas columnas
+   que la planilla de entrenamiento, para que la vista y el registro se lean
+   igual. */
+/* Filas en flex y no en grid: la cantidad de columnas cambia segun el
+   ejercicio (sin peso en plancha, sin RIR si no se prescribio) y con flex la
+   fila se acomoda sola, sin una plantilla de grid por combinacion. */
+.d2-plan { display: flex; flex-direction: column; gap: calc(6 * var(--d2-u)); }
+.d2-plan-row { display: flex; align-items: center; gap: calc(8 * var(--d2-u)); }
+.d2-plan-head { flex: 1; min-width: 0; font-size: calc(10 * var(--d2-u)); line-height: 1.3; color: var(--d2-text-3); text-align: center; }
+.d2-plan-n { flex: none; width: calc(22 * var(--d2-u)); font-size: calc(11 * var(--d2-u)); line-height: 1.3; color: var(--d2-text-3); font-variant-numeric: tabular-nums; }
+.d2-plan-cell { flex: 1; min-width: 0; min-height: calc(32 * var(--d2-u)); display: grid; place-items: center; border-radius: calc(11 * var(--d2-u)); background: rgba(var(--d2-glass-tint), var(--d2-glass-1)); font-size: calc(13 * var(--d2-u)); line-height: 1.2; font-variant-numeric: tabular-nums; }
+.d2-plan-cell-empty { color: var(--d2-text-3); }
+.d2-ex-meta { margin-top: calc(12 * var(--d2-u)); font-size: calc(11 * var(--d2-u)); line-height: 1.5; color: var(--d2-text-2); }
+
+/* Planilla del entrenamiento: numero, dos campos y el tilde que confirma. */
+.d2-log { display: flex; flex-direction: column; gap: calc(7 * var(--d2-u)); }
+.d2-log-row { display: flex; align-items: center; gap: calc(8 * var(--d2-u)); }
+.d2-log-n { flex: none; width: calc(22 * var(--d2-u)); font-size: calc(11 * var(--d2-u)); color: var(--d2-text-3); font-variant-numeric: tabular-nums; }
+.d2-log-row input { flex: 1; width: 100%; min-width: 0; min-height: calc(40 * var(--d2-u)); padding-inline: calc(8 * var(--d2-u)); border-radius: calc(12 * var(--d2-u)); border: 1px solid var(--d2-border); background: rgba(var(--d2-glass-tint), var(--d2-glass-1)); color: var(--d2-text); text-align: center; font-size: max(16px, calc(13 * var(--d2-u))); font-variant-numeric: tabular-nums; }
+.d2-log-row input::placeholder { color: var(--d2-text-3); }
+.d2-log-check { display: flex; flex: none; align-items: center; justify-content: center; width: calc(40 * var(--d2-u)); height: calc(40 * var(--d2-u)); border-radius: 50%; border: 1px solid var(--d2-border-strong); color: var(--d2-text); }
+.d2-log-check svg { width: calc(15 * var(--d2-u)); height: calc(15 * var(--d2-u)); }
+/* Serie confirmada: el solido del tema, el mismo que el dia entrenado del
+   calendario, para que "esto esta hecho" se lea igual en toda la app. */
+.d2-log-check-on { background: var(--d2-ink); color: var(--d2-on-ink); border-color: transparent; }
+.d2-log-row-done input { opacity: 0.55; }
+/* Hueco del tilde en la fila de rotulos, para que las columnas coincidan. */
+.d2-log-spacer { flex: none; width: calc(40 * var(--d2-u)); }
+.d2-log-tools { display: flex; gap: calc(8 * var(--d2-u)); margin-top: calc(10 * var(--d2-u)); }
+.d2-chip { min-height: calc(34 * var(--d2-u)); padding-inline: calc(12 * var(--d2-u)); border-radius: 999px; border: 1px dashed var(--d2-border-strong); color: var(--d2-text-2); font-size: calc(12 * var(--d2-u)); }
+.d2-chip[disabled] { opacity: 0.4; }
+
+/* Barra de accion. Va fija y centrada con el mismo ancho que la pagina, para
+   que el boton principal quede siempre a mano sin tapar el contenido. */
+.d2-dock { position: fixed; inset-inline: 0; z-index: 55; display: flex; justify-content: center; padding-inline: 18px; pointer-events: none; bottom: max(calc(78 * var(--d2-u)), calc(72 * var(--d2-u) + env(safe-area-inset-bottom))); }
+/* Entrenando no hay barra de pestanas: la accion baja al borde y no se puede
+   salir de la sesion de un toque al azar. */
+.d2-dock-low { bottom: max(calc(16 * var(--d2-u)), env(safe-area-inset-bottom)); }
+.d2-dock > * { width: 100%; max-width: 484px; pointer-events: auto; }
+/* La pagina reserva el alto del dock para que el ultimo ejercicio no quede
+   abajo del boton. */
+.d2-page-dock { padding-bottom: max(calc(152 * var(--d2-u)), calc(134 * var(--d2-u) + env(safe-area-inset-bottom))); }
+
+.d2-start { display: flex; align-items: center; justify-content: center; gap: calc(9 * var(--d2-u)); min-height: calc(54 * var(--d2-u)); border-radius: 999px; background: var(--d2-ink); color: var(--d2-on-ink); font-size: calc(15 * var(--d2-u)); font-weight: 500; box-shadow: var(--d2-ink-shadow); }
+.d2-start svg { width: calc(17 * var(--d2-u)); height: calc(17 * var(--d2-u)); }
+.d2-start svg path { fill: currentColor; }
+.d2-start[disabled] { opacity: 0.45; box-shadow: none; }
+
+.d2-run { display: flex; flex-direction: column; gap: calc(10 * var(--d2-u)); padding: calc(14 * var(--d2-u)); border-radius: calc(24 * var(--d2-u)); }
+.d2-run-top { display: flex; align-items: center; gap: calc(10 * var(--d2-u)); }
+.d2-run-clock { font-size: calc(24 * var(--d2-u)); line-height: 1; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.d2-run-progress { flex: 1; min-width: 0; font-size: calc(11 * var(--d2-u)); line-height: 1.4; color: var(--d2-text-2); }
+.d2-run-hold { display: block; color: var(--d2-text); }
+.d2-run-actions { display: flex; gap: calc(8 * var(--d2-u)); }
+.d2-ghost { display: flex; flex: none; align-items: center; justify-content: center; gap: calc(6 * var(--d2-u)); min-height: calc(46 * var(--d2-u)); padding-inline: calc(16 * var(--d2-u)); border-radius: 999px; border: 1px solid var(--d2-border-strong); color: var(--d2-text); font-size: calc(14 * var(--d2-u)); }
+.d2-ghost svg { width: calc(15 * var(--d2-u)); height: calc(15 * var(--d2-u)); }
+.d2-ghost svg path { fill: currentColor; }
+.d2-finish { display: flex; flex: 1; align-items: center; justify-content: center; min-height: calc(46 * var(--d2-u)); padding-inline: calc(16 * var(--d2-u)); border-radius: 999px; background: var(--d2-ink); color: var(--d2-on-ink); font-size: calc(14 * var(--d2-u)); font-weight: 500; }
+.d2-finish[disabled] { opacity: 0.5; }
+
+/* Menu de la rutina. Texto y nada de iconos: son cuatro acciones que se leen
+   mas rapido escritas. */
+.d2-menu-wrap { position: relative; flex: none; }
+/* Capa invisible que cierra el menu al tocar fuera. Un click afuera cerrando
+   el menu es lo que espera cualquiera; con un listener en document hay que
+   pelear con el propio boton que lo abrio. */
+.d2-menu-backdrop { position: fixed; inset: 0; z-index: 59; }
+.d2-menu { position: absolute; top: calc(48 * var(--d2-u)); right: 0; z-index: 60; overflow: hidden; width: calc(196 * var(--d2-u)); border-radius: calc(18 * var(--d2-u)); }
+.d2-menu > * + * { border-top: 1px solid var(--d2-border); }
+.d2-menu-item { display: flex; align-items: center; width: 100%; min-height: calc(46 * var(--d2-u)); padding-inline: calc(16 * var(--d2-u)); color: var(--d2-text); font-size: calc(13 * var(--d2-u)); text-align: left; }
+.d2-menu-item[disabled] { opacity: 0.45; }
+
+/* Confirmaciones y resumen: una tarjeta centrada sobre el fondo oscurecido. */
+.d2-modal { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; padding: 18px; background: rgba(0, 0, 0, 0.55); }
+.d2-modal-card { width: 100%; max-width: calc(360 * var(--d2-u)); padding: calc(22 * var(--d2-u)); border-radius: calc(28 * var(--d2-u)); }
+.d2-modal-title { font-size: calc(20 * var(--d2-u)); line-height: 1.25; font-weight: 600; letter-spacing: -0.02em; overflow-wrap: anywhere; }
+.d2-modal-text { margin-top: calc(8 * var(--d2-u)); font-size: calc(13 * var(--d2-u)); line-height: 1.5; color: var(--d2-text-2); }
+.d2-modal-actions { display: flex; flex-direction: column; gap: calc(8 * var(--d2-u)); margin-top: calc(18 * var(--d2-u)); }
+.d2-modal-primary { display: flex; align-items: center; justify-content: center; min-height: calc(50 * var(--d2-u)); border-radius: 999px; background: var(--d2-ink); color: var(--d2-on-ink); font-size: calc(14 * var(--d2-u)); font-weight: 500; box-shadow: var(--d2-ink-shadow); }
+.d2-modal-primary[disabled] { opacity: 0.5; box-shadow: none; }
+.d2-modal-secondary { display: flex; align-items: center; justify-content: center; min-height: calc(46 * var(--d2-u)); border-radius: 999px; border: 1px solid var(--d2-border); color: var(--d2-text-2); font-size: calc(14 * var(--d2-u)); }
+
+/* Resumen del entrenamiento: tiempo, series y volumen, los tres medidos. */
+.d2-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(8 * var(--d2-u)); margin-top: calc(18 * var(--d2-u)); }
+.d2-summary-cell { display: flex; flex-direction: column; align-items: center; gap: calc(5 * var(--d2-u)); padding: calc(12 * var(--d2-u)) calc(6 * var(--d2-u)); border-radius: calc(16 * var(--d2-u)); background: rgba(var(--d2-glass-tint), var(--d2-glass-1)); }
+.d2-summary-value { font-size: calc(17 * var(--d2-u)); line-height: 1.15; font-weight: 600; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.d2-summary-label { font-size: calc(10 * var(--d2-u)); line-height: 1.3; color: var(--d2-text-2); }
+
+/* Alumnos, para asignar la rutina desde el panel del entrenador. */
+.d2-students { margin-top: calc(14 * var(--d2-u)); max-height: calc(280 * var(--d2-u)); overflow-y: auto; }
+.d2-student { display: flex; width: 100%; align-items: center; gap: calc(11 * var(--d2-u)); padding: calc(11 * var(--d2-u)) calc(14 * var(--d2-u)); text-align: left; color: var(--d2-text); }
+.d2-student-initial { display: grid; place-items: center; flex: none; width: calc(36 * var(--d2-u)); height: calc(36 * var(--d2-u)); border-radius: 50%; background: rgba(var(--d2-glass-tint), var(--d2-glass-3)); font-size: calc(14 * var(--d2-u)); font-weight: 500; }
+.d2-student-body { min-width: 0; flex: 1; }
+.d2-student-name { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: calc(14 * var(--d2-u)); line-height: 1.3; font-weight: 500; }
+.d2-student-mail { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: calc(3 * var(--d2-u)); font-size: calc(11 * var(--d2-u)); line-height: 1.4; color: var(--d2-text-2); }
+
+/* ---------- Semana ---------- */
+
+.d2-cal { margin-top: calc(20 * var(--d2-u)); padding: calc(16 * var(--d2-u)); border-radius: calc(26 * var(--d2-u)); }
+.d2-cal-head { display: flex; align-items: center; gap: calc(8 * var(--d2-u)); }
+.d2-cal-range { flex: 1; min-width: 0; text-align: center; font-size: calc(14 * var(--d2-u)); line-height: 1.3; font-weight: 500; letter-spacing: -0.015em; }
+.d2-cal-arrow { display: flex; flex: none; align-items: center; justify-content: center; width: calc(34 * var(--d2-u)); height: calc(34 * var(--d2-u)); border-radius: 50%; border: 1px solid var(--d2-border); color: var(--d2-text); }
+.d2-cal-arrow svg { width: calc(14 * var(--d2-u)); height: calc(14 * var(--d2-u)); }
+.d2-cal-arrow[disabled] { opacity: 0.3; border-color: transparent; }
+
+.d2-week-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: calc(4 * var(--d2-u)); margin-top: calc(14 * var(--d2-u)); }
+.d2-week-day { display: flex; flex-direction: column; align-items: center; gap: calc(7 * var(--d2-u)); }
+.d2-week-initial { font-size: calc(10 * var(--d2-u)); line-height: 1; color: var(--d2-text-3); }
+.d2-week-num { display: grid; place-items: center; width: 100%; aspect-ratio: 1; max-width: calc(38 * var(--d2-u)); border-radius: 50%; font-size: calc(13 * var(--d2-u)); line-height: 1; color: var(--d2-text-2); font-variant-numeric: tabular-nums; }
+
+/* Dia entrenado: el solido del tema, el mismo que el FAB y la pestana activa,
+   para que "esto esta hecho" se lea igual en toda la app. */
+.d2-week-num-on { background: var(--d2-ink); color: var(--d2-on-ink); font-weight: 500; }
+/* Hoy va con anillo y no con relleno, asi se distingue de un dia entrenado. */
+.d2-week-num-today { box-shadow: inset 0 0 0 1px var(--d2-text); color: var(--d2-text); }
+/* Hoy y entrenado a la vez: se conserva el anillo, pero el numero mantiene el
+   color del relleno. Si ganara el de "hoy" quedaria blanco sobre blanco. */
+.d2-week-num-on.d2-week-num-today { color: var(--d2-on-ink); box-shadow: inset 0 0 0 1px var(--d2-ink), 0 0 0 2px var(--d2-text); }
+/* Todavia no paso: no es lo mismo que un dia sin entrenar. */
+.d2-week-day-future .d2-week-num { opacity: 0.35; }
+
+.d2-cal-streak { display: inline-flex; align-items: center; gap: calc(4 * var(--d2-u)); margin-left: calc(8 * var(--d2-u)); color: var(--d2-text); }
+.d2-cal-streak svg { width: calc(11 * var(--d2-u)); height: calc(11 * var(--d2-u)); }
+.d2-cal-foot { margin-top: calc(14 * var(--d2-u)); font-size: calc(11 * var(--d2-u)); color: var(--d2-text-2); }
+
+/* Miniatura chica, para las filas de lista. */
+.d2-ex-thumb-sm { width: calc(40 * var(--d2-u)); height: calc(40 * var(--d2-u)); border-radius: calc(12 * var(--d2-u)); }
+.d2-ex-thumb-sm > svg { width: calc(17 * var(--d2-u)); height: calc(17 * var(--d2-u)); }
+
+/* El ejercicio en grande arriba de su progreso: ver el movimiento al lado de
+   los numeros es lo que hace que la pagina sea de ese ejercicio y no una
+   tabla mas. */
+.d2-exhero { display: flex; align-items: center; gap: calc(16 * var(--d2-u)); margin-top: calc(6 * var(--d2-u)); padding: calc(14 * var(--d2-u)); border-radius: calc(24 * var(--d2-u)); }
+.d2-exhero-media { width: calc(88 * var(--d2-u)); height: calc(88 * var(--d2-u)); border-radius: calc(20 * var(--d2-u)); }
+.d2-exhero-body { min-width: 0; flex: 1; }
+.d2-exhero-name { display: block; font-size: calc(15 * var(--d2-u)); line-height: 1.3; font-weight: 500; letter-spacing: -0.015em; }
+.d2-exhero-note { display: block; margin-top: calc(6 * var(--d2-u)); font-size: calc(12 * var(--d2-u)); line-height: 1.5; color: var(--d2-text-2); }
+
+/* Nombre del ejercicio con su miniatura en el detalle de una sesion. Ahi la
+   animacion va mas grande que en una lista: la fila no compite con otras
+   quince y se ve el movimiento, que es para lo que esta. */
+.d2-session-exercise-head { display: flex; align-items: center; gap: calc(13 * var(--d2-u)); }
+.d2-session-exercise-head .d2-ex-thumb { width: calc(64 * var(--d2-u)); height: calc(64 * var(--d2-u)); border-radius: calc(18 * var(--d2-u)); }
+.d2-session-exercise-head .d2-ex-thumb > svg { width: calc(26 * var(--d2-u)); height: calc(26 * var(--d2-u)); }
+
+/* Empuje contra traccion en una sola barra: lo que importa no son los kilos
+   de cada lado sino la proporcion entre los dos. */
+.d2-balance { display: flex; height: calc(26 * var(--d2-u)); overflow: hidden; border-radius: calc(9 * var(--d2-u)); background: var(--d2-ring-track); }
+.d2-balance > span { display: block; height: 100%; }
+.d2-balance-push { background: var(--d2-ink); }
+.d2-balance-pull { background: rgba(var(--d2-glass-tint), var(--d2-glass-3)); }
+
+/* ---------- Entrar y crear la cuenta ---------- */
+
+/* Sin barra de pestañas abajo, asi que la pagina no reserva su alto. Centrada
+   verticalmente cuando sobra lugar y desplazable cuando no: con el teclado
+   abierto en un telefono, un centrado rigido esconde el boton. */
+.d2-authpage { display: flex; flex-direction: column; justify-content: center; min-height: 100svh; padding-bottom: max(calc(32 * var(--d2-u)), env(safe-area-inset-bottom)); }
+.d2-auth { width: 100%; }
+.d2-auth-brand { font-size: calc(13 * var(--d2-u)); line-height: 1.3; letter-spacing: 0.14em; text-transform: uppercase; color: var(--d2-text-2); }
+.d2-auth .d2-page-title { margin-top: calc(6 * var(--d2-u)); }
+.d2-auth-modes { margin-top: calc(18 * var(--d2-u)); }
+/* Las dos pestañas se reparten el ancho: son las dos mitades de una decision,
+   no una lista de opciones sueltas. */
+.d2-auth-modes .d2-seg { flex: 1; min-width: 0; }
+.d2-auth .d2-form { margin-top: calc(14 * var(--d2-u)); }
+
+/* El boton de Google va en vidrio como el resto; lo unico con color propio es
+   la G, que es marca ajena y no se puede recolorear. */
+.d2-google { display: flex; align-items: center; justify-content: center; gap: calc(10 * var(--d2-u)); width: 100%; min-height: calc(50 * var(--d2-u)); border-radius: 999px; border: 1px solid var(--d2-border-strong); background: rgba(var(--d2-glass-tint), var(--d2-glass-2)); color: var(--d2-text); font-size: calc(14 * var(--d2-u)); font-weight: 500; }
+.d2-google svg { flex: none; }
+.d2-google[disabled] { opacity: 0.5; }
+
+.d2-divider { display: flex; align-items: center; gap: calc(12 * var(--d2-u)); font-size: calc(11 * var(--d2-u)); color: var(--d2-text-3); }
+.d2-divider::before, .d2-divider::after { content: ""; flex: 1; height: 1px; background: var(--d2-border); }
+
+.d2-authform { display: flex; flex-direction: column; gap: calc(16 * var(--d2-u)); }
+.d2-field-head { display: flex; align-items: baseline; justify-content: space-between; gap: calc(10 * var(--d2-u)); }
+.d2-field-head .d2-form-label { margin-bottom: 0; }
+.d2-reveal { flex: none; padding: calc(4 * var(--d2-u)) 0; font-size: calc(11 * var(--d2-u)); line-height: 1.3; color: var(--d2-text-2); }
+.d2-field-head + .d2-input { margin-top: calc(8 * var(--d2-u)); }
+
+.d2-submit { display: flex; align-items: center; justify-content: center; width: 100%; min-height: calc(52 * var(--d2-u)); border-radius: 999px; background: var(--d2-ink); color: var(--d2-on-ink); font-size: calc(15 * var(--d2-u)); font-weight: 500; box-shadow: var(--d2-ink-shadow); }
+.d2-submit[disabled] { opacity: 0.55; box-shadow: none; }
+
+.d2-auth-foot { margin-top: calc(20 * var(--d2-u)); text-align: center; font-size: calc(13 * var(--d2-u)); line-height: 1.5; color: var(--d2-text-2); }
+.d2-auth-foot button { color: var(--d2-text); text-decoration: underline; text-underline-offset: 4px; }
+
+/* ---------- Progreso ---------- */
+
+.d2-chart { padding: calc(16 * var(--d2-u)); }
+
+/* Barras del volumen semanal. Las alturas son relativas entre si: comparan
+   semanas, no miden contra un objetivo que nadie fijo. */
+.d2-bars { display: flex; align-items: flex-end; gap: calc(4 * var(--d2-u)); height: calc(96 * var(--d2-u)); }
+.d2-bar { display: flex; flex: 1; min-width: 0; align-items: flex-end; height: 100%; }
+.d2-bar > span { display: block; width: 100%; border-radius: calc(4 * var(--d2-u)); background: var(--d2-ink); }
+/* La semana sin volumen conserva una linea: una barra de altura cero se lee
+   como "no hay dato" y no como "no entrenaste". */
+.d2-bar-empty > span { background: var(--d2-ring-track); }
+
+.d2-chart-foot { display: flex; align-items: baseline; justify-content: space-between; gap: calc(8 * var(--d2-u)); margin-top: calc(12 * var(--d2-u)); font-size: calc(10 * var(--d2-u)); line-height: 1.4; color: var(--d2-text-2); }
+.d2-chart-foot > span:nth-child(2) { flex: 1; text-align: center; color: var(--d2-text-3); }
+.d2-chart-foot > span:last-child { text-align: right; }
+
+/* Grilla de dias entrenados: una columna por semana, siete filas de lunes a
+   domingo. Con scroll propio de ultimo recurso, para que la pagina nunca se
+   desplace de costado. */
+.d2-gridwrap { overflow-x: auto; scrollbar-width: none; }
+.d2-gridwrap::-webkit-scrollbar { display: none; }
+.d2-grid { display: grid; grid-template-rows: repeat(7, 1fr); grid-auto-flow: column; grid-auto-columns: calc(9 * var(--d2-u)); gap: calc(3 * var(--d2-u)); }
+.d2-cell { width: calc(9 * var(--d2-u)); height: calc(9 * var(--d2-u)); border-radius: calc(2.5 * var(--d2-u)); background: var(--d2-ring-track); }
+/* Entrenado: el solido del tema, el mismo que el dia marcado del calendario y
+   la serie confirmada. */
+.d2-cell-on { background: var(--d2-ink); }
+/* Todavia no paso: no es lo mismo que un dia sin entrenar. */
+.d2-cell-future { opacity: 0.25; }
+
+.d2-grid-months { display: grid; grid-template-columns: repeat(var(--d2-weeks), calc(9 * var(--d2-u))); gap: calc(3 * var(--d2-u)); margin-bottom: calc(6 * var(--d2-u)); font-size: calc(9 * var(--d2-u)); line-height: 1; color: var(--d2-text-3); }
+.d2-grid-months > span { white-space: nowrap; }
+
+/* El valor a la derecha de una fila, antes del chevron. */
+.d2-routine-value { flex: none; font-size: calc(13 * var(--d2-u)); line-height: 1.3; color: var(--d2-text); font-variant-numeric: tabular-nums; }
+.d2-routine-unit { display: block; margin-top: calc(3 * var(--d2-u)); font-size: calc(9 * var(--d2-u)); line-height: 1.3; color: var(--d2-text-3); text-align: right; }
+
+/* ---------- Mantener presionada una rutina ---------- */
+
+/* Sin esto, mantener presionado en iOS abre la lupa de seleccion de texto y la
+   vista previa del enlace por encima del menu. */
+.d2-routine { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+
+.d2-scrim { position: fixed; inset: 0; z-index: 80; display: flex; align-items: flex-end; justify-content: center; padding: 18px; background: rgba(0, 0, 0, 0.5); }
+
+/* Sube desde abajo y no aparece flotando donde esta el dedo: en un telefono el
+   pulgar tapa justo el lugar donde quedaria el menu. */
+.d2-holdsheet { width: 100%; max-width: 484px; padding: calc(18 * var(--d2-u)) calc(14 * var(--d2-u)) max(calc(14 * var(--d2-u)), env(safe-area-inset-bottom)); border-radius: calc(28 * var(--d2-u)); animation: d2-rise 200ms ease-out; }
+@keyframes d2-rise {
+  from { transform: translateY(14px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.d2-holdsheet-title { padding-inline: calc(8 * var(--d2-u)); font-size: calc(15 * var(--d2-u)); line-height: 1.3; font-weight: 500; letter-spacing: -0.015em; overflow-wrap: anywhere; }
+.d2-holdsheet-meta { margin-top: calc(6 * var(--d2-u)); padding-inline: calc(8 * var(--d2-u)); font-size: calc(12 * var(--d2-u)); line-height: 1.45; color: var(--d2-text-2); }
+.d2-holdsheet-action { display: flex; align-items: center; width: 100%; min-height: calc(52 * var(--d2-u)); margin-top: calc(6 * var(--d2-u)); padding-inline: calc(16 * var(--d2-u)); border-radius: calc(16 * var(--d2-u)); color: var(--d2-text); font-size: calc(14 * var(--d2-u)); text-align: left; }
+.d2-holdsheet-action:first-of-type { margin-top: calc(12 * var(--d2-u)); }
+.d2-holdsheet-action[disabled] { opacity: 0.45; }
+/* La unica que no se deshace. Se separa con una linea en vez de pintarse de
+   rojo: el rojo sale del tema y en Brasa todo el fondo ya es rojo. */
+.d2-holdsheet-danger { margin-top: calc(10 * var(--d2-u)); border-top: 1px solid var(--d2-border); border-radius: 0 0 calc(16 * var(--d2-u)) calc(16 * var(--d2-u)); padding-top: calc(4 * var(--d2-u)); }
+.d2-holdsheet-cancel { display: flex; align-items: center; justify-content: center; width: 100%; min-height: calc(48 * var(--d2-u)); margin-top: calc(10 * var(--d2-u)); border-radius: 999px; border: 1px solid var(--d2-border); color: var(--d2-text-2); font-size: calc(14 * var(--d2-u)); }
+
+/* ---------- Perfil y configuracion ---------- */
+
+.d2-id { display: flex; align-items: center; gap: calc(14 * var(--d2-u)); margin-top: calc(20 * var(--d2-u)); padding: calc(16 * var(--d2-u)); border-radius: calc(26 * var(--d2-u)); }
+.d2-id-body { min-width: 0; flex: 1; }
+.d2-id-name { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: calc(18 * var(--d2-u)); line-height: 1.3; font-weight: 500; letter-spacing: -0.02em; }
+.d2-id-mail { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: calc(4 * var(--d2-u)); font-size: calc(12 * var(--d2-u)); line-height: 1.4; color: var(--d2-text-2); }
+.d2-id-role { display: block; margin-top: calc(6 * var(--d2-u)); font-size: calc(11 * var(--d2-u)); line-height: 1.4; color: var(--d2-text-3); }
+
+/* Formulario. Las etiquetas van arriba y no al lado: al lado, un campo de
+   texto en un telefono queda de tres centimetros. */
+.d2-form { padding: calc(16 * var(--d2-u)); }
+.d2-form > * + * { border-top: 0; margin-top: calc(16 * var(--d2-u)); }
+.d2-form-label { display: block; margin-bottom: calc(8 * var(--d2-u)); font-size: calc(11 * var(--d2-u)); line-height: 1.3; color: var(--d2-text-2); }
+.d2-input { width: 100%; min-height: calc(46 * var(--d2-u)); padding-inline: calc(14 * var(--d2-u)); border-radius: calc(14 * var(--d2-u)); border: 1px solid var(--d2-border); background: rgba(var(--d2-glass-tint), var(--d2-glass-1)); color: var(--d2-text); font-size: max(16px, calc(14 * var(--d2-u))); }
+.d2-input::placeholder { color: var(--d2-text-3); }
+.d2-input:focus-visible { outline: 2px solid var(--d2-text); outline-offset: 3px; }
+.d2-pair { display: grid; grid-template-columns: 1fr 1fr; gap: calc(12 * var(--d2-u)); }
+.d2-pair .d2-input { text-align: center; font-variant-numeric: tabular-nums; }
+
+/* Opciones en linea. Envuelven en vez de encogerse: "Prefiero no decir" no
+   entra en un tercio de pantalla. */
+.d2-segs { display: flex; flex-wrap: wrap; gap: calc(8 * var(--d2-u)); }
+.d2-seg { flex: none; min-height: calc(38 * var(--d2-u)); padding-inline: calc(14 * var(--d2-u)); border-radius: 999px; border: 1px solid var(--d2-border); background: rgba(var(--d2-glass-tint), var(--d2-glass-1)); color: var(--d2-text-2); font-size: calc(13 * var(--d2-u)); }
+.d2-seg-on { background: var(--d2-ink); color: var(--d2-on-ink); border-color: transparent; }
+
+.d2-form-foot { display: flex; align-items: center; gap: calc(12 * var(--d2-u)); }
+.d2-form-save { display: flex; flex: none; align-items: center; justify-content: center; min-height: calc(46 * var(--d2-u)); padding-inline: calc(22 * var(--d2-u)); border-radius: 999px; background: var(--d2-ink); color: var(--d2-on-ink); font-size: calc(14 * var(--d2-u)); font-weight: 500; box-shadow: var(--d2-ink-shadow); }
+.d2-form-save[disabled] { opacity: 0.5; box-shadow: none; }
+.d2-form-note { min-width: 0; flex: 1; font-size: calc(12 * var(--d2-u)); line-height: 1.4; color: var(--d2-text-2); }
+
+/* Una fila de configuracion: rotulo a la izquierda, valor a la derecha. */
+.d2-setting { display: flex; align-items: center; justify-content: space-between; gap: calc(12 * var(--d2-u)); min-height: calc(56 * var(--d2-u)); padding: calc(12 * var(--d2-u)) calc(18 * var(--d2-u)); color: var(--d2-text); }
+.d2-setting-body { min-width: 0; flex: 1; }
+.d2-setting-name { display: block; font-size: calc(14 * var(--d2-u)); line-height: 1.3; font-weight: 500; }
+.d2-setting-hint { display: block; margin-top: calc(4 * var(--d2-u)); font-size: calc(11 * var(--d2-u)); line-height: 1.4; color: var(--d2-text-2); }
+.d2-setting-value { flex: none; max-width: 50%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: calc(13 * var(--d2-u)); color: var(--d2-text-2); }
+.d2-setting-go { flex: none; width: calc(16 * var(--d2-u)); height: calc(16 * var(--d2-u)); color: var(--d2-text-3); }
+
+/* Temas. Cada muestra dibuja el fondo real del tema con data-d2-vars, no una
+   copia del degradado: si se retoca el tema, la muestra cambia sola. */
+/* Tres por fila y no todos en una: con cinco temas en linea, cada nombre
+   queda en cincuenta pixeles y "Electrico" se corta. */
+.d2-themes { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(10 * var(--d2-u)); padding: calc(14 * var(--d2-u)) calc(18 * var(--d2-u)) calc(18 * var(--d2-u)); }
+.d2-theme { display: flex; min-width: 0; flex-direction: column; align-items: center; gap: calc(8 * var(--d2-u)); padding: calc(10 * var(--d2-u)) calc(6 * var(--d2-u)); border-radius: calc(18 * var(--d2-u)); border: 1px solid transparent; color: var(--d2-text-2); }
+.d2-theme-dot { width: calc(46 * var(--d2-u)); height: calc(46 * var(--d2-u)); border-radius: 50%; background: var(--d2-ground); background-size: cover; background-position: center; border: 1px solid var(--d2-border-strong); box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.25); }
+.d2-theme-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; font-size: calc(12 * var(--d2-u)); line-height: 1.3; }
+/* El elegido se marca con el borde y el texto en primer plano, no con un
+   tilde encima de la muestra: el tilde tapa justo lo que hay que mirar. */
+.d2-theme-on { border-color: var(--d2-border-strong); background: rgba(var(--d2-glass-tint), var(--d2-glass-1)); color: var(--d2-text); }
+
+.d2-signout { display: flex; align-items: center; justify-content: center; width: 100%; min-height: calc(50 * var(--d2-u)); margin-top: calc(24 * var(--d2-u)); border-radius: 999px; border: 1px solid var(--d2-border); color: var(--d2-text-2); font-size: calc(14 * var(--d2-u)); }
+
+/* Transición suave entre rutas */
+.d2-route-transition {
+  animation: d2RouteEnter 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: opacity, transform;
+  width: 100%;
+}
+
+@keyframes d2RouteEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.d2-tabbar { position: fixed; bottom: max(calc(16 * var(--d2-u)), env(safe-area-inset-bottom)); inset-inline: 0; z-index: 50; display: flex; justify-content: center; pointer-events: none; padding-inline: calc(20 * var(--d2-u)); }
+/* Con cinco destinos, la pastilla activa necesita mas ancho para que quepa
+   la etiqueta mas larga sin cortarse. */
+.d2-tabbar-shell { display: flex; align-items: center; gap: calc(5 * var(--d2-u)); width: calc(330 * var(--d2-u)); max-width: 100%; height: calc(52 * var(--d2-u)); padding: calc(4 * var(--d2-u)); border-radius: 999px; pointer-events: auto; border-color: var(--d2-border-strong); box-shadow: inset 1px 1px 1px var(--d2-ring-track); }
+.d2-tab-indicator { display: none; }
+.d2-tab { display: flex; align-items: center; justify-content: center; flex: 0 0 calc(44 * var(--d2-u)); width: calc(44 * var(--d2-u)); height: calc(44 * var(--d2-u)); border-radius: 999px; transition: flex 0.35s cubic-bezier(0.25, 1, 0.35, 1), width 0.35s cubic-bezier(0.25, 1, 0.35, 1), background-color 0.28s ease, color 0.25s ease, transform 0.15s cubic-bezier(0.2, 0, 0, 1); }
+.d2-tab:active { transform: scale(0.92); }
+/* En telefono la etiqueta existe solo en la pestana activa: cinco nombres no
+   entran, y el icono solo alcanza para reconocer donde estas parado. */
+.d2-tab:not(.d2-tab-active) .d2-tab-label { display: none; }
+.d2-tab-icon { display: flex; align-items: center; justify-content: center; flex: none; transition: width 0.3s cubic-bezier(0.25, 1, 0.35, 1), height 0.3s cubic-bezier(0.25, 1, 0.35, 1), background-color 0.28s ease, color 0.25s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.d2-tab:not(.d2-tab-active) .d2-tab-icon svg { width: calc(20 * var(--d2-u)); height: calc(20 * var(--d2-u)); }
+.d2-tab-active { flex: 1; min-width: 0; gap: calc(6 * var(--d2-u)); padding: calc(4 * var(--d2-u)); padding-left: calc(14 * var(--d2-u)); background: var(--d2-ink); color: var(--d2-on-ink); }
+.d2-tab-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; font-size: calc(13 * var(--d2-u)); font-weight: 400; transition: opacity 0.25s ease, transform 0.28s cubic-bezier(0.25, 1, 0.35, 1); }
+.d2-tab-active .d2-tab-icon { width: calc(36 * var(--d2-u)); height: calc(36 * var(--d2-u)); border-radius: 50%; background: var(--d2-on-ink); color: var(--d2-ink); }
+.d2-tab-active .d2-tab-icon svg { width: calc(15 * var(--d2-u)); height: calc(15 * var(--d2-u)); }
+.d2-tab-active .d2-tab-icon svg path { fill: currentColor; }
+
+/* ============================================================
+   ESCRITORIO
+   ============================================================
+
+   Hasta acá todo está pensado para un teléfono: una columna de 520 px
+   centrada y la navegación abajo, al alcance del pulgar. En una pantalla
+   ancha eso deja una cinta angosta en el medio y kilómetros de fondo vacío,
+   y una barra flotante abajo del todo queda lejísimos del cursor.
+
+   Desde 1024 px la navegación pasa a un panel vertical a la izquierda, con
+   los cinco nombres escritos, y el contenido se ensancha y se reparte en dos
+   columnas donde la pantalla lo aprovecha. La unidad --d2-u deja de crecer
+   con el ancho (ya venía topada) y pasa a un valor fijo: si siguiera atada
+   al viewport, en un monitor grande la tipografía se iría de escala.
+   ============================================================ */
+
+@media (min-width: 1024px) {
+  .d2 { --d2-u: 1.12px; }
+
+  /* ---- la barra se convierte en panel lateral ---- */
+  .d2-tabbar { top: 0; bottom: 0; left: 0; right: auto; width: 248px; align-items: stretch; padding: 24px 16px; }
+  .d2-tabbar-shell { position: relative; flex-direction: column; align-items: stretch; width: 100%; height: auto; gap: 4px; padding: 12px; border-radius: 28px; }
+  .d2-tab-indicator {
+    display: block;
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    width: calc(100% - 24px);
+    height: 48px;
+    border-radius: 16px;
+    background: var(--d2-ink);
+    box-shadow: var(--d2-ink-shadow);
+    pointer-events: none;
+    z-index: 1;
+    transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.25, 1), opacity 0.22s ease;
+  }
+  .d2-tab {
+    position: relative;
+    z-index: 2;
+    flex: none;
+    width: 100%;
+    height: 48px;
+    justify-content: flex-start;
+    gap: 12px;
+    padding-inline: 14px;
+    border-radius: 16px;
+    transition: transform 0.18s cubic-bezier(0.2, 0, 0, 1), color 0.22s ease, background-color 0.2s ease;
+  }
+  .d2-tab:active { transform: scale(0.97); }
+  .d2-tab:hover:not(.d2-tab-active) { transform: translateX(3px); }
+  /* Con lugar de sobra, los cinco nombres van escritos: obligar a adivinar
+     por el icono es una limitación del teléfono, no una decisión. */
+  .d2-tab:not(.d2-tab-active) .d2-tab-label { display: block; }
+  .d2-tab-label { flex: 1; text-align: left; font-size: 14px; }
+  /* El icono adelante, como en cualquier menú vertical. */
+  .d2-tab-icon { order: -1; width: 30px; height: 30px; }
+  .d2-tab:not(.d2-tab-active) .d2-tab-icon svg { width: 19px; height: 19px; }
+  .d2-tab-active { padding-left: 14px; background: transparent; }
+  .d2-tab-active .d2-tab-icon { width: 30px; height: 30px; }
+  .d2-tab-active .d2-tab-icon svg { width: 15px; height: 15px; }
+
+  /* ---- el contenido se corre y se ensancha ---- */
+  .d2-home,
+  .d2-page {
+    max-width: 1060px;
+    margin-left: max(248px, calc(50vw - 530px));
+    margin-right: auto;
+    padding-top: 40px;
+    padding-inline: 32px;
+    /* Sin barra abajo, el pie deja de reservarle alto. */
+    padding-bottom: 56px;
+  }
+  .d2-page-dock { padding-bottom: 120px; }
+  .d2-authpage { margin-left: auto; max-width: 520px; padding-bottom: 40px; }
+
+  /* La barra de acción acompaña al contenido en vez de cruzar la pantalla. */
+  .d2-dock { left: max(248px, calc(50vw - 530px)); right: auto; width: 1060px; max-width: calc(100vw - 248px); justify-content: flex-start; padding-inline: 32px; bottom: 32px; }
+  .d2-dock > * { max-width: 420px; }
+
+  /* ---- dos columnas ---- */
+  /* Las pantallas que lo aprovechan se marcan con d2-split: la primera
+     columna lleva lo que se lee y la segunda lo que se consulta. */
+  .d2-split { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+  .d2-split > * { min-width: 0; }
+  /* Una sección puede pedir el ancho completo adentro de la grilla. */
+  .d2-span { grid-column: 1 / -1; }
+
+  /* El rótulo de una sección no necesita separarse tanto cuando ya hay una
+     columna al lado marcando el corte. */
+  .d2-split .d2-label:first-child { margin-top: 0; }
+
+  /* Listas y tarjetas que en el teléfono van una debajo de otra. */
+  .d2-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+
+  /* El carrusel de objetivos deja de desplazarse: entran todos. */
+  .d2-goal-rail { overflow: visible; margin-inline: 0; padding-inline: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+  .d2-goal-card { flex: none; }
+
+  /* La hoja de mantener presionado se centra en vez de pegarse abajo. */
+  .d2-scrim { align-items: center; }
+  .d2-holdsheet { max-width: 420px; }
+
+  /* Las pantallas de una sola columna no estiran sus filas a mil pixeles:
+     una fila de rutina de ese ancho deja el nombre a la izquierda y el dato a
+     la derecha con medio metro de nada en el medio. */
+  .d2-routine-section,
+  .d2-workspace > .d2-routine-list,
+  .d2-workspace > .d2-empty,
+  .d2-page > .d2-search,
+  .d2-page > .d2-empty { max-width: 760px; }
+
+  /* Un poco más de aire en las piezas que quedaban justas. */
+  .d2-stats { padding: 22px 16px; }
+  .d2-chart { padding: 22px; }
+  .d2-cell { width: 13px; height: 13px; border-radius: 3px; }
+  .d2-grid { grid-auto-columns: 13px; gap: 4px; }
+  .d2-grid-months { grid-template-columns: repeat(var(--d2-weeks), 13px); gap: 4px; font-size: 11px; }
+  .d2-bars { height: 150px; }
+}
+
+/* En pantallas muy anchas el contenido se centra en vez de quedar pegado al
+   panel: leer una línea de mil pixeles cansa, y correrla al medio no cuesta
+   nada. */
+@media (min-width: 1600px) {
+  .d2-home,
+  .d2-page { margin-inline: auto; }
+  .d2-dock { left: 50%; transform: translateX(-50%); }
+}
+
+.d2 a { transition: transform 160ms ease, background-color 160ms ease, opacity 160ms ease; }
+.d2 a:active { transform: scale(0.97); }
+.d2 a:focus-visible, .d2 button:focus-visible, .d2-rail:focus-visible { outline: 2px solid var(--d2-text); outline-offset: 4px; }
+@media (hover: hover) {
+  .d2-section-heading a:hover { text-decoration: underline; }
+  .d2-fab:hover, .d2-tab-active:hover { opacity: 0.88; }
+  .d2-activity-row:hover, .d2-routine:hover, .d2-pick:hover, .d2-tab.d2-orb:hover { background-color: rgba(var(--d2-glass-tint), var(--d2-glass-3)); }
+  .d2-add:hover, .d2-back:hover, .d2-ex-remove:hover, .d2-cal-arrow:hover { background-color: rgba(var(--d2-glass-tint), var(--d2-glass-1)); }
+  .d2-empty-action:hover { opacity: 0.88; }
+  .d2-start:hover, .d2-finish:hover, .d2-modal-primary:hover { opacity: 0.88; }
+  .d2-menu-item:hover, .d2-student:hover, .d2-chip:hover, .d2-ghost:hover, .d2-modal-secondary:hover { background-color: rgba(var(--d2-glass-tint), var(--d2-glass-3)); }
+  .d2-seg:hover, .d2-theme:hover, .d2-signout:hover, a.d2-setting:hover { background-color: rgba(var(--d2-glass-tint), var(--d2-glass-3)); }
+  .d2-holdsheet-action:hover, .d2-holdsheet-cancel:hover { background-color: rgba(var(--d2-glass-tint), var(--d2-glass-3)); }
+  .d2-google:hover { background-color: rgba(var(--d2-glass-tint), var(--d2-glass-3)); }
+  .d2-submit:hover { opacity: 0.88; }
+  .d2-reveal:hover, .d2-auth-foot button:hover { color: var(--d2-text); }
+  .d2-seg-on:hover, .d2-form-save:hover { background-color: var(--d2-ink); opacity: 0.88; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .d2 *,
+  .d2 *::before,
+  .d2 *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* Shared frames: one navigation and one visual language across the app. */
+.d2-workspace { min-height: 100dvh; }
+.d2-page-heading { min-width: 0; flex: 1; }
+.d2-page-heading .d2-page-title { overflow-wrap: anywhere; }
+.d2-page-eyebrow { margin-bottom: 6px; color: var(--d2-text-2); font-size: 12px; }
+.d2-stack { display: grid; gap: 16px; }
+.d2-workspace > .d2-stack { margin-top: 24px; }
+.d2-inline-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.d2-textarea { min-height: 96px; resize: vertical; padding-block: 12px; }
+.d2-form select { color-scheme: light dark; }
+.d2-form option { color: CanvasText; background: Canvas; }
+.d2-form input[type="range"], .d2-form input[type="checkbox"] { accent-color: var(--d2-ink); }
+.d2-form [disabled] { opacity: .5; cursor: wait; }
+.d2-form-field { display: grid; gap: 8px; color: var(--d2-text-2); font-size: 13px; }
+/* Los dos controles nativos que quedaban con el aspecto del navegador. El
+   acento sale del tema, asi el deslizador y la casilla se ven como el resto
+   de la app en los cinco fondos. */
+.d2-checkbox, .d2-range { accent-color: var(--d2-ink); }
+.d2-checkbox { width: calc(18 * var(--d2-u)); height: calc(18 * var(--d2-u)); flex: none; }
+.d2-range { height: calc(22 * var(--d2-u)); background: transparent; }
+.d2-range-row { display: grid; grid-template-columns: minmax(80px, 1fr) minmax(70px, 1fr) 36px; gap: 10px; align-items: center; font-size: 12px; }
+.d2-range-row input { width: 100%; min-width: 0; }
+.d2-custom-form { margin-block: 16px; }
+.d2-custom-form .d2-modal-secondary { min-height: 46px; }
+.d2-reorder { display: flex; justify-content: flex-end; gap: 8px; padding: 0 14px 10px; }
+.d2-reorder button { min-width: 44px; min-height: 44px; border: 1px solid var(--d2-border); border-radius: 50%; }
+.d2-reorder button[disabled] { opacity: .3; }
+@media (min-width: 900px) { .d2-page.d2-page-wide { max-width: 960px; } }
+.d2-workspace > .d2-compose-head { margin-bottom: 24px; }
+.d2-coach-stack, .d2-student-body { min-width: 0; }
+.d2-form-field span { font-size: inherit; }

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import PageShell from "@/components/design2/PageShell";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/firebase/session";
 import { listUserSessions } from "@/lib/sessions/sessions";
@@ -28,42 +29,37 @@ export default async function HistorialPage() {
   const sessions = await listUserSessions(user.uid);
 
   return (
-    <div className="flex flex-col gap-5 px-[18px] pb-[100px] lg:px-0">
-      <header>
-        <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-faint">Historial</p>
-        <h1 className="font-display mt-1 text-[26px] uppercase leading-none text-white">
-          Sesiones entrenadas
-        </h1>
-      </header>
-
+    <PageShell title="Historial" eyebrow="Tu actividad">
       {sessions.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-hair bg-glass p-5 text-center text-sm text-faint">
+        <p className="d2-glass d2-empty">
           Todavía no terminaste ningún entrenamiento.
+          <Link href="/rutinas" className="d2-empty-action">Ir a mis rutinas</Link>
         </p>
       ) : (
-        <div className="grid grid-cols-1 gap-2.5 lg:grid-cols-2">
+        <div className="d2-routine-list">
           {sessions.map((session) => (
             <Link
               key={session.id}
               href={`/historial/${session.id}`}
-              className="flex items-center justify-between gap-3 rounded-2xl border border-hair bg-glass px-4 py-3.5 transition hover:border-white/20"
+              className="d2-routine"
             >
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-text">
+              <div className="d2-routine-body">
+                <p className="d2-routine-name">
                   {session.routineName || "Sesión libre"}
                 </p>
-                <p className="mt-0.5 text-xs text-faint">
+                <p className="d2-routine-meta">
                   {formatDate(session.finishedAt)} · {formatDuration(session.durationSeconds)} ·{" "}
                   {session.totalSetsCompleted} series
                 </p>
               </div>
-              <span className="font-mono-digit shrink-0 text-sm text-teal2">
-                {session.totalVolumeKg}kg
+              <span className="d2-routine-value">
+                {session.totalVolumeKg} kg
+                <span className="d2-routine-unit">volumen</span>
               </span>
             </Link>
           ))}
         </div>
       )}
-    </div>
+    </PageShell>
   );
 }

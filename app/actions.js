@@ -22,5 +22,7 @@ export async function redeemInvitationCode(code) {
   const coachName = coachProfile?.displayName || "tu entrenador";
 
   revalidatePath("/");
+  revalidatePath("/perfil");
+  revalidatePath("/dashboard");
   return { success: true, coachName };
 }

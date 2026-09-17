@@ -9,7 +9,8 @@ private func exercise(
     nameEs: String? = nil,
     nameEn: String = "",
     muscles: [MuscleGroup: Double] = [:],
-    registro: RegistrationType = .pesoReps
+    registro: RegistrationType = .pesoReps,
+    source: ExerciseSource = .catalog
 ) -> Exercise {
     Exercise(
         id: id,
@@ -21,18 +22,19 @@ private func exercise(
         registrationType: registro,
         unilateral: false,
         descriptionEs: "",
-        mediaURL: nil
+        mediaURL: nil,
+        source: source
     )
 }
 
-private func draft(_ registro: RegistrationType = .pesoReps) -> DraftExercise {
-    DraftExercise(exercise: exercise("press-banca", registro: registro))
+private func draft(_ registro: RegistrationType = .pesoReps) -> RoutineDraftExercise {
+    RoutineDraftExercise(exercise: exercise("press-banca", registro: registro))
 }
 
 // MARK: - Valores iniciales
 
 @Suite("Borrador de ejercicio")
-struct DraftExerciseTests {
+struct RoutineDraftExerciseTests {
     @Test("arranca en 3 × 10, forma pareja y del catálogo")
     func porDefecto() {
         let item = draft()
@@ -238,6 +240,22 @@ struct DraftExerciseTests {
         #expect(series?[0]["reps"] as? Int == 10)
     }
 
+    @Test("un ejercicio propio se guarda con exerciseSource custom")
+    func origenCustom() {
+        let propio = RoutineDraftExercise(exercise: exercise("plancha", source: .custom))
+
+        #expect(propio.source == .custom)
+        #expect(propio.firestoreValue(order: 0)["exerciseSource"] as? String == "custom")
+    }
+
+    @Test("la nota técnica se guarda sin espacios de más")
+    func notaTecnica() {
+        var item = draft()
+        item.techniqueNote = "  Espalda neutra  "
+
+        #expect(item.firestoreValue(order: 0)["techniqueNote"] as? String == "Espalda neutra")
+    }
+
     @Test("targetSets guardado es la cantidad real de series detalladas")
     func documentoDetalladoCuentaSeries() {
         var item = draft()
@@ -322,8 +340,8 @@ struct ExerciseSearchTests {
 
 @Suite("Armado de la rutina")
 struct RoutineComposeTests {
-    private func items(_ ids: [String]) -> [DraftExercise] {
-        ids.map { DraftExercise(exercise: exercise($0)) }
+    private func items(_ ids: [String]) -> [RoutineDraftExercise] {
+        ids.map { RoutineDraftExercise(exercise: exercise($0)) }
     }
 
     @Test("mover cambia el orden sin perder la prescripción cargada")
@@ -401,5 +419,33 @@ struct RoutineComposeTests {
         let reparto = RoutineCompose.reparto(items(["e"]), catalogo: catalogo)
 
         #expect(reparto.map(\.muscle) == [.pecho, .biceps, .gemelo, .abdomen])
+    }
+}
+
+// MARK: - Validación
+
+@Suite("Validación de la rutina")
+struct RoutineDraftValidationTests {
+    private var item: RoutineDraftExercise {
+        RoutineDraftExercise(exercise: exercise("press"))
+    }
+
+    @Test("sin nombre no se guarda", arguments: ["", "   ", "\n"])
+    func sinNombre(nombre: String) {
+        #expect(throws: RoutineDraftValidationError.missingName) {
+            try RoutineDraftValidation.validate(name: nombre, exercises: [item])
+        }
+    }
+
+    @Test("sin ejercicios no se guarda")
+    func sinEjercicios() {
+        #expect(throws: RoutineDraftValidationError.missingExercises) {
+            try RoutineDraftValidation.validate(name: "Fuerza", exercises: [])
+        }
+    }
+
+    @Test("con nombre y un ejercicio se guarda")
+    func valida() throws {
+        try RoutineDraftValidation.validate(name: "Empuje A", exercises: [item])
     }
 }

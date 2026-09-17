@@ -5,13 +5,14 @@ import Foundation
 /// Guarda las dos formas de prescribir que acepta el modelo, igual que la web:
 /// pareja (todas las series iguales, en `targetSets`/`targetReps`) y detallada
 /// (una fila por serie, en `sets`). `sets` en nil es la forma pareja.
-nonisolated struct DraftExercise: Identifiable, Sendable, Hashable {
+nonisolated struct RoutineDraftExercise: Identifiable, Sendable, Hashable {
     let exerciseID: String
-    let source: RoutineExercise.Source
+    let source: ExerciseSource
     var targetSets: Int
     var targetReps: Int
     var targetWeight: Double?
     var targetRIR: Int?
+    var techniqueNote: String
     var sets: [PlannedSet]?
 
     var id: String { exerciseID }
@@ -21,14 +22,15 @@ nonisolated struct DraftExercise: Identifiable, Sendable, Hashable {
 
     init(exercise: Exercise) {
         exerciseID = exercise.id
-        // El catálogo de la app trae los públicos; los propios se crean
-        // desde la web y llegan por Firestore.
-        source = .catalog
+        // Un ejercicio propio se guarda con `exerciseSource: "custom"`: la web
+        // los busca en otra colección y con el origen mal no los encuentra.
+        source = exercise.source
         targetSets = 3
         // En los ejercicios de tiempo, targetReps son segundos y no repeticiones.
         targetReps = exercise.registrationType.isTimeBased ? 30 : 10
         targetWeight = nil
         targetRIR = nil
+        techniqueNote = ""
         sets = nil
     }
 
@@ -102,7 +104,7 @@ nonisolated struct DraftExercise: Identifiable, Sendable, Hashable {
             "targetReps": repsOEsperado,
             "targetRIR": targetRIR as Any? ?? NSNull(),
             "targetWeight": targetWeight as Any? ?? NSNull(),
-            "techniqueNote": "",
+            "techniqueNote": techniqueNote.trimmingCharacters(in: .whitespacesAndNewlines),
         ]
         valor["sets"] = esDetallada
             ? sets!.enumerated().map { indice, serie in
@@ -115,6 +117,32 @@ nonisolated struct DraftExercise: Identifiable, Sendable, Hashable {
             }
             : NSNull()
         return valor
+    }
+}
+
+nonisolated enum RoutineDraftValidationError: LocalizedError, Equatable {
+    case missingName
+    case missingExercises
+
+    var errorDescription: String? {
+        switch self {
+        // Los mismos textos que tira `createRoutine` en la web.
+        case .missingName: "Ponele un nombre a la rutina."
+        case .missingExercises: "Agregá al menos un ejercicio."
+        }
+    }
+}
+
+/// Se valida acá y no en la pantalla para que el repositorio no pueda escribir
+/// una rutina sin nombre ni ejercicios aunque la llamen de otro lado.
+nonisolated enum RoutineDraftValidation {
+    static func validate(name: String, exercises: [RoutineDraftExercise]) throws {
+        guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            throw RoutineDraftValidationError.missingName
+        }
+        guard !exercises.isEmpty else {
+            throw RoutineDraftValidationError.missingExercises
+        }
     }
 }
 
@@ -174,7 +202,7 @@ nonisolated enum ExerciseSearch {
 nonisolated enum RoutineCompose {
     /// Mueve un ejercicio sin tocar su prescripción ni perder las series
     /// cargadas. Un índice fuera de rango devuelve la lista igual.
-    static func mover(_ items: [DraftExercise], de origen: Int, a destino: Int) -> [DraftExercise] {
+    static func mover(_ items: [RoutineDraftExercise], de origen: Int, a destino: Int) -> [RoutineDraftExercise] {
         guard items.indices.contains(origen), items.indices.contains(destino) else { return items }
         var copia = items
         copia.insert(copia.remove(at: origen), at: destino)
@@ -187,7 +215,7 @@ nonisolated enum RoutineCompose {
     /// El desempate sigue el orden de `MuscleGroup.allCases` porque el sort de
     /// Swift no es estable: sin esto dos pantallas con los mismos datos podrían
     /// ordenar distinto dos músculos empatados.
-    static func reparto(_ items: [DraftExercise], catalogo: [String: Exercise]) -> [RepartoMuscular] {
+    static func reparto(_ items: [RoutineDraftExercise], catalogo: [String: Exercise]) -> [RepartoMuscular] {
         var crudo: [MuscleGroup: Double] = [:]
         var total: Double = 0
 

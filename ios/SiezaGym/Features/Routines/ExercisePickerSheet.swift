@@ -21,6 +21,7 @@ struct ExercisePickerSheet: View {
     private var resultados: [Exercise] {
         ExerciseSearch.filtrar(catalogo, texto: texto, region: region)
     }
+    private var cargando: Bool { store.isLoading && catalogo.isEmpty }
 
     var body: some View {
         ZStack {
@@ -33,7 +34,13 @@ struct ExercisePickerSheet: View {
 
                 ScrollView {
                     if resultados.isEmpty {
-                        Vacio(texto: "Ningún ejercicio coincide.")
+                        // Sin catálogo todavía no hay nada que no coincida:
+                        // decir "ninguno coincide" mientras carga es mentira.
+                        Vacio(texto: cargando
+                              ? "Cargando ejercicios…"
+                              : (catalogo.isEmpty
+                                 ? "No pudimos traer el catálogo de ejercicios."
+                                 : "Ningún ejercicio coincide."))
                             .padding(.horizontal, 18)
                             .padding(.bottom, 24)
                     } else {
@@ -57,6 +64,9 @@ struct ExercisePickerSheet: View {
 
                 pie
             }
+        }
+        .task {
+            if store.catalog.isEmpty && !store.isLoading { await store.load() }
         }
     }
 
@@ -172,9 +182,13 @@ struct ExercisePickerSheet: View {
     }
 
     private func subtitulo(_ ejercicio: Exercise, agregado: Bool) -> String {
-        [ejercicio.primaryMuscle?.label, agregado ? "ya está en la rutina" : nil]
-            .compactMap { $0 }
-            .joined(separator: " · ")
+        [
+            ejercicio.source == .custom ? "Tuyo" : nil,
+            ejercicio.primaryMuscle?.label,
+            agregado ? "ya está en la rutina" : nil,
+        ]
+        .compactMap { $0 }
+        .joined(separator: " · ")
     }
 
     private var pie: some View {

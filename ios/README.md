@@ -57,6 +57,10 @@ SiezaGymTests/     Swift Testing
 | `DraftExercise`            | `lib/routines/prescription.js` |
 | `RoutineCompose`           | `lib/routines/compose.js` + `muscleDistribution` de `lib/routines/summary.js` |
 
+`RoutineDraftExercise` guarda las dos formas de prescribir que acepta el modelo,
+igual que la web: pareja (todas las series iguales) y detallada (una fila por
+serie, para rampas del tipo 10, 12, 14, 16).
+
 Si cambia una fórmula en la web, cambia acá también: son la misma app.
 
 ## Decisiones que no son obvias
@@ -79,6 +83,15 @@ peso del perfil. Igual el 1RM: es Epley, no una marca real.
 **`durationSeconds` viene mal en sesiones viejas** (hay sesiones de 6 series con
 25 segundos). `HomeMetrics.sessionSeconds` descarta lo físicamente imposible y
 estima a partir de las series.
+
+**Los gifs del catálogo se decodifican a mano.** `AsyncImage` no anima GIFs
+remotos: `Miniatura` los pasa por ImageIO y los entrega a `UIImageView`, que sí
+los anima, con caché por URL para no bajar el mismo ejercicio en cada fila.
+
+**El catálogo del selector son los 94 públicos más los propios.**
+`GymRepository.exercises(uid:)` los junta, y si la subcolección propia falla
+(regla o índice) igual devuelve el catálogo global: sin él no se puede armar
+nada.
 
 **La hora es la de Argentina, no la del teléfono.** Un entrenamiento a las 22:00
 en Buenos Aires es de ese día aunque el dispositivo esté en otra zona.
@@ -132,7 +145,7 @@ xcodebuild test -project SiezaGym.xcodeproj -scheme SiezaGym \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 ```
 
-84 tests: la matemática de `Domain/` y la traducción de errores de login. Son
+90 tests: la matemática de `Domain/` y la traducción de errores de login. Son
 funciones puras, no tocan Firestore ni la red.
 
 ## El proyecto de Xcode
@@ -161,6 +174,7 @@ Del armador de rutinas faltan dos cosas que la web sí tiene, las dos dentro de
 
 - **Editar una rutina existente.** En la web es la misma pantalla con la rutina
   cargada (`/rutinas/[id]/editar`); en la app el armador solo crea.
-- **Crear un ejercicio propio** desde el selector. Escribe en
-  `users/{uid}/customExercises` y tiene su propia validación de reglas, así que
-  es una función aparte y no parte de crear la rutina.
+- **Crear un ejercicio propio** desde el selector. Los que ya creaste en la web
+  sí aparecen (marcados `Tuyo`, con `exerciseSource: "custom"`), pero el alta
+  escribe en `users/{uid}/customExercises` con su propia validación de reglas,
+  así que es una función aparte y no parte de crear la rutina.

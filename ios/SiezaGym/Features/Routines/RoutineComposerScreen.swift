@@ -10,7 +10,7 @@ struct RoutineComposerScreen: View {
 
     @State private var nombre = ""
     @State private var nota = ""
-    @State private var items: [DraftExercise] = []
+    @State private var items: [RoutineDraftExercise] = []
     @State private var abierto: String?
     @State private var eligiendo = false
     @State private var error = ""
@@ -139,7 +139,7 @@ struct RoutineComposerScreen: View {
         }
     }
 
-    private func reordenar(_ item: DraftExercise) -> some View {
+    private func reordenar(_ item: RoutineDraftExercise) -> some View {
         let indice = items.firstIndex(of: item) ?? 0
 
         return HStack(spacing: 8) {
@@ -207,7 +207,7 @@ struct RoutineComposerScreen: View {
     private func agregar(_ elegidos: [Exercise]) {
         let nuevos = elegidos
             .filter { !agregados.contains($0.id) }
-            .map(DraftExercise.init(exercise:))
+            .map(RoutineDraftExercise.init(exercise:))
         items.append(contentsOf: nuevos)
     }
 
@@ -218,12 +218,10 @@ struct RoutineComposerScreen: View {
 
     private func guardar() async {
         error = ""
-        guard !nombre.trimmingCharacters(in: .whitespaces).isEmpty else {
-            error = "Ponele un nombre a la rutina."
-            return
-        }
-        guard !items.isEmpty else {
-            error = "Agregá al menos un ejercicio."
+        do {
+            try RoutineDraftValidation.validate(name: nombre, exercises: items)
+        } catch {
+            self.error = error.localizedDescription
             return
         }
 
@@ -243,7 +241,7 @@ struct RoutineComposerScreen: View {
 /// campos desplegados no se puede leer.
 private struct FilaPrescripcion: View {
     @Environment(\.tema) private var tema
-    @Binding var item: DraftExercise
+    @Binding var item: RoutineDraftExercise
     let ejercicio: Exercise?
     let nombre: String
     let abierto: Bool
@@ -337,6 +335,22 @@ private struct FilaPrescripcion: View {
             }
             .buttonStyle(.plain)
             .accessibilityAddTraits(item.esDetallada ? [.isSelected] : [])
+
+            // La nota técnica del armador del coach (`ExerciseConfigRow` en la
+            // web). `sanitizeExercises` ya la guarda y el detalle de la rutina
+            // la muestra, así que se puede cargar desde acá.
+            TextField(
+                "",
+                text: $item.techniqueNote,
+                prompt: Text("Nota técnica (opcional)").foregroundStyle(tema.texto3)
+            )
+            .font(.system(size: 12))
+            .foregroundStyle(tema.texto)
+            .padding(.horizontal, 12)
+            .frame(minHeight: 38)
+            .background(tema.vidrio(1), in: .rect(cornerRadius: 12))
+            .overlay { RoundedRectangle(cornerRadius: 12).strokeBorder(tema.borde, lineWidth: 1) }
+            .accessibilityLabel("Nota técnica de \(nombre)")
 
             if item.esDetallada, let filas = item.sets {
                 // El caso: press con 10, 12, 14 y 16 repeticiones.

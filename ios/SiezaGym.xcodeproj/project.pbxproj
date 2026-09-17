@@ -24,6 +24,7 @@
 		71B55B68CDDE96E4D0457893 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = B25E860F7C4AE7A29211C87F /* GoogleService-Info.plist */; };
 		721BE8F99880C16D784852C1 /* RoutineSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCA4F2347BCE2A9D4BDB6CF /* RoutineSummary.swift */; };
 		765B33F0C6E2CA822388FC44 /* Epley.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DA99ABA4DD2DEF013186323 /* Epley.swift */; };
+		76AF706F5D7BCAD8AB74FD5B /* ExerciseMediaTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 698A3E0F778AD459293863DB /* ExerciseMediaTests.swift */; };
 		770004E47AA749F0F6F998B2 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 612CAF8B0BE6DAFE16A5E7F3 /* FirebaseFirestore */; };
 		7750AF83B91BCB93392BBB76 /* WorkoutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1701F084780BFE7958223925 /* WorkoutView.swift */; };
 		7E739AEF5A7A60A1D36CCB94 /* SiezaGymApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DDA47487C90F2CFC08882C9 /* SiezaGymApp.swift */; };
@@ -79,6 +80,7 @@
 		61A8217EE572685B2AF5F08A /* AuthMessageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthMessageTests.swift; sourceTree = "<group>"; };
 		65D3FDABC0463D11B668747F /* ProgressMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressMetrics.swift; sourceTree = "<group>"; };
 		66278651D9DB38E2D642B2FD /* Pantallas.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pantallas.swift; sourceTree = "<group>"; };
+		698A3E0F778AD459293863DB /* ExerciseMediaTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseMediaTests.swift; sourceTree = "<group>"; };
 		6B0A282C126119F3E98FE7B2 /* SiezaGym.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = SiezaGym.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		722FB1B611252D2E0EC76157 /* HomeMetricsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeMetricsTests.swift; sourceTree = "<group>"; };
 		74A77B3D5FCE817B76BF4DA8 /* HistoryScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryScreen.swift; sourceTree = "<group>"; };
@@ -105,7 +107,7 @@
 		F3EA1A8C682800BC7D50005F /* WorkoutSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutSession.swift; sourceTree = "<group>"; };
 		F59182899A1B9BF47AA4539C /* BottomNav.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomNav.swift; sourceTree = "<group>"; };
 		F9F6A2EBFC13CEDC7984B640 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		"TEMP_B7B4FA68-54FC-4415-83C5-A31C4F062FFB" /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
+		"TEMP_1A6942B9-8574-4D2A-A383-2AB365FB5E77" /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -284,6 +286,7 @@
 			isa = PBXGroup;
 			children = (
 				61A8217EE572685B2AF5F08A /* AuthMessageTests.swift */,
+				698A3E0F778AD459293863DB /* ExerciseMediaTests.swift */,
 				722FB1B611252D2E0EC76157 /* HomeMetricsTests.swift */,
 				02298DDC76F85B66411B44D2 /* RoutineDraftTests.swift */,
 				00CB416B92890D19B623F38A /* TrainingCalendarTests.swift */,
@@ -307,10 +310,10 @@
 			path = Progress;
 			sourceTree = "<group>";
 		};
-		"TEMP_AA5C637F-4007-4961-B7B6-BEADC05CC6AD" /* ios */ = {
+		"TEMP_5231FAC4-EFCB-47D5-9ED8-DFD732639189" /* ios */ = {
 			isa = PBXGroup;
 			children = (
-				"TEMP_B7B4FA68-54FC-4415-83C5-A31C4F062FFB" /* Signing.xcconfig */,
+				"TEMP_1A6942B9-8574-4D2A-A383-2AB365FB5E77" /* Signing.xcconfig */,
 			);
 			path = ios;
 			sourceTree = "<group>";
@@ -460,6 +463,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B0B297E0FDAA904D85B665BE /* AuthMessageTests.swift in Sources */,
+				76AF706F5D7BCAD8AB74FD5B /* ExerciseMediaTests.swift in Sources */,
 				B0271AE82DCF679E96BE2A0D /* HomeMetricsTests.swift in Sources */,
 				6F07E98E52F1BB3440BC16EF /* RoutineDraftTests.swift in Sources */,
 				B1B3AA68F97836D037C4F264 /* TrainingCalendarTests.swift in Sources */,
@@ -479,7 +483,7 @@
 /* Begin XCBuildConfiguration section */
 		04764DE4336904985F4049C2 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_B7B4FA68-54FC-4415-83C5-A31C4F062FFB" /* Signing.xcconfig */;
+			baseConfigurationReference = "TEMP_1A6942B9-8574-4D2A-A383-2AB365FB5E77" /* Signing.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -616,7 +620,7 @@
 		};
 		FC6682134BF5D75535C2BAE4 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_B7B4FA68-54FC-4415-83C5-A31C4F062FFB" /* Signing.xcconfig */;
+			baseConfigurationReference = "TEMP_1A6942B9-8574-4D2A-A383-2AB365FB5E77" /* Signing.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;

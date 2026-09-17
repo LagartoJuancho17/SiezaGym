@@ -1,0 +1,28 @@
+/* Coach surfaces share the design2 theme and glass materials. */
+.d2-coach-stack { display: flex; flex-direction: column; gap: 16px; }
+.d2-coach-summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.d2-coach-stat, .d2-coach-add { display: flex; flex-direction: column; justify-content: space-between; gap: 12px; min-height: 126px; padding: 20px; border-radius: var(--d2-radius); }
+.d2-coach-stat strong, .d2-coach-number { font-size: 32px; line-height: 1.2; font-weight: 500; letter-spacing: -0.04em; }
+.d2-coach-add { justify-content: center; align-items: center; font-size: 13px; text-align: center; }
+.d2-coach-plus { font-size: 30px; font-weight: 300; line-height: 1; }
+.d2-coach-muted { font-size: 12px; line-height: 1.5; color: var(--d2-text-2); }
+.d2-coach-row { display: flex; align-items: center; gap: 12px; padding: 16px; border-radius: var(--d2-radius-sm); }
+.d2-coach-student-link { display: flex; flex: 1; min-width: 0; align-items: center; gap: 12px; }
+.d2-coach-linked-date { flex: none; font-size: 11px; color: var(--d2-text-3); }
+.d2-coach-icon-button { display: grid; place-items: center; flex: none; width: 44px; height: 44px; border-radius: var(--d2-radius-sm); color: var(--d2-text-2); }
+.d2-coach-icon-button:disabled { cursor: wait; }
+.d2-coach-value { flex: none; font-size: 13px; font-variant-numeric: tabular-nums; }
+.d2-coach-card { padding: 18px; border-radius: var(--d2-radius); }
+.d2-coach-section-title { margin-bottom: 12px; font-size: 19px; font-weight: 500; letter-spacing: -0.02em; }
+.d2-coach-section-body { margin-top: 12px; }
+.d2-coach-sets { display: flex; flex-direction: column; gap: 6px; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--d2-border); }
+.d2-coach-chart { width: 100%; height: 260px; padding: 16px 10px; border-radius: var(--d2-radius); }
+.d2-coach-tooltip { padding: 12px; border-radius: var(--d2-radius-sm); }
+.d2-coach-dialog { position: fixed; inset: 0; margin: auto; padding: 18px; width: min(100%, 410px); max-height: calc(100dvh - 36px); border: none; background: transparent; color: var(--d2-text); overflow-y: auto; }
+.d2-coach-dialog::backdrop { background: var(--d2-edge-bottom); backdrop-filter: var(--d2-glass-filter); }
+.d2-coach-dialog .d2-modal-card { max-width: none; }
+.d2-coach-code { width: 100%; padding: 20px 10px; text-align: center; border-radius: var(--d2-radius-sm); }
+.d2-coach-code-value { font-size: clamp(22px, 7vw, 30px); letter-spacing: 0.12em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.d2-coach-error { padding: 16px; border-radius: var(--d2-radius-sm); font-size: 13px; text-align: center; }
+.d2-coach-empty-title { margin-top: 12px; font-weight: 500; color: var(--d2-text); }
+@media (max-width: 360px) { .d2-coach-linked-date { display: none; } .d2-coach-row { gap: 6px; padding: 12px; } }

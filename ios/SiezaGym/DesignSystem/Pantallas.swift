@@ -1,4 +1,6 @@
+import ImageIO
 import SwiftUI
+import UIKit
 
 /// El marco de una pantalla: rótulo opcional arriba, título, y una acción a la
 /// derecha. Es el `PageShell` de la web.
@@ -183,21 +185,141 @@ struct Miniatura: View {
         ZStack {
             Color(white: 0.95)
             if let url {
-                AsyncImage(url: url) { imagen in
-                    imagen.resizable().aspectRatio(contentMode: .fill)
-                } placeholder: {
-                    Image(systemName: "dumbbell.fill")
-                        .font(.system(size: lado * 0.34))
-                        .foregroundStyle(Color(white: 0.6))
+                if url.pathExtension.lowercased() == "gif" {
+                    GIFMiniatura(url: url)
+                } else {
+                    AsyncImage(url: url) { imagen in
+                        imagen.resizable().aspectRatio(contentMode: .fill)
+                    } placeholder: {
+                        PlaceholderMiniatura(lado: lado)
+                    }
                 }
             } else {
-                Image(systemName: "dumbbell.fill")
-                    .font(.system(size: lado * 0.34))
-                    .foregroundStyle(Color(white: 0.6))
+                PlaceholderMiniatura(lado: lado)
             }
         }
         .frame(width: lado, height: lado)
         .clipShape(.rect(cornerRadius: lado * 0.3))
+    }
+}
+
+private struct PlaceholderMiniatura: View {
+    let lado: CGFloat
+
+    var body: some View {
+        Image(systemName: "dumbbell.fill")
+            .font(.system(size: lado * 0.34))
+            .foregroundStyle(Color(white: 0.6))
+    }
+}
+
+/// `AsyncImage` no reproduce GIFs remotos de forma fiable en iOS. Este camino
+/// decodifica sus frames con ImageIO y los entrega a UIImageView, que sí los
+/// anima. La caché evita descargar el mismo ejercicio en cada fila/pantalla.
+private struct GIFMiniatura: UIViewRepresentable {
+    let url: URL
+
+    func makeCoordinator() -> Coordinator { Coordinator() }
+
+    func makeUIView(context: Context) -> UIImageView {
+        let imageView = UIImageView()
+        imageView.contentMode = .scaleAspectFill
+        imageView.clipsToBounds = true
+        context.coordinator.load(url: url, into: imageView)
+        return imageView
+    }
+
+    func updateUIView(_ imageView: UIImageView, context: Context) {
+        context.coordinator.load(url: url, into: imageView)
+    }
+
+    static func dismantleUIView(_ imageView: UIImageView, coordinator: Coordinator) {
+        coordinator.cancel()
+    }
+
+    @MainActor
+    final class Coordinator {
+        private var task: Task<Void, Never>?
+        private var loadedURL: URL?
+
+        func load(url: URL, into imageView: UIImageView) {
+            guard loadedURL != url else { return }
+            loadedURL = url
+            task?.cancel()
+            imageView.stopAnimating()
+            imageView.animationImages = nil
+            imageView.image = UIImage(systemName: "dumbbell.fill")
+
+            task = Task { @MainActor [weak self, weak imageView] in
+                guard let decoded = try? await GIFImageLoader.load(url: url),
+                      !Task.isCancelled,
+                      let self,
+                      let imageView else { return }
+
+                imageView.animationImages = decoded.frames
+                imageView.animationDuration = decoded.duration
+                imageView.animationRepeatCount = 0
+                imageView.startAnimating()
+                self.task = nil
+            }
+        }
+
+        func cancel() {
+            task?.cancel()
+            task = nil
+        }
+    }
+}
+
+@MainActor
+private enum GIFImageLoader {
+    struct DecodedImage {
+        let frames: [UIImage]
+        let duration: TimeInterval
+    }
+
+    static let cache = NSCache<NSURL, UIImage>()
+
+    static func load(url: URL) async throws -> DecodedImage {
+        if let cached = cache.object(forKey: url as NSURL),
+           let frames = cached.images,
+           !frames.isEmpty {
+            return DecodedImage(frames: frames, duration: max(cached.duration, 0.1))
+        }
+
+        let (data, _) = try await URLSession.shared.data(from: url)
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil) else {
+            throw GIFImageError.invalidData
+        }
+
+        let count = CGImageSourceGetCount(source)
+        guard count > 0 else { throw GIFImageError.invalidData }
+
+        var frames: [UIImage] = []
+        var duration: TimeInterval = 0
+        for index in 0..<count {
+            guard let image = CGImageSourceCreateImageAtIndex(source, index, nil) else { continue }
+            frames.append(UIImage(cgImage: image))
+            duration += frameDuration(source: source, index: index)
+        }
+
+        guard !frames.isEmpty else { throw GIFImageError.invalidData }
+        let totalDuration = max(duration, Double(frames.count) * 0.1)
+        let animated = UIImage.animatedImage(with: frames, duration: totalDuration) ?? frames[0]
+        cache.setObject(animated, forKey: url as NSURL)
+        return DecodedImage(frames: animated.images ?? frames, duration: totalDuration)
+    }
+
+    private static func frameDuration(source: CGImageSource, index: Int) -> TimeInterval {
+        let properties = CGImageSourceCopyPropertiesAtIndex(source, index, nil) as? [CFString: Any]
+        let gif = properties?[kCGImagePropertyGIFDictionary] as? [CFString: Any]
+        let unclamped = gif?[kCGImagePropertyGIFUnclampedDelayTime] as? Double
+        let clamped = gif?[kCGImagePropertyGIFDelayTime] as? Double
+        return max(unclamped ?? clamped ?? 0.1, 0.02)
+    }
+
+    private enum GIFImageError: Error {
+        case invalidData
     }
 }
 
