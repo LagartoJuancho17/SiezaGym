@@ -33,7 +33,7 @@ struct RoutineComposerScreen: View {
         .background { Backdrop() }
         .sheet(isPresented: $showingPicker) {
             ExercisePickerSheet(
-                exercises: ejerciciosOrdenados,
+                store: store,
                 initiallySelected: Set(items.map(\.exerciseID))
             ) { selected in
                 addExercises(selected)
@@ -253,18 +253,24 @@ private struct CampoObjetivo: View {
 private struct ExercisePickerSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.tema) private var tema
-    let exercises: [Exercise]
+    let store: GymStore
     let initiallySelected: Set<String>
     let onConfirm: ([Exercise]) -> Void
 
     @State private var query = ""
     @State private var selected: Set<String>
 
-    init(exercises: [Exercise], initiallySelected: Set<String>, onConfirm: @escaping ([Exercise]) -> Void) {
-        self.exercises = exercises
+    init(store: GymStore, initiallySelected: Set<String>, onConfirm: @escaping ([Exercise]) -> Void) {
+        self.store = store
         self.initiallySelected = initiallySelected
         self.onConfirm = onConfirm
         _selected = State(initialValue: initiallySelected)
+    }
+
+    private var exercises: [Exercise] {
+        store.catalog.values.sorted {
+            $0.nameEs.localizedCaseInsensitiveCompare($1.nameEs) == .orderedAscending
+        }
     }
 
     private var visible: [Exercise] {
@@ -284,32 +290,48 @@ private struct ExercisePickerSheet: View {
             ZStack {
                 Backdrop()
                 ScrollView {
-                    LazyVStack(spacing: 0) {
-                        ForEach(visible) { exercise in
-                            Button {
-                                toggle(exercise.id)
-                            } label: {
-                                HStack(spacing: 12) {
-                                    Miniatura(url: exercise.mediaURL, lado: 46)
-                                    VStack(alignment: .leading, spacing: 3) {
-                                        Text(exercise.nameEs)
-                                            .font(.system(size: 14, weight: .medium))
-                                            .foregroundStyle(tema.texto)
-                                        Text(exercise.source == .custom ? "Tuyo" : (exercise.primaryMuscle?.label ?? "Sin datos"))
-                                            .font(.system(size: 11))
-                                            .foregroundStyle(tema.texto2)
-                                    }
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    Image(systemName: selected.contains(exercise.id) ? "checkmark.circle.fill" : "circle")
-                                        .font(.system(size: 22))
-                                        .foregroundStyle(selected.contains(exercise.id) ? tema.solido : tema.texto3)
+                    VStack(spacing: 0) {
+                        if visible.isEmpty {
+                            VStack(spacing: 10) {
+                                if store.isLoading {
+                                    ProgressView().tint(tema.texto)
+                                    Text("Cargando ejercicios...")
+                                } else {
+                                    Text(query.isEmpty ? "No hay ejercicios disponibles." : "Ningún ejercicio coincide.")
                                 }
-                                .padding(.horizontal, 18)
-                                .padding(.vertical, 10)
                             }
-                            .buttonStyle(.plain)
-                            if exercise.id != visible.last?.id {
-                                Rectangle().fill(tema.borde).frame(height: 1)
+                            .font(.system(size: 14))
+                            .foregroundStyle(tema.texto2)
+                            .frame(maxWidth: .infinity, minHeight: 220)
+                        } else {
+                            LazyVStack(spacing: 0) {
+                                ForEach(visible) { exercise in
+                                    Button {
+                                        toggle(exercise.id)
+                                    } label: {
+                                        HStack(spacing: 12) {
+                                            Miniatura(url: exercise.mediaURL, lado: 46)
+                                            VStack(alignment: .leading, spacing: 3) {
+                                                Text(exercise.nameEs)
+                                                    .font(.system(size: 14, weight: .medium))
+                                                    .foregroundStyle(tema.texto)
+                                                Text(exercise.source == .custom ? "Tuyo" : (exercise.primaryMuscle?.label ?? "Sin datos"))
+                                                    .font(.system(size: 11))
+                                                    .foregroundStyle(tema.texto2)
+                                            }
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                            Image(systemName: selected.contains(exercise.id) ? "checkmark.circle.fill" : "circle")
+                                                .font(.system(size: 22))
+                                                .foregroundStyle(selected.contains(exercise.id) ? tema.solido : tema.texto3)
+                                        }
+                                        .padding(.horizontal, 18)
+                                        .padding(.vertical, 10)
+                                    }
+                                    .buttonStyle(.plain)
+                                    if exercise.id != visible.last?.id {
+                                        Rectangle().fill(tema.borde).frame(height: 1)
+                                    }
+                                }
                             }
                         }
                     }
@@ -345,6 +367,11 @@ private struct ExercisePickerSheet: View {
         .preferredColorScheme(.dark)
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
+        .task {
+            if store.catalog.isEmpty && !store.isLoading {
+                await store.load()
+            }
+        }
     }
 
     private var buscador: some View {

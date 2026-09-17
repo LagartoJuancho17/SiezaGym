@@ -33,18 +33,26 @@ nonisolated struct GymRepository: Sendable {
     /// Combina el catálogo global con los ejercicios propios del usuario. Los
     /// últimos viven en una subcolección protegida por las reglas de Firestore.
     func exercises(uid: String) async throws -> [String: Exercise] {
-        async let catalog = exercises()
-        async let customSnapshot = db.collection("users").document(uid)
-            .collection("customExercises").order(by: "nameEs").getDocuments()
+        // El catálogo global es la dependencia necesaria para armar una rutina.
+        // Una regla o índice roto en la subcolección propia no puede dejar la
+        // lista entera vacía.
+        var all = try await exercises()
 
-        var all = try await catalog
-        for document in try await customSnapshot.documents {
-            all[document.documentID] = Exercise(
-                id: document.documentID,
-                data: document.data(),
-                source: .custom
-            )
+        do {
+            let customSnapshot = try await db.collection("users").document(uid)
+                .collection("customExercises").order(by: "nameEs").getDocuments()
+
+            for document in customSnapshot.documents {
+                all[document.documentID] = Exercise(
+                    id: document.documentID,
+                    data: document.data(),
+                    source: .custom
+                )
+            }
+        } catch {
+            log.error("ejercicios propios no disponibles: \(error.localizedDescription, privacy: .public)")
         }
+
         return all
     }
 
