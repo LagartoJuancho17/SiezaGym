@@ -802,8 +802,12 @@
 .d2-exhero-name { display: block; font-size: calc(15 * var(--d2-u)); line-height: 1.3; font-weight: 500; letter-spacing: -0.015em; }
 .d2-exhero-note { display: block; margin-top: calc(6 * var(--d2-u)); font-size: calc(12 * var(--d2-u)); line-height: 1.5; color: var(--d2-text-2); }
 
-/* Nombre del ejercicio con su miniatura en el detalle de una sesion. */
-.d2-session-exercise-head { display: flex; align-items: center; gap: calc(11 * var(--d2-u)); }
+/* Nombre del ejercicio con su miniatura en el detalle de una sesion. Ahi la
+   animacion va mas grande que en una lista: la fila no compite con otras
+   quince y se ve el movimiento, que es para lo que esta. */
+.d2-session-exercise-head { display: flex; align-items: center; gap: calc(13 * var(--d2-u)); }
+.d2-session-exercise-head .d2-ex-thumb { width: calc(64 * var(--d2-u)); height: calc(64 * var(--d2-u)); border-radius: calc(18 * var(--d2-u)); }
+.d2-session-exercise-head .d2-ex-thumb > svg { width: calc(26 * var(--d2-u)); height: calc(26 * var(--d2-u)); }
 
 /* Empuje contra traccion en una sola barra: lo que importa no son los kilos
    de cada lado sino la proporcion entre los dos. */

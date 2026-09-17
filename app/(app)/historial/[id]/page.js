@@ -65,9 +65,9 @@ export default async function SesionDetallePage({ params }) {
               >
                 <span className="d2-ex-thumb d2-ex-thumb-sm">
                   {catalogExercise?.mediaUrl ? (
-                    <Image src={catalogExercise.mediaUrl} alt="" width={40} height={40} unoptimized />
+                    <Image src={catalogExercise.mediaUrl} alt="" width={64} height={64} unoptimized />
                   ) : (
-                    <WeightIcon size={17} width={1.5} />
+                    <WeightIcon size={26} width={1.5} />
                   )}
                 </span>
                 <span className="d2-session-exercise-name">
