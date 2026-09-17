@@ -54,6 +54,8 @@ SiezaGymTests/     Swift Testing
 | `Epley`                    | `lib/epley.js`             |
 | `TrainingCalendar`         | `lib/sessions/streak.js` + `lib/routines/schedule.js` |
 | `RoutineSummary`           | `lib/routines/summary.js`  |
+| `DraftExercise`            | `lib/routines/prescription.js` |
+| `RoutineCompose`           | `lib/routines/compose.js` + `muscleDistribution` de `lib/routines/summary.js` |
 
 Si cambia una fórmula en la web, cambia acá también: son la misma app.
 
@@ -130,7 +132,7 @@ xcodebuild test -project SiezaGym.xcodeproj -scheme SiezaGym \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 ```
 
-48 tests: la matemática de `Domain/` y la traducción de errores de login. Son
+84 tests: la matemática de `Domain/` y la traducción de errores de login. Son
 funciones puras, no tocan Firestore ni la red.
 
 ## El proyecto de Xcode
@@ -143,11 +145,22 @@ editá el YAML y regenerá:
 brew install xcodegen && xcodegen generate
 ```
 
-Agregar archivos .swift no necesita regenerar nada: el target toma la carpeta
-entera.
+**Agregar un archivo .swift también necesita regenerar.** El YAML toma la
+carpeta entera, pero la resuelve al generar: el `.pbxproj` lista los archivos uno
+por uno. Un archivo nuevo que no esté ahí no se compila, y si es de tests
+`xcodebuild test` pasa igual sin haberlos corrido.
 
 ## Qué no está
 
 El **panel de coach** (alumnos, códigos de invitación, asignar rutinas) sigue
 siendo solo web: es una superficie de escritorio. La app muestra las rutinas
 asignadas por el coach, pero no permite administrarlas.
+
+Del armador de rutinas faltan dos cosas que la web sí tiene, las dos dentro de
+`RoutineComposer`:
+
+- **Editar una rutina existente.** En la web es la misma pantalla con la rutina
+  cargada (`/rutinas/[id]/editar`); en la app el armador solo crea.
+- **Crear un ejercicio propio** desde el selector. Escribe en
+  `users/{uid}/customExercises` y tiene su propia validación de reglas, así que
+  es una función aparte y no parte de crear la rutina.

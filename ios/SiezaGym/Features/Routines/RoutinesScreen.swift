@@ -7,6 +7,7 @@ struct RoutinesScreen: View {
     let store: GymStore
     @State private var busqueda = ""
     @State private var workout: WorkoutTarget?
+    @State private var creando = false
 
     private var visibles: [Routine] {
         let termino = busqueda.trimmingCharacters(in: .whitespaces).folding(
@@ -21,14 +22,20 @@ struct RoutinesScreen: View {
     var body: some View {
         NavigationStack {
             Pantalla(titulo: "Rutinas") {
-                // Crear una rutina se hace desde la web: acá no está el
-                // armador, y un botón que no lleva a ningún lado miente.
-                EmptyView()
+                Button { creando = true } label: {
+                    Image(systemName: "plus")
+                        .font(.system(size: 22, weight: .medium))
+                        .foregroundStyle(tema.sobreSolido)
+                        .frame(width: 56, height: 56)
+                        .background(tema.solido, in: .circle)
+                }
+                .accessibilityLabel("Nueva rutina")
             } contenido: {
                 buscador
 
                 if store.routines.isEmpty {
-                    Vacio(texto: "Todavía no tenés rutinas.\nCreá una desde la web y aparece acá.")
+                    Vacio(texto: "Todavía no tenés rutinas.",
+                          accion: ("Crear la primera", { creando = true }))
                         .padding(.top, 24)
                 } else if visibles.isEmpty {
                     Vacio(texto: "Ninguna rutina coincide.")
@@ -59,6 +66,9 @@ struct RoutinesScreen: View {
             .bottomNavInset()
             .fullScreenCover(item: $workout) { objetivo in
                 WorkoutView(store: store, routine: objetivo.routine)
+            }
+            .fullScreenCover(isPresented: $creando) {
+                RoutineComposerScreen(store: store)
             }
         }
     }

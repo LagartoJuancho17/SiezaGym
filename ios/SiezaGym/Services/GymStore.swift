@@ -109,6 +109,13 @@ final class GymStore {
         await load()
     }
 
+    /// Crea una rutina y recarga, para que aparezca en la lista sin salir y
+    /// volver a entrar.
+    func createRoutine(name: String, note: String, exercises: [DraftExercise]) async throws {
+        _ = try await repository.createRoutine(uid: uid, name: name, note: note, exercises: exercises)
+        await load()
+    }
+
     func updateProfile(_ fields: [String: Any]) async {
         do {
             try await repository.updateProfile(uid: uid, fields: fields)

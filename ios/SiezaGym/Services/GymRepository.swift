@@ -97,6 +97,34 @@ nonisolated struct GymRepository: Sendable {
         }
     }
 
+    /// Crea una rutina con la misma forma de documento que escribe la web.
+    ///
+    /// Los campos y sus valores por defecto son los de `sanitizeExercises` en
+    /// lib/routines/routines.js: si los dos clientes no escriben igual, una
+    /// rutina creada en el teléfono se lee distinto en la web.
+    func createRoutine(
+        uid: String,
+        name: String,
+        note: String,
+        exercises: [DraftExercise]
+    ) async throws -> String {
+        let limpio = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !limpio.isEmpty else { throw RepositoryError.emptyRoutineName }
+        guard !exercises.isEmpty else { throw RepositoryError.emptyRoutine }
+
+        let payload: [String: Any] = [
+            "ownerId": uid,
+            "name": limpio,
+            "note": note.trimmingCharacters(in: .whitespacesAndNewlines),
+            "exercises": exercises.enumerated().map { orden, item in item.firestoreValue(order: orden) },
+            "lastUsedAt": NSNull(),
+            "createdAt": FieldValue.serverTimestamp(),
+            "updatedAt": FieldValue.serverTimestamp(),
+        ]
+
+        return try await db.collection("routines").addDocument(data: payload).documentID
+    }
+
     func routine(id: String, isAssigned: Bool) async throws -> Routine? {
         let collection = isAssigned ? "assignments" : "routines"
         let document = try await db.collection(collection).document(id).getDocument()
@@ -166,10 +194,14 @@ nonisolated struct GymRepository: Sendable {
 
     enum RepositoryError: LocalizedError {
         case emptySession
+        case emptyRoutineName
+        case emptyRoutine
 
         var errorDescription: String? {
             switch self {
             case .emptySession: "No cargaste ninguna serie."
+            case .emptyRoutineName: "Ponele un nombre a la rutina."
+            case .emptyRoutine: "Agregá al menos un ejercicio."
             }
         }
     }
