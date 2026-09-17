@@ -33,6 +33,7 @@ const TABS = [
 export default function TabBar({ activePath } = {}) {
   const currentPath = usePathname();
   const pathname = activePath ?? currentPath ?? "/";
+  const activeIndex = TABS.findIndex((tab) => tab.match(pathname));
 
   return (
     <nav
@@ -40,6 +41,15 @@ export default function TabBar({ activePath } = {}) {
       className="d2-tabbar"
     >
       <div className="d2-glass d2-tabbar-shell">
+        <span
+          className="d2-tab-indicator"
+          aria-hidden="true"
+          style={
+            activeIndex >= 0
+              ? { transform: `translateY(calc(${activeIndex} * (48px + 4px)))`, opacity: 1 }
+              : { opacity: 0 }
+          }
+        />
         {TABS.map(({ href, label, Icon, match }) => {
           const isActive = match(pathname);
 
