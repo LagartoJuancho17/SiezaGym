@@ -1,0 +1,105 @@
+name: SiezaGym
+options:
+  bundleIdPrefix: com.siezagym
+  deploymentTarget:
+    iOS: "18.0"
+  createIntermediateGroups: true
+
+packages:
+  Firebase:
+    url: https://github.com/firebase/firebase-ios-sdk
+    minVersion: "11.0.0"
+    maxVersion: "13.0.0"
+  GoogleSignIn:
+    url: https://github.com/google/GoogleSignIn-iOS
+    minVersion: "8.0.0"
+    maxVersion: "10.0.0"
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    # Concurrencia "aproachable": el codigo arranca en el main actor y solo se
+    # sale de ahi a proposito. Es lo que recomienda Swift 6.2 en adelante.
+    SWIFT_APPROACHABLE_CONCURRENCY: YES
+    SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
+    SWIFT_STRICT_CONCURRENCY: complete
+    CODE_SIGN_STYLE: Automatic
+
+# El Team ID no va al repo: es de la cuenta de cada uno y este repositorio es
+# publico. Se pone en Local.xcconfig (copiar Local.example.xcconfig). Sin el
+# archivo se compila igual para el simulador; solo el dispositivo pide firma.
+configFiles:
+  Debug: Signing.xcconfig
+  Release: Signing.xcconfig
+
+targets:
+  SiezaGym:
+    type: application
+    platform: iOS
+    sources:
+      - path: SiezaGym
+    # GENERATE_INFOPLIST_FILE no puede declarar CFBundleURLTypes (es un array de
+    # diccionarios) y sin el esquema de URL iOS no sabe a quien devolverle el
+    # callback de Google, asi que hace falta un Info.plist de verdad.
+    info:
+      path: SiezaGym/Info.plist
+      properties:
+        CFBundleDisplayName: SiezaGym
+        # La app esta escrita en castellano. Sin declararlo, iOS resuelve los
+        # bundles embebidos (el del SDK de Google, entre otros) contra el idioma
+        # de desarrollo y el boton sale "Sign in with Google".
+        CFBundleDevelopmentRegion: es
+        CFBundleLocalizations: [es]
+        UILaunchScreen: {}
+        UIStatusBarStyle: UIStatusBarStyleLightContent
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        # Es el REVERSED_CLIENT_ID del GoogleService-Info.plist. A diferencia de
+        # la API key, un client id de OAuth para iOS es publico por diseno:
+        # viaja en el binario y se lee de cualquier IPA. No tiene client secret.
+        CFBundleURLTypes:
+          - CFBundleTypeRole: Editor
+            CFBundleURLSchemes:
+              - com.googleusercontent.apps.172935039970-q91msrp5od5vkgd5mohj9bo5fcg8e59v
+    dependencies:
+      - package: Firebase
+        product: FirebaseAuth
+      - package: Firebase
+        product: FirebaseFirestore
+      - package: GoogleSignIn
+        product: GoogleSignIn
+      - package: GoogleSignIn
+        product: GoogleSignInSwift
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.siezagym.app
+        PRODUCT_NAME: SiezaGym
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        ENABLE_USER_SCRIPT_SANDBOXING: YES
+        TARGETED_DEVICE_FAMILY: "1"
+
+  SiezaGymTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: SiezaGymTests
+    dependencies:
+      - target: SiezaGym
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+
+schemes:
+  SiezaGym:
+    build:
+      targets:
+        SiezaGym: all
+        SiezaGymTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - SiezaGymTests
