@@ -509,6 +509,8 @@
 .d2-ring-core > svg { width: calc(19 * var(--d2-u)); height: calc(19 * var(--d2-u)); }
 
 .d2-activity { margin-top: calc(17 * var(--d2-u)); }
+.d2-home-routines { margin-top: calc(17 * var(--d2-u)); }
+.d2-home-routines .d2-routine-list { margin-top: calc(14 * var(--d2-u)); }
 .d2-activity-list { display: flex; flex-direction: column; gap: calc(14 * var(--d2-u)); margin-top: calc(14 * var(--d2-u)); }
 .d2-activity-row { display: flex; align-items: center; gap: calc(13 * var(--d2-u)); min-height: calc(80 * var(--d2-u)); padding: calc(12 * var(--d2-u)); padding-right: calc(18 * var(--d2-u)); border-radius: calc(24 * var(--d2-u)); }
 .d2-activity-icon { width: calc(55 * var(--d2-u)); height: calc(55 * var(--d2-u)); }

@@ -5,6 +5,7 @@ const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf
 
 const homeSource = read("app/(app)/page.js");
 const navSource = read("lib/nav/redesigned.js");
+const homeRoutinesSource = read("components/design2/HomeRoutines.js");
 const activitySource = read("components/design2/RecentActivity.js");
 const ringSource = read("components/design2/Ring.js");
 const calendarSource = read("components/design2/TrainingWeek.js");
@@ -12,7 +13,7 @@ const cssSource = read("app/design2.css");
 
 describe("Home del rediseño", () => {
   it("usa los componentes de design2 y ninguno de la Home vieja", () => {
-    for (const component of ["<Backdrop", "<Header", "<Headline", "<TrainingWeek", "<GoalRail", "<RecentActivity", "<TabBar"]) {
+    for (const component of ["<Backdrop", "<Header", "<Headline", "<TrainingWeek", "<GoalRail", "<HomeRoutines", "<TabBar"]) {
       expect(homeSource).toContain(component);
     }
     // WeekStrip es el componente de la Home anterior; el del rediseño se llama
@@ -35,6 +36,24 @@ describe("Home del rediseño", () => {
     // Se comprueba que "/" esté en la lista y no la lista entera: el rediseño
     // va sumando rutas y el test no tiene que romperse en cada una.
     expect(navSource).toMatch(/const EXACT = \[[^\]]*"\/"/);
+  });
+});
+
+describe("Las rutinas en la portada", () => {
+  it("es de servidor: sin buscador esa sección no manda JavaScript al cliente", () => {
+    expect(homeRoutinesSource).not.toContain('"use client"');
+    expect(homeRoutinesSource).not.toContain("useState");
+    expect(homeRoutinesSource).not.toContain('type="search"');
+  });
+
+  it("enlaza a la lista completa de rutinas y al detalle", () => {
+    expect(homeRoutinesSource).toContain('href="/rutinas"');
+    expect(homeRoutinesSource).toContain('href={`/rutinas/${routine.id}`}');
+  });
+
+  it("avisa cuando no hay rutinas y ofrece crear la primera", () => {
+    expect(homeRoutinesSource).toContain("Todavía no tenés rutinas.");
+    expect(homeRoutinesSource).toContain('href="/rutinas/nueva"');
   });
 });
 

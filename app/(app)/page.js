@@ -4,54 +4,73 @@ import { getCurrentUser } from "@/lib/firebase/session";
 import { getUserProfile } from "@/lib/users/users";
 import { listUserRoutines } from "@/lib/routines/routines";
 import { listStudentAssignments } from "@/lib/assignments/assignments";
+import { listExercises } from "@/lib/exercises/exercises";
+import { listCustomExercises } from "@/lib/customExercises/customExercises";
 import { listTrainedDates, listUserSessions } from "@/lib/sessions/sessions";
 import { computeStreak, toLocalDayKey } from "@/lib/sessions/streak";
-import { setCompletionRate, sessionsInLastDays, sessionSeconds, weeklyCalories } from "@/lib/home/metrics";
+import { setCompletionRate, sessionsInLastDays, weeklyCalories } from "@/lib/home/metrics";
 import { weekVolumeShare } from "@/lib/home/weekly";
+import { totalSets, estimatedDurationMinutes } from "@/lib/routines/summary";
 import ThemeRoot from "@/components/design2/ThemeRoot";
 import Backdrop from "@/components/design2/Backdrop";
 import Header from "@/components/design2/Header";
 import Headline from "@/components/design2/Headline";
 import GoalRail from "@/components/design2/GoalRail";
 import TrainingWeek from "@/components/design2/TrainingWeek";
-import RecentActivity from "@/components/design2/RecentActivity";
+import HomeRoutines from "@/components/design2/HomeRoutines";
 import TabBar from "@/components/design2/TabBar";
 
 export const dynamic = "force-dynamic";
-
-function formatDuration(totalSeconds) {
-  const minutes = Math.round(totalSeconds / 60);
-  if (minutes < 60) return `${minutes} min`;
-  return `${Math.floor(minutes / 60)} h ${String(minutes % 60).padStart(2, "0")}`;
-}
-
-// "Hoy" / "Ayer" / "9 sept". Se compara por clave de dia en hora Argentina para
-// que el runtime del server, que corre en UTC, no adelante el dia.
-function formatWhen(isoDate, todayKey, yesterdayKey) {
-  if (!isoDate) return "Sin fecha";
-  const key = toLocalDayKey(new Date(isoDate));
-  if (key === todayKey) return "Hoy";
-  if (key === yesterdayKey) return "Ayer";
-  return new Date(`${key}T12:00:00`).toLocaleDateString("es-AR", { day: "numeric", month: "short" });
-}
 
 export default async function Home() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
-  const [profile, routines, assignments, trainedDates, sessions] = await Promise.all([
-    getUserProfile(user.uid),
-    listUserRoutines(user.uid),
-    listStudentAssignments(user.uid),
-    listTrainedDates(user.uid),
-    listUserSessions(user.uid, { limitCount: 50 }),
-  ]);
+  const [profile, routines, assignments, trainedDates, sessions, catalogExercises, customExercises] =
+    await Promise.all([
+      getUserProfile(user.uid),
+      listUserRoutines(user.uid),
+      listStudentAssignments(user.uid),
+      listTrainedDates(user.uid),
+      listUserSessions(user.uid, { limitCount: 50 }),
+      listExercises(),
+      listCustomExercises(user.uid),
+    ]);
+
+  const exerciseLookup = new Map([...catalogExercises, ...customExercises].map((e) => [e.id, e]));
+
+  const shape = (item, isAssigned) => ({
+    key: `${isAssigned ? "asg" : "own"}-${item.id}`,
+    id: item.id,
+    name: item.name,
+    isAssigned,
+    showOnHome: item.showOnHome !== false,
+    exerciseCount: item.exercises?.length || 0,
+    totalSets: totalSets(item),
+    estimatedMinutes: estimatedDurationMinutes(item, exerciseLookup),
+    assignedAt: item.assignedAt,
+    createdAt: item.createdAt,
+    lastUsedAt: item.lastUsedAt,
+  });
+
+  const allRoutines = [
+    ...routines.map((routine) => shape(routine, false)),
+    ...assignments.map((assignment) =>
+      shape(
+        {
+          id: assignment.id,
+          name: assignment.routineName,
+          exercises: assignment.exercises,
+          assignedAt: assignment.assignedAt,
+          lastUsedAt: assignment.lastUsedAt,
+        },
+        true,
+      ),
+    ),
+  ];
 
   const now = new Date();
   const todayKey = toLocalDayKey(now);
-  const yesterday = new Date(`${todayKey}T12:00:00`);
-  yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayKey = toLocalDayKey(yesterday);
 
   const weekSessions = sessionsInLastDays(sessions, 7);
   const calories = weeklyCalories(weekSessions, {
@@ -62,29 +81,17 @@ export default async function Home() {
   const completion = setCompletionRate(sessions);
   const streak = computeStreak(trainedDates);
 
-  // La rutina del titular es la ultima usada que se muestre en la Home. Si no
+  // La rutina del titular es la última usada que se muestre en la Home. Si no
   // hay ninguna no se inventa un nombre: el titular invita a crear la primera.
-  const visibleRoutines = [
-    ...routines.filter((routine) => routine.showOnHome !== false),
-    ...assignments.map((assignment) => ({
-      id: assignment.id,
-      name: assignment.routineName,
-      lastUsedAt: assignment.lastUsedAt || assignment.assignedAt,
-      createdAt: assignment.assignedAt,
-    })),
-  ].sort(
-    (a, b) =>
-      new Date(b.lastUsedAt || b.createdAt || 0) - new Date(a.lastUsedAt || a.createdAt || 0),
-  );
-  const featured = visibleRoutines[0] || null;
-
-  const activities = sessions.slice(0, 2).map((session) => ({
-    id: session.id,
-    name: session.routineName || "Entrenamiento libre",
-    when: formatWhen(session.finishedAt, todayKey, yesterdayKey),
-    volume: `${Math.round(session.totalVolumeKg || 0).toLocaleString("es-AR")} kg`,
-    duration: formatDuration(sessionSeconds(session)),
-  }));
+  const visibleRoutines = allRoutines
+    .filter((routine) => routine.showOnHome !== false)
+    .sort(
+      (a, b) =>
+        new Date(b.lastUsedAt || b.createdAt || b.assignedAt || 0) -
+        new Date(a.lastUsedAt || a.createdAt || a.assignedAt || 0),
+    );
+  const featured = visibleRoutines[0] || allRoutines[0] || null;
+  const homeRoutines = visibleRoutines.length > 0 ? visibleRoutines : allRoutines;
 
   const cards = [
     {
@@ -135,7 +142,7 @@ export default async function Home() {
         />
 
         {/* En escritorio la semana y los objetivos van a la izquierda, y lo
-            que se consulta —actividad y accesos— a la derecha. En teléfono la
+            que se consulta —rutinas y accesos— a la derecha. En teléfono la
             clase no hace nada y se apilan igual que antes. */}
         <div className="d2-split">
           <div>
@@ -144,7 +151,7 @@ export default async function Home() {
           </div>
 
           <div>
-            <RecentActivity activities={activities} />
+            <HomeRoutines routines={homeRoutines} />
 
             <p className="d2-label">Tu espacio</p>
             <div className="d2-panel">

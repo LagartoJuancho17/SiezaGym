@@ -34,6 +34,7 @@ import GoalRail from "@/components/design2/GoalRail";
 import Ring from "@/components/design2/Ring";
 import TrainingWeek from "@/components/design2/TrainingWeek";
 import RecentActivity from "@/components/design2/RecentActivity";
+import HomeRoutines from "@/components/design2/HomeRoutines";
 import TabBar from "@/components/design2/TabBar";
 import ThemeRoot from "@/components/design2/ThemeRoot";
 import DesignPreview from "@/app/design-preview/page";
@@ -103,6 +104,30 @@ describe("Home: HTML real de los componentes", () => {
     const html = render(RecentActivity, { activities: [] });
     expect(html).toContain("Todavía no registraste entrenamientos.");
     expect(hrefs(html)).toEqual(["/historial"]);
+  });
+
+  it("renderiza Las rutinas en la portada con enlaces y metadatos", () => {
+    const sampleRoutines = [
+      { id: "r1", name: "Queso", exerciseCount: 2, totalSets: 6, estimatedMinutes: 12 },
+      { id: "r2", name: "Piernas", isAssigned: true, exerciseCount: 4, totalSets: 12, estimatedMinutes: 45 },
+    ];
+    const html = render(HomeRoutines, { routines: sampleRoutines });
+    expect(html).toContain("Las rutinas");
+    expect(html).toContain("Ver todo");
+    expect(html).toContain("Queso");
+    expect(html).toContain("2 ejercicios · 6 series · 12 min");
+    expect(html).toContain("Piernas");
+    expect(html).toContain("Del coach");
+    expect(html).toContain("4 ejercicios · 12 series · 45 min");
+    expect(hrefs(html)).toEqual(["/rutinas", "/rutinas/r1", "/rutinas/r2"]);
+  });
+
+  it("Las rutinas vacías muestran mensaje y botón para crear la primera", () => {
+    const html = render(HomeRoutines, { routines: [] });
+    expect(html).toContain("Las rutinas");
+    expect(html).toContain("Todavía no tenés rutinas.");
+    expect(html).toContain("Crear la primera");
+    expect(hrefs(html)).toEqual(["/rutinas", "/rutinas/nueva"]);
   });
 });
 
