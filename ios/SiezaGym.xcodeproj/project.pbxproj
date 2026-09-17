@@ -42,6 +42,7 @@
 		B0EA2CE5E685D1FC164705BC /* HomeMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = D23EED55AC67DF9CAA4DB093 /* HomeMetrics.swift */; };
 		B1B3AA68F97836D037C4F264 /* TrainingCalendarTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00CB416B92890D19B623F38A /* TrainingCalendarTests.swift */; };
 		72A7E9A5D7B849B6A8D0C211 /* RoutineDraftTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72A7E9A4D7B849B6A8D0C211 /* RoutineDraftTests.swift */; };
+		72A7E9A7D7B849B6A8D0C211 /* ExerciseMediaTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72A7E9A6D7B849B6A8D0C211 /* ExerciseMediaTests.swift */; };
 		C0283CF3A0439D767EF2D6CD /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = F83202DC4E3A3E212094214A /* FirebaseAuth */; };
 		C287FE9BAF2970770A93748F /* WorkoutSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3EA1A8C682800BC7D50005F /* WorkoutSession.swift */; };
 		C99827486C874C150987BB58 /* HistoryScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74A77B3D5FCE817B76BF4DA8 /* HistoryScreen.swift */; };
@@ -77,6 +78,7 @@
 		6050D5EE6B1267B77E113FA9 /* Routine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Routine.swift; sourceTree = "<group>"; };
 		61A8217EE572685B2AF5F08A /* AuthMessageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthMessageTests.swift; sourceTree = "<group>"; };
 		72A7E9A4D7B849B6A8D0C211 /* RoutineDraftTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoutineDraftTests.swift; sourceTree = "<group>"; };
+		72A7E9A6D7B849B6A8D0C211 /* ExerciseMediaTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseMediaTests.swift; sourceTree = "<group>"; };
 		65D3FDABC0463D11B668747F /* ProgressMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressMetrics.swift; sourceTree = "<group>"; };
 		66278651D9DB38E2D642B2FD /* Pantallas.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pantallas.swift; sourceTree = "<group>"; };
 		6B0A282C126119F3E98FE7B2 /* SiezaGym.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = SiezaGym.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -283,6 +285,7 @@
 				61A8217EE572685B2AF5F08A /* AuthMessageTests.swift */,
 				722FB1B611252D2E0EC76157 /* HomeMetricsTests.swift */,
 				72A7E9A4D7B849B6A8D0C211 /* RoutineDraftTests.swift */,
+				72A7E9A6D7B849B6A8D0C211 /* ExerciseMediaTests.swift */,
 				00CB416B92890D19B623F38A /* TrainingCalendarTests.swift */,
 			);
 			path = SiezaGymTests;
@@ -458,6 +461,7 @@
 				B0B297E0FDAA904D85B665BE /* AuthMessageTests.swift in Sources */,
 				B0271AE82DCF679E96BE2A0D /* HomeMetricsTests.swift in Sources */,
 				72A7E9A5D7B849B6A8D0C211 /* RoutineDraftTests.swift in Sources */,
+				72A7E9A7D7B849B6A8D0C211 /* ExerciseMediaTests.swift in Sources */,
 				B1B3AA68F97836D037C4F264 /* TrainingCalendarTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
