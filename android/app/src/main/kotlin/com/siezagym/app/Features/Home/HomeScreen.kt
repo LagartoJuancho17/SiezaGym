@@ -1,5 +1,6 @@
 package com.siezagym.app.Features.Home
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -57,7 +58,7 @@ import com.siezagym.app.Features.Shared.NavInset
 import com.siezagym.app.Models.Exercise
 import com.siezagym.app.Models.Routine
 import com.siezagym.app.Services.GymStore
-import kotlinx.coroutines.flow.collectAsState
+import androidx.compose.runtime.collectAsState
 import kotlin.math.roundToInt
 
 /** La portada, con la misma estructura que la web: saludo, qué toca hoy, la
@@ -106,7 +107,7 @@ fun HomeScreen(
                 Text(
                     featured?.name ?: "entrenar libre",
                     fontSize = 29.sp,
-                    fontWeight = FontWeight.Heavy,
+                    fontWeight = FontWeight.Black,
                     fontStyle = FontStyle.Italic,
                     color = tema.texto,
                     maxLines = 2,
@@ -217,9 +218,9 @@ fun HomeScreen(
             }
         }
 
-        if (error != null) {
+        error?.let { textoError ->
             Spacer(Modifier.height(16.dp))
-            Text(error, fontSize = 13.sp, color = tema.texto2)
+            Text(textoError, fontSize = 13.sp, color = tema.texto2)
         }
     }
 }
@@ -348,6 +349,7 @@ private fun Anillo(progreso: Double, icono: ImageVector) {
     }
 }
 
+@Composable
 private fun FilaRutina(
     rutina: Routine,
     catalog: Map<String, com.siezagym.app.Models.Exercise>,
@@ -388,6 +390,7 @@ private fun FilaRutina(
     }
 }
 
+@Composable
 private fun FilaAcceso(nombre: String, detalle: String, onClick: () -> Unit) {
     val tema = LocalD2Theme.current
     Column(

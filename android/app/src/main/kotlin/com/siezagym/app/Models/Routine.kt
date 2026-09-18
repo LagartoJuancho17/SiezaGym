@@ -93,7 +93,7 @@ data class Routine(
                 lastUsedAt = FirestoreValue.date(data["lastUsedAt"]),
                 createdAt = createdAt,
                 updatedAt = FirestoreValue.date(data["updatedAt"]),
-                exercises = (data["exercises"] as? List<*> ?: emptyList())
+                exercises = (data["exercises"] as? List<*>).orEmpty()
                     .mapIndexed { index, item ->
                         RoutineExercise.fromFirestore(index, (item as? Map<*, *>)?.firestoreMap() ?: emptyMap())
                     }

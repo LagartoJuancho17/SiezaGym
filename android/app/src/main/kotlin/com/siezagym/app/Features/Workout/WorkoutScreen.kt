@@ -144,14 +144,15 @@ fun WorkoutScreen(store: GymStore, routine: Routine?, onCerrar: () -> Unit) {
             Text(
                 routine?.name ?: "Entrenamiento",
                 fontSize = 26.sp,
-                fontWeight = FontWeight.Heavy,
+                fontWeight = FontWeight.Black,
                 letterSpacing = (-0.5).sp,
                 color = tema.texto,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 18.dp, top = 16.dp),
+                    .padding(horizontal = 18.dp)
+                    .padding(top = 16.dp),
             )
 
             Column(
@@ -442,7 +443,6 @@ private fun CampoValor(
                 disabledIndicatorColor = Color.Transparent,
                 cursorColor = tema.solido,
             ),
-            contentPadding = PaddingValues(horizontal = 0.dp, vertical = 0.dp),
             modifier = Modifier.weight(1f),
         )
         Spacer(Modifier.width(3.dp))

@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CapsuleShape
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -25,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,6 +38,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.siezagym.app.DesignSystem.CapsuleShape
 import com.siezagym.app.DesignSystem.FilaLista
 import com.siezagym.app.DesignSystem.LocalD2Theme
 import com.siezagym.app.DesignSystem.PanelLista
@@ -48,7 +49,6 @@ import com.siezagym.app.Features.Shared.NavInset
 import com.siezagym.app.Models.Exercise
 import com.siezagym.app.Models.Routine
 import com.siezagym.app.Services.GymStore
-import kotlinx.coroutines.flow.collectAsState
 import java.text.Normalizer
 
 /** Las rutinas, con la misma forma que `/rutinas` en la web: título con el

@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CapsuleShape
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -35,9 +34,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Offset
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -47,6 +46,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import com.siezagym.app.DesignSystem.CapsuleShape
 import com.siezagym.app.DesignSystem.D2Theme
 import com.siezagym.app.DesignSystem.FilaLista
 import com.siezagym.app.DesignSystem.GhostButton
@@ -66,7 +66,7 @@ import com.siezagym.app.Models.UserProfile
 import com.siezagym.app.R
 import com.siezagym.app.Services.AuthService
 import com.siezagym.app.Services.GymStore
-import kotlinx.coroutines.flow.collectAsState
+import androidx.compose.runtime.collectAsState
 import kotlinx.coroutines.launch
 
 /** Perfil, igual que `/perfil` en la web: la tarjeta de identidad, tres
@@ -229,9 +229,9 @@ fun ProfileScreen(store: GymStore, auth: AuthService) {
                 .padding(top = 24.dp),
         )
 
-        if (authError != null) {
+        authError?.let { mensaje ->
             Spacer(Modifier.height(12.dp))
-            Text(authError, fontSize = 13.sp, color = tema.texto2)
+            Text(mensaje, fontSize = 13.sp, color = tema.texto2)
         }
 
         Spacer(Modifier.height(NavInset.bottom.dp))
@@ -449,8 +449,7 @@ private fun MuestraTema(opcion: D2Theme) {
             .clip(CircleShape)
             .background(
                 Brush.linearGradient(
-                    colors = opcion.fondo.map { it.color },
-                    colorStops = opcion.fondo.map { it.location }.toFloatArray(),
+                    colorStops = *opcion.fondo.map { it.location to it.color }.toTypedArray(),
                     start = Offset(46f * opcion.fondoInicio.first, 46f * opcion.fondoInicio.second),
                     end = Offset(46f * opcion.fondoFin.first, 46f * opcion.fondoFin.second),
                 ),

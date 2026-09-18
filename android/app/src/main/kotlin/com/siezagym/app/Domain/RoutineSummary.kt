@@ -3,6 +3,7 @@ package com.siezagym.app.Domain
 import com.siezagym.app.Models.Exercise
 import com.siezagym.app.Models.MuscleGroup
 import com.siezagym.app.Models.Routine
+import kotlin.math.roundToInt
 
 /** Estimación de duración y reparto muscular de una rutina.
  *  Los segundos por serie son los mismos que usa la web. */

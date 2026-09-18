@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CapsuleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.siezagym.app.DesignSystem.CapsuleShape
 import com.siezagym.app.DesignSystem.LocalD2Theme
 
 /** Barra inferior, igual a la de la web: una pastilla de vidrio flotando, con
@@ -36,11 +36,12 @@ import com.siezagym.app.DesignSystem.LocalD2Theme
 fun BottomNav(
     seleccion: AppTab,
     onSeleccionar: (AppTab) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val tema = LocalD2Theme.current
     Row(
         horizontalArrangement = Arrangement.spacedBy(5.dp),
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
             .padding(bottom = 16.dp),
@@ -119,7 +120,7 @@ private fun BotonTab(
                     modifier = Modifier.padding(start = 14.dp, end = 6.dp),
                 )
             } else {
-                Spacer(Modifier.weight(1f))
+                Spacer(Modifier.fillMaxWidth())
             }
         }
         // El icono en su disco, igual que en la web (se pinta sobre el sólido

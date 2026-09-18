@@ -51,7 +51,7 @@ import com.siezagym.app.Models.RegistrationType
 import com.siezagym.app.Models.Routine
 import com.siezagym.app.Models.RoutineExercise
 import com.siezagym.app.Services.GymStore
-import kotlinx.coroutines.flow.collectAsState
+import androidx.compose.runtime.collectAsState
 import java.util.Locale
 import kotlin.math.roundToInt
 

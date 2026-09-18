@@ -66,11 +66,11 @@ data class WorkoutSession(
             durationSeconds = FirestoreValue.int(data["durationSeconds"]) ?: 0,
             totalVolumeKg = FirestoreValue.double(data["totalVolumeKg"]) ?: 0.0,
             totalSetsCompleted = FirestoreValue.int(data["totalSetsCompleted"]) ?: 0,
-            exercises = (data["exercises"] as? List<*> ?: emptyList()).map { item ->
+            exercises = (data["exercises"] as? List<*>).orEmpty().map { item ->
                 val itemMap = (item as? Map<*, *>)?.firestoreMap() ?: return@map LoggedExercise("", emptyList())
                 LoggedExercise(
                     exerciseID = itemMap["exerciseId"] as? String ?: "",
-                    sets = (itemMap["sets"] as? List<*> ?: emptyList()).mapIndexed { index, set ->
+                    sets = (itemMap["sets"] as? List<*>).orEmpty().mapIndexed { index, set ->
                         LoggedSet.fromFirestore(index, (set as? Map<*, *>)?.firestoreMap() ?: emptyMap())
                     },
                 )

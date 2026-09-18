@@ -2,6 +2,7 @@ package com.siezagym.app
 
 import com.siezagym.app.Domain.Epley
 import com.siezagym.app.Domain.HomeMetrics
+import com.siezagym.app.Domain.TrainingCalendar
 import com.siezagym.app.Models.Exercise
 import com.siezagym.app.Models.ExerciseSource
 import com.siezagym.app.Models.LoggedExercise
@@ -19,16 +20,16 @@ import org.junit.Test
 class HomeMetricsTest {
     private val now: ZonedDateTime = ZonedDateTime.of(2026, 9, 6, 12, 0, 0, 0, TrainingCalendar.zone)
 
-    private fun set(weight: Double, reps: Int, failed: Boolean = false, number: Int = 1) =
-        LoggedSet(setNumber = number, weight = weight, reps = reps, rir = null, failed = failed)
+    private fun set(weight: Number, reps: Int, failed: Boolean = false, number: Int = 1) =
+        LoggedSet(setNumber = number, weight = weight.toDouble(), reps = reps, rir = null, failed = failed)
 
     private fun session(
+        vararg exercises: LoggedExercise,
         id: String = "s1",
         finishedAt: ZonedDateTime? = now,
         volume: Double = 0.0,
         sets: Int = 0,
         duration: Int = 0,
-        vararg exercises: LoggedExercise,
     ): WorkoutSession = WorkoutSession(
         id = id,
         userID = "u1",
@@ -201,8 +202,8 @@ class HomeMetricsTest {
     @Test
     fun elMejorRmSeTomaDeTodoElHistorial() {
         val sessions = listOf(
-            session(id = "nueva", LoggedExercise("press", listOf(set(80, 5)))),
-            session(id = "vieja", LoggedExercise("press", listOf(set(100, 5)))),
+            session(LoggedExercise("press", listOf(set(80, 5))), id = "nueva"),
+            session(LoggedExercise("press", listOf(set(100, 5))), id = "vieja"),
         )
         val best = HomeMetrics.bestOneRepMaxByExercise(sessions)
         assertEquals(116.667, best["press"] ?: 0.0, 0.01)
@@ -211,8 +212,8 @@ class HomeMetricsTest {
     @Test
     fun laIntensidadRelativaMiraSoloLaUltimaSesion() {
         val sessions = listOf(
-            session(id = "nueva", LoggedExercise("press", listOf(set(100, 1)))),
-            session(id = "vieja", LoggedExercise("press", listOf(set(100, 1)))),
+            session(LoggedExercise("press", listOf(set(100, 1))), id = "nueva"),
+            session(LoggedExercise("press", listOf(set(100, 1))), id = "vieja"),
         )
         val result = HomeMetrics.relativeIntensity(sessions)
         assertEquals(100, result.pct)

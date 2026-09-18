@@ -7,11 +7,14 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.auth.api.signin.GoogleSignInStatusCodes
 import com.google.android.gms.common.api.ApiException
-import com.google.android.gms.common.api.CommonStatusCodes
-import com.google.firebase.auth.AuthErrorCodes
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.UserProfileChangeRequest
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -51,29 +54,31 @@ class AuthService(private val appContext: Context) {
     // MARK: - Email / Contraseña
 
     suspend fun signIn(email: String, password: String) = attempt {
-        val result = auth.signInWithEmailAndPassword(email.trim(), password).await()
+        val user = auth.signInWithEmailAndPassword(email.trim(), password).await().user
+            ?: throw IllegalStateException("Firebase no devolvió el usuario.")
         repository.ensureProfile(
-            uid = result.user.uid,
-            email = result.user.email,
-            displayName = result.user.displayName,
-            photoUrl = result.user.photoUrl?.toString(),
+            uid = user.uid,
+            email = user.email,
+            displayName = user.displayName,
+            photoUrl = user.photoUrl?.toString(),
             provider = "password",
         )
     }
 
     suspend fun signUp(email: String, password: String, displayName: String) = attempt {
-        val result = auth.createUserWithEmailAndPassword(email.trim(), password).await()
+        val user = auth.createUserWithEmailAndPassword(email.trim(), password).await().user
+            ?: throw IllegalStateException("Firebase no devolvió el usuario.")
         val name = displayName.trim()
         if (name.isNotEmpty()) {
-            result.user.updateProfile(
+            user.updateProfile(
                 UserProfileChangeRequest.Builder().setDisplayName(name).build()
             ).await()
         }
         repository.ensureProfile(
-            uid = result.user.uid,
-            email = result.user.email,
+            uid = user.uid,
+            email = user.email,
             displayName = name.ifEmpty { null },
-            photoUrl = result.user.photoUrl?.toString(),
+            photoUrl = user.photoUrl?.toString(),
             provider = "password",
         )
     }
@@ -95,22 +100,23 @@ class AuthService(private val appContext: Context) {
         val account: GoogleSignInAccount = try {
             GoogleSignIn.getSignedInAccountFromIntent(data).getResult(ApiException::class.java)
         } catch (e: ApiException) {
-            if (e.statusCode == CommonStatusCodes.SIGN_IN_CANCELLED) throw GoogleCanceledException()
+            if (e.statusCode == GoogleSignInStatusCodes.SIGN_IN_CANCELLED) throw GoogleCanceledException()
             throw e
         }
 
         val idToken = account.idToken
             ?: throw IllegalStateException("Google no devolvió el token de la cuenta.")
         val credential = GoogleAuthProvider.getCredential(idToken, null)
-        val result = auth.signInWithCredential(credential).await()
+        val user = auth.signInWithCredential(credential).await().user
+            ?: throw IllegalStateException("Firebase no devolvió el usuario.")
 
         // La web crea el perfil del lado del servidor al iniciar sesión; en
         // Android no hay servidor, así que lo hace la app con los mismos campos.
         repository.ensureProfile(
-            uid = result.user.uid,
-            email = result.user.email,
-            displayName = result.user.displayName,
-            photoUrl = result.user.photoUrl?.toString(),
+            uid = user.uid,
+            email = user.email,
+            displayName = user.displayName,
+            photoUrl = user.photoUrl?.toString(),
             provider = "google.com",
         )
     }
@@ -121,7 +127,7 @@ class AuthService(private val appContext: Context) {
         // Sin esto Google recuerda la cuenta y el próximo login entra solo, sin
         // dejar elegir otra. El cierre de Google corre async y no bloquea el de
         // Firebase: fallar ahí no debería impedir salir.
-        webClientIdOrNull()?.let { googleClient(it).signOut().addOnFailureListener { } }
+        webClientIdOrNull?.let { googleClient(it).signOut().addOnFailureListener { } }
         try {
             auth.signOut()
             _errorMessage.value = null
@@ -178,21 +184,52 @@ class AuthService(private val appContext: Context) {
  *  así los unit tests la prueban sin necesidad de una sesión real. */
 internal fun readableAuthError(error: Exception): String {
     return when (error) {
+        is FirebaseAuthUserCollisionException -> when (error.errorCode) {
+            CODE_ACCOUNT_EXISTS_WITH_DIFFERENT_CREDENTIAL,
+            "ACCOUNT_EXISTS_WITH_DIFFERENT_CREDENTIAL",
+            -> "Ya tenés una cuenta con ese email creada de otra forma."
+            else -> "Ya hay una cuenta con ese email."
+        }
+        is FirebaseAuthWeakPasswordException -> "La contraseña necesita al menos 6 caracteres."
+        is FirebaseAuthInvalidCredentialsException -> when (error.errorCode) {
+            CODE_INVALID_EMAIL, "INVALID_EMAIL", "ERROR_INVALID_LOGIN_CREDENTIALS" -> "Ese email no es válido."
+            else -> "Email o contraseña incorrectos."
+        }
+        is FirebaseAuthInvalidUserException -> when (error.errorCode) {
+            CODE_USER_DISABLED, "USER_DISABLED" -> "Email o contraseña incorrectos."
+            else -> "No encontramos una cuenta con ese email."
+        }
         is FirebaseAuthException -> when (error.errorCode) {
-            AuthErrorCodes.INVALID_EMAIL -> "Ese email no es válido."
-            AuthErrorCodes.EMAIL_ALREADY_IN_USE -> "Ya hay una cuenta con ese email."
-            AuthErrorCodes.WEAK_PASSWORD -> "La contraseña necesita al menos 6 caracteres."
-            AuthErrorCodes.WRONG_PASSWORD,
-            AuthErrorCodes.INVALID_CREDENTIAL,
-            AuthErrorCodes.USER_DISABLED,
+            CODE_INVALID_EMAIL, "INVALID_EMAIL" -> "Ese email no es válido."
+            CODE_EMAIL_ALREADY_IN_USE, "EMAIL_ALREADY_IN_USE" -> "Ya hay una cuenta con ese email."
+            CODE_WEAK_PASSWORD, "WEAK_PASSWORD" -> "La contraseña necesita al menos 6 caracteres."
+            CODE_WRONG_PASSWORD,
+            CODE_INVALID_CREDENTIAL,
+            CODE_USER_DISABLED,
+            "WRONG_PASSWORD",
+            "INVALID_CREDENTIAL",
+            "INVALID_LOGIN_CREDENTIALS",
+            "USER_DISABLED",
             -> "Email o contraseña incorrectos."
-            AuthErrorCodes.USER_NOT_FOUND -> "No encontramos una cuenta con ese email."
-            AuthErrorCodes.NETWORK_REQUEST_FAILED -> "Sin conexión. Revisá internet."
-            AuthErrorCodes.TOO_MANY_ATTEMPTS_TRY_LATER -> "Demasiados intentos. Esperá un momento."
-            AuthErrorCodes.ACCOUNT_EXISTS_WITH_DIFFERENT_CREDENTIAL ->
-                "Ya tenés una cuenta con ese email creada de otra forma."
+            CODE_USER_NOT_FOUND, "USER_NOT_FOUND" -> "No encontramos una cuenta con ese email."
+            CODE_NETWORK_REQUEST_FAILED, "NETWORK_REQUEST_FAILED" -> "Sin conexión. Revisá internet."
+            CODE_TOO_MANY_ATTEMPTS, "TOO_MANY_ATTEMPTS_TRY_LATER" -> "Demasiados intentos. Esperá un momento."
+            CODE_ACCOUNT_EXISTS_WITH_DIFFERENT_CREDENTIAL,
+            "ACCOUNT_EXISTS_WITH_DIFFERENT_CREDENTIAL",
+            -> "Ya tenés una cuenta con ese email creada de otra forma."
             else -> "Algo salió mal. Probá de nuevo."
         }
         else -> "Algo salió mal. Probá de nuevo."
     }
 }
+
+internal const val CODE_INVALID_EMAIL = "ERROR_INVALID_EMAIL"
+internal const val CODE_EMAIL_ALREADY_IN_USE = "ERROR_EMAIL_ALREADY_IN_USE"
+internal const val CODE_WEAK_PASSWORD = "ERROR_WEAK_PASSWORD"
+internal const val CODE_WRONG_PASSWORD = "ERROR_WRONG_PASSWORD"
+internal const val CODE_INVALID_CREDENTIAL = "ERROR_INVALID_CREDENTIAL"
+internal const val CODE_USER_DISABLED = "ERROR_USER_DISABLED"
+internal const val CODE_USER_NOT_FOUND = "ERROR_USER_NOT_FOUND"
+internal const val CODE_NETWORK_REQUEST_FAILED = "ERROR_NETWORK_REQUEST_FAILED"
+internal const val CODE_TOO_MANY_ATTEMPTS = "ERROR_TOO_MANY_ATTEMPTS_TRY_LATER"
+internal const val CODE_ACCOUNT_EXISTS_WITH_DIFFERENT_CREDENTIAL = "ERROR_ACCOUNT_EXISTS_WITH_DIFFERENT_CREDENTIAL"

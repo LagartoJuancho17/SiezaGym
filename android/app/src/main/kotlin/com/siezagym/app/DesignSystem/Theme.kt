@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CapsuleShape
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -37,9 +36,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Offset
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -48,6 +47,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.siezagym.app.R
+
+/** La pastilla de vidrio de la web: eliminada de foundation en Compose 1.12. */
+val CapsuleShape = RoundedCornerShape(50)
 
 /** Una parada del degradado de fondo, como `Gradient.Stop` en iOS. */
 @Immutable
@@ -157,8 +159,7 @@ fun Backdrop(modifier: Modifier = Modifier) {
         val ancho = maxWidth
         val alto = maxHeight
         val gradiente = Brush.linearGradient(
-            colors = tema.fondo.map { it.color },
-            colorStops = tema.fondo.map { it.location }.toFloatArray(),
+            colorStops = *tema.fondo.map { it.location to it.color }.toTypedArray(),
             start = Offset(ancho.value * tema.fondoInicio.first, alto.value * tema.fondoInicio.second),
             end = Offset(ancho.value * tema.fondoFin.first, alto.value * tema.fondoFin.second),
         )
@@ -268,7 +269,7 @@ fun PageTitle(texto: String, modifier: Modifier = Modifier) {
     Text(
         texto,
         fontSize = 30.sp,
-        fontWeight = FontWeight.Heavy,
+        fontWeight = FontWeight.Black,
         letterSpacing = (-0.7).sp,
         color = tema.texto,
         modifier = modifier.fillMaxWidth(),

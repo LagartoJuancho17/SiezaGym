@@ -77,13 +77,15 @@ class WorkoutDraft(
         // La serie nueva copia la última cargada: en el gimnasio casi siempre se
         // repite peso y reps, y así es un toque en vez de dos campos.
         val previous = exercises[index].sets.lastOrNull()
-        exercises[index] = exercises[index].copy(
-            sets = exercises[index].sets + SetDraft(
-                weight = previous?.weight ?: 0.0,
-                reps = previous?.reps ?: 10,
-                rir = previous?.rir,
-            ),
-        )
+        exercises = exercises.toMutableList().apply {
+            this[index] = this[index].copy(
+                sets = this[index].sets + SetDraft(
+                    weight = previous?.weight ?: 0.0,
+                    reps = previous?.reps ?: 10,
+                    rir = previous?.rir,
+                ),
+            )
+        }
     }
 
     /** Lo que efectivamente se guarda: solo los ejercicios con series hechas. */

@@ -106,7 +106,7 @@ class GymRepository {
                 "updatedAt" to FieldValue.serverTimestamp(),
                 "lastLoginAt" to FieldValue.serverTimestamp(),
             ),
-            setOptions = com.google.firebase.firestore.SetOptions.merge(),
+            com.google.firebase.firestore.SetOptions.merge(),
         ).await()
     }
 

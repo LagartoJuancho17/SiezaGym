@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CapsuleShape
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -52,6 +51,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.siezagym.app.DesignSystem.Backdrop
+import com.siezagym.app.DesignSystem.CapsuleShape
 import com.siezagym.app.DesignSystem.GhostButton
 import com.siezagym.app.DesignSystem.GlassCard
 import com.siezagym.app.DesignSystem.LocalD2Theme
@@ -67,7 +67,7 @@ import com.siezagym.app.Features.Shared.NavInset
 import com.siezagym.app.Models.Exercise
 import com.siezagym.app.Models.ExerciseSource
 import com.siezagym.app.Services.GymStore
-import kotlinx.coroutines.flow.collectAsState
+import androidx.compose.runtime.collectAsState
 import kotlinx.coroutines.launch
 import java.text.Normalizer
 

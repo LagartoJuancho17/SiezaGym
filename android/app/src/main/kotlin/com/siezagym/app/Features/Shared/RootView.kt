@@ -15,6 +15,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -32,7 +33,7 @@ import com.siezagym.app.Features.Workout.WorkoutScreen
 import com.siezagym.app.Models.Routine
 import com.siezagym.app.Services.AuthService
 import com.siezagym.app.Services.GymStore
-import kotlinx.coroutines.flow.collectAsState
+import androidx.compose.runtime.collectAsState
 
 /** La raíz: la sesión decide qué se ve, y el entrenamiento en curso va por
  *  encima de todo (como el `fullScreenCover` de iOS). */
@@ -166,7 +167,14 @@ private fun TabHost(
         Modifier
             .fillMaxSize()
             .graphicsLayer {
-                visible = activo
+                alpha = if (activo) 1f else 0f
+            }
+            .pointerInput(activo) {
+                if (!activo) {
+                    awaitPointerEventScope {
+                        while (true) awaitPointerEvent()
+                    }
+                }
             },
     ) {
         contenido(nav)

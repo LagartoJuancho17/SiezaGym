@@ -86,7 +86,7 @@ fun Pantalla(
                     Text(
                         titulo,
                         fontSize = if (volver) 24.sp else 30.sp,
-                        fontWeight = FontWeight.Heavy,
+                        fontWeight = FontWeight.Black,
                         letterSpacing = (-0.7).sp,
                         color = tema.texto,
                         maxLines = 2,

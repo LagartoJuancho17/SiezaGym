@@ -11,9 +11,6 @@ package com.siezagym.app.DesignSystem
 
 import androidx.compose.ui.graphics.Color
 
-/** El tema elegido por defecto cuando no hay preferencia guardada. */
-val TemaPorDefecto: D2Theme = TemasTokens.firstOrNull { it.id == "plata" } ?: TemasTokens[0]
-
 /** Todos los temas del diseño, en el mismo orden que el selector de la web. */
 val TemasTokens: List<D2Theme> = listOf(
     D2Theme(
@@ -154,3 +151,6 @@ val TemasTokens: List<D2Theme> = listOf(
         obra = "electrico"
     )
 )
+
+/** El tema elegido por defecto cuando no hay preferencia guardada. */
+val TemaPorDefecto: D2Theme = TemasTokens.firstOrNull { it.id == "plata" } ?: TemasTokens[0]

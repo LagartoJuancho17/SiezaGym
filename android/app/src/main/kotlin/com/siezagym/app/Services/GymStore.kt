@@ -78,7 +78,7 @@ class GymStore(val uid: String) {
 
     fun exercise(id: String): Exercise? = _catalog.value[id]
 
-    fun name(of exerciseID: String): String = _catalog.value[exerciseID]?.nameEs ?: exerciseID
+    fun name(of: String): String = _catalog.value[of]?.nameEs ?: of
 
     fun rutina(id: String): Routine? = _routines.value.firstOrNull { it.id == id }
 

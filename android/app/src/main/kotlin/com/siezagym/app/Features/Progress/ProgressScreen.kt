@@ -36,7 +36,7 @@ import com.siezagym.app.Models.Exercise
 import com.siezagym.app.Models.WorkoutSession
 import com.siezagym.app.Services.GymStore
 import java.util.Locale
-import kotlinx.coroutines.flow.collectAsState
+import androidx.compose.runtime.collectAsState
 import kotlin.math.roundToInt
 
 /** Progreso, igual que `/progreso` en la web: los tres números de la semana,

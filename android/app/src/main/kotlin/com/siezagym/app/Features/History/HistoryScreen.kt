@@ -38,7 +38,7 @@ import com.siezagym.app.Models.LoggedExercise
 import com.siezagym.app.Models.WorkoutSession
 import com.siezagym.app.Services.GymStore
 import java.util.Locale
-import kotlinx.coroutines.flow.collectAsState
+import androidx.compose.runtime.collectAsState
 import kotlin.math.roundToInt
 
 /** El historial, igual que `/historial` en la web: una fila por entrenamiento

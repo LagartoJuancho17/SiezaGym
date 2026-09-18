@@ -38,6 +38,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -51,7 +52,7 @@ import com.siezagym.app.DesignSystem.D2Theme
 import com.siezagym.app.DesignSystem.LocalD2Theme
 import com.siezagym.app.R
 import com.siezagym.app.Services.AuthService
-import kotlinx.coroutines.flow.collectAsState
+import androidx.compose.runtime.collectAsState
 import kotlinx.coroutines.launch
 
 /** La pantalla de entrada: email y contraseña, o Google. Igual que iOS, que a
@@ -340,4 +341,4 @@ private fun Campo(
     )
 }
 
-private fun Modifier.clipCapecula(): Modifier = androidx.compose.ui.draw.clip(RoundedCornerShape(24.dp))
+private fun Modifier.clipCapecula(): Modifier = clip(RoundedCornerShape(24.dp))
