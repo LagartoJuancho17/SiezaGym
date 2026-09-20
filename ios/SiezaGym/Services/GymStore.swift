@@ -20,6 +20,8 @@ final class GymStore {
     /// Nil hasta la primera carga: sirve para no mostrar "no hay nada" mientras carga.
     private(set) var lastLoadedAt: Date?
 
+    let healthKit = HealthKitService()
+
     private let repository = GymRepository()
 
     init(uid: String) {

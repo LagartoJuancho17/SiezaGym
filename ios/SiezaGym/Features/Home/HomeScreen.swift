@@ -19,6 +19,7 @@ struct HomeScreen: View {
                     SemanaCard(trainedDayKeys: store.trainedDayKeys, streak: store.streak)
                         .padding(.top, 20)
                     objetivos
+                    actividad
                     rutinas
                     espacio
 
@@ -42,6 +43,108 @@ struct HomeScreen: View {
                 WorkoutView(store: store, routine: target.routine)
             }
         }
+    }
+
+    // MARK: - Apple Fitness
+
+    private var actividad: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            encabezadoSeccion("Actividad de hoy")
+
+            if !store.healthKit.isAvailable {
+                GlassCard(padding: 18) {
+                    Label("Apple Salud no está disponible en este dispositivo.", systemImage: "heart.slash")
+                        .font(.system(size: 13))
+                        .foregroundStyle(tema.texto2)
+                }
+                .padding(.top, 14)
+            } else if store.healthKit.isConnected {
+                actividadConectada
+            } else {
+                GlassCard(padding: 18) {
+                    HStack(spacing: 14) {
+                        Image(systemName: "heart.text.square.fill")
+                            .font(.system(size: 25))
+                            .foregroundStyle(tema.solido)
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text("Conectá Apple Fitness")
+                                .font(.system(size: 15, weight: .medium))
+                                .foregroundStyle(tema.texto)
+                            Text("Traé tus calorías, pasos y distancia de hoy.")
+                                .font(.system(size: 11))
+                                .foregroundStyle(tema.texto2)
+                        }
+                        Spacer(minLength: 8)
+                        Button {
+                            Task { await store.healthKit.connect() }
+                        } label: {
+                            if store.healthKit.isRequestingPermission {
+                                ProgressView().tint(tema.sobreSolido)
+                            } else {
+                                Text("Conectar")
+                                    .font(.system(size: 12, weight: .semibold))
+                            }
+                        }
+                        .buttonStyle(SolidButtonStyle())
+                        .disabled(store.healthKit.isRequestingPermission)
+                    }
+                }
+                .padding(.top, 14)
+            }
+
+            if let error = store.healthKit.errorMessage {
+                Text(error)
+                    .font(.system(size: 11))
+                    .foregroundStyle(tema.texto2)
+                    .padding(.top, 8)
+            }
+        }
+        .padding(.top, 17)
+    }
+
+    private var actividadConectada: some View {
+        GlassCard(padding: 16) {
+            let metrics = store.healthKit.summary
+            HStack(spacing: 0) {
+                actividadDato(icono: "flame.fill", valor: metrics.caloriesLabel, nombre: "calorías")
+                actividadSeparador
+                actividadDato(icono: "figure.walk", valor: metrics.stepsLabel, nombre: "pasos")
+                actividadSeparador
+                actividadDato(icono: "figure.run", valor: metrics.distanceLabel, nombre: "distancia")
+            }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Hoy: \(metrics.caloriesLabel), \(metrics.stepsLabel) pasos y \(metrics.distanceLabel)")
+
+            if !metrics.hasData {
+                Text("Todavía no hay actividad de hoy o el permiso está desactivado en Salud.")
+                    .font(.system(size: 10))
+                    .foregroundStyle(tema.texto3)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top, 12)
+            }
+        }
+        .padding(.top, 14)
+    }
+
+    private var actividadSeparador: some View {
+        Rectangle().fill(tema.borde).frame(width: 1, height: 34)
+    }
+
+    private func actividadDato(icono: String, valor: String, nombre: String) -> some View {
+        VStack(spacing: 5) {
+            Image(systemName: icono)
+                .font(.system(size: 12))
+                .foregroundStyle(tema.solido)
+            Text(valor)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(tema.texto)
+                .lineLimit(1)
+                .minimumScaleFactor(0.65)
+            Text(nombre)
+                .font(.system(size: 10))
+                .foregroundStyle(tema.texto2)
+        }
+        .frame(maxWidth: .infinity)
     }
 
     // MARK: - Encabezado
