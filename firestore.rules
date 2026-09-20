@@ -102,7 +102,7 @@ service cloud.firestore {
         && request.resource.data.userId == request.auth.uid
         && request.resource.data.exercises.size() <= 40;
       allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow delete: if false; // borrar cuenta pasa por un flujo server-side, no un delete crudo
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
     }
 
     // ---- vinculo entrenador-alumno ----

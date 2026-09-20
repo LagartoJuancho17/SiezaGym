@@ -169,6 +169,12 @@ nonisolated struct GymRepository: Sendable {
         return snapshot.documents.map { WorkoutSession(id: $0.documentID, data: $0.data()) }
     }
 
+    /// Borra únicamente una sesión que pertenece al usuario autenticado. La
+    /// regla de Firestore vuelve a comprobar la propiedad en el servidor.
+    func deleteSession(uid _: String, sessionID: String) async throws {
+        try await db.collection("sessions").document(sessionID).delete()
+    }
+
     /// Guarda una sesion terminada. Devuelve el id del documento nuevo.
     /// El volumen y el conteo de series se calculan aca y no en el cliente para
     /// que coincidan exactamente con lo que hace la web.

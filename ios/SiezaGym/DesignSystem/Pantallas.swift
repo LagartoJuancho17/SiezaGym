@@ -56,6 +56,8 @@ struct Pantalla<Contenido: View, Accion: View>: View {
         }
         .background { Backdrop() }
         .scrollIndicators(.hidden)
+        .scrollDismissesKeyboard(.interactively)
+        .tecladoConBotonListo()
         .navigationBarBackButtonHidden(volver)
         .toolbar(.hidden, for: .navigationBar)
     }

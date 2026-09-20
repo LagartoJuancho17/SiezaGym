@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// Un tema del diseño: los mismos tokens que `.d2[data-d2-theme="..."]` en la
 /// web. Los valores los genera `ios/scripts/sync-theme.mjs` desde el CSS, así
@@ -294,3 +295,24 @@ struct WidgetMeter: View {
 /// Alias del contenedor de tarjeta, para las pantallas que ya lo usaban.
 typealias SurfaceCard = GlassCard
 typealias AccentButtonStyle = SolidButtonStyle
+
+extension View {
+    /// Los teclados numéricos de iOS no traen una tecla para cerrarlos.
+    /// Todas las pantallas con formularios comparten este botón para que el
+    /// usuario siempre pueda terminar la edición sin buscar un gesto oculto.
+    func tecladoConBotonListo() -> some View {
+        toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Listo") {
+                    UIApplication.shared.sendAction(
+                        #selector(UIResponder.resignFirstResponder),
+                        to: nil,
+                        from: nil,
+                        for: nil
+                    )
+                }
+            }
+        }
+    }
+}

@@ -111,6 +111,12 @@ final class GymStore {
         await load()
     }
 
+    func deleteSession(_ session: WorkoutSession) async throws {
+        guard session.userID == uid else { return }
+        try await repository.deleteSession(uid: uid, sessionID: session.id)
+        sessions.removeAll { $0.id == session.id }
+    }
+
     func createRoutine(name: String, note: String, exercises: [RoutineDraftExercise]) async throws {
         try await repository.createRoutine(uid: uid, name: name, note: note, exercises: exercises)
         await load()

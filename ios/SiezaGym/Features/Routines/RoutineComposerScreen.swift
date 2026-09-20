@@ -364,6 +364,7 @@ private struct ExercisePickerSheet: View {
                 }
             }
         }
+        .tecladoConBotonListo()
         .preferredColorScheme(.dark)
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
