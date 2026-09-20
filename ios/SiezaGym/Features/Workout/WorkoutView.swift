@@ -47,6 +47,7 @@ struct WorkoutView: View {
             }
         }
         .scrollDismissesKeyboard(.interactively)
+        .tecladoConBotonListo()
         .background { Backdrop() }
         .confirmationDialog(
             "Guardar \(draft.completedSets) series y \(Int(draft.volumeKg).formatted()) kg?",
