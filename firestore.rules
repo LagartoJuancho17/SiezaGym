@@ -22,9 +22,10 @@ service cloud.firestore {
     // aparte en users/{uid}/private/contact, nunca legibles por el entrenador.
     match /users/{uid} {
       allow read: if isSelf(uid) || isLinkedCoachOf(uid);
-      allow create: if isSelf(uid);
+      allow create: if isSelf(uid)
+        && !request.resource.data.keys().hasAny(['isAdmin', 'isCoach', 'role']);
       allow update: if isSelf(uid)
-        && (resource.data.role == null || request.resource.data.role == resource.data.role);
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['isAdmin', 'isCoach', 'role']);
       allow delete: if false;
 
       match /private/{document=**} {

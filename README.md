@@ -345,6 +345,9 @@ Variables privadas utilizadas por Firebase Admin SDK:
 FIREBASE_PROJECT_ID=
 FIREBASE_CLIENT_EMAIL=
 FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+
+# Emails autorizados para /admin, separados por coma.
+ADMIN_EMAILS=totoarr17@gmail.com,valentinsierradw@gmail.com
 ```
 
 La clave privada debe conservar los saltos de linea escapados mediante `\n`.
