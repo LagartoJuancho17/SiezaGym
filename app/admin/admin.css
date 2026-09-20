@@ -17,7 +17,7 @@
   font-family: var(--font-d2), system-ui, sans-serif;
 }
 
-.admin-sidebar { position: sticky; top: 0; display: flex; min-height: 100vh; flex-direction: column; border-right: 1px solid var(--admin-border); padding: 26px 18px 20px; background: #11151a; }
+.admin-sidebar { position: sticky; top: 0; z-index: 10; align-self: start; display: flex; height: 100vh; max-height: 100vh; min-height: 100vh; flex-direction: column; overflow-y: auto; border-right: 1px solid var(--admin-border); padding: 26px 18px 20px; background: #11151a; }
 .admin-brand { display: flex; align-items: center; gap: 10px; color: var(--admin-text); font-size: 14px; font-weight: 700; letter-spacing: -0.03em; text-decoration: none; }
 .admin-brand span:last-child span { color: var(--admin-accent); font-weight: 500; }
 .admin-brand-mark { display: grid; width: 30px; height: 30px; place-items: center; border-radius: 9px; background: var(--admin-accent); color: #20100d; font-family: var(--font-display), sans-serif; font-size: 19px; }
@@ -88,7 +88,7 @@
 
 @media (max-width: 900px) {
   .admin-shell { display: block; }
-  .admin-sidebar { position: static; min-height: 0; border-right: 0; border-bottom: 1px solid var(--admin-border); padding: 16px 18px; }
+  .admin-sidebar { position: static; align-self: auto; height: auto; max-height: none; min-height: 0; overflow: visible; border-right: 0; border-bottom: 1px solid var(--admin-border); padding: 16px 18px; }
   .admin-sidebar-label, .admin-sidebar-footer { display: none; }
   .admin-nav { display: flex; gap: 4px; margin-top: 17px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
   .admin-nav::-webkit-scrollbar { display: none; }

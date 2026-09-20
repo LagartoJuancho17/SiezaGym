@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
+import { readFileSync } from "node:fs";
 
 vi.mock("next/link", () => ({ default: ({ children, ...props }) => createElement("a", props, children) }));
 vi.mock("next/navigation", () => ({ redirect: vi.fn((path) => { throw new Error(`redirect:${path}`); }) }));
@@ -50,6 +51,14 @@ beforeEach(() => {
 const render = (element) => renderToStaticMarkup(element);
 
 describe("admin dashboard", () => {
+  it("keeps the desktop sidebar sticky while preserving normal mobile flow", () => {
+    const css = readFileSync(new URL("../app/admin/admin.css", import.meta.url), "utf8");
+    expect(css).toContain("position: sticky");
+    expect(css).toContain("height: 100vh");
+    expect(css).toContain("max-height: none");
+    expect(css).toContain("overflow: visible");
+  });
+
   it("renders the operating overview and every admin section for an allowed email", async () => {
     const html = render(await AdminPage());
     for (const anchor of ["#overview", "#users", "#coaches", "#routines", "#catalog", "#sessions", "#security"]) {
