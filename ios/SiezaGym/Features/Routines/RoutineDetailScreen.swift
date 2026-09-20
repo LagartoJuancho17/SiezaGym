@@ -30,6 +30,13 @@ struct RoutineDetailScreen: View {
                     ("\(minutos)", "min estimados"),
                 ])
                 .padding(.top, 20)
+                .overlay(alignment: .top) {
+                    Capsule()
+                        .fill(tema.solido)
+                        .frame(height: 4)
+                        .padding(.horizontal, 28)
+                        .padding(.top, 21)
+                }
 
                 SectionLabel("Ejercicios · \(routine.exercises.count)")
                     .padding(.top, 24)
@@ -72,7 +79,7 @@ struct RoutineDetailScreen: View {
                                         Spacer()
                                         Text("\(Int((fila.pct * 100).rounded()))%")
                                             .font(.system(size: 12))
-                                            .foregroundStyle(tema.texto2)
+                                            .foregroundStyle(tema.solido)
                                     }
                                     WidgetMeter(value: fila.pct)
                                 }
@@ -103,7 +110,7 @@ struct RoutineDetailScreen: View {
         .buttonStyle(SolidButtonStyle())
         .disabled(routine.exercises.isEmpty)
         .padding(.horizontal, 18)
-        .padding(.bottom, BottomNav.height + BottomNav.bottomGap + 12)
+        .padding(.bottom, 12)
     }
 }
 
@@ -201,6 +208,15 @@ private struct FilaEjercicio: View {
                 .padding(.bottom, 14)
             }
         }
+        .background(abierto ? tema.solido.opacity(0.08) : .clear)
+        .overlay(alignment: .leading) {
+            if abierto {
+                RoundedRectangle(cornerRadius: 3)
+                    .fill(tema.solido)
+                    .frame(width: 3)
+                    .padding(.vertical, 10)
+            }
+        }
         .animation(.snappy(duration: 0.2), value: abierto)
     }
 
@@ -208,8 +224,8 @@ private struct FilaEjercicio: View {
     private func celda(_ texto: String?) -> some View {
         Text(texto ?? "—")
             .font(.system(size: 13))
-            .foregroundStyle(texto == nil ? tema.texto3 : tema.texto)
+            .foregroundStyle(texto == nil ? tema.texto3 : tema.solido)
             .frame(maxWidth: .infinity, minHeight: 32)
-            .background(tema.vidrio(1), in: .rect(cornerRadius: 11))
+            .background(texto == nil ? tema.vidrio(1) : tema.solido.opacity(0.08), in: .rect(cornerRadius: 11))
     }
 }

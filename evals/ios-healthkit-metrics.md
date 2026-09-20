@@ -14,6 +14,9 @@ distancia caminando/corriendo.
 4. Confirmar que la tarjeta muestra los tres valores del día.
 5. Volver a Salud, cambiar el estado o agregar actividad, cerrar y abrir la app.
 6. Confirmar que los valores se actualizan al volver a primer plano.
+7. Regenerar el proyecto con `xcodegen generate`, compilar y confirmar que el
+   diálogo de permiso sigue apareciendo. La descripción de HealthKit debe vivir
+   en `ios/project.yml`, no solo en el plist generado.
 
 ## Casos negativos
 

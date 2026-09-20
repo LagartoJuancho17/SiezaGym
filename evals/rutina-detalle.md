@@ -18,7 +18,8 @@ Calificar cada criterio con `1` si se cumple por completo o `0` si existe cualqu
 6. Entrenando: el cronómetro avanza, la pausa lo congela y al reanudar no salta hacia adelante.
 7. Entrenando: la serie confirmada usa el sólido del tema y se distingue de una sin confirmar en los tres temas, incluidos los de sólido claro.
 8. El volumen y el contador de series del pie solo suman series confirmadas; con la planilla recién abierta ambos están en cero.
-9. Entrenando no se ve la barra de pestañas, y salir pide confirmación.
+9. Entrenando hay un botón `Volver` visible arriba; sin series sale directo y
+   con series pide confirmación antes de descartar. No se ve la barra de pestañas.
 10. La atribución "© Gym visual" aparece siempre que haya alguna animación en pantalla.
 
 ## Umbral

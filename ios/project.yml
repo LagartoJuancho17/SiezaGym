@@ -60,6 +60,7 @@ targets:
           - CFBundleTypeRole: Editor
             CFBundleURLSchemes:
               - com.googleusercontent.apps.172935039970-q91msrp5od5vkgd5mohj9bo5fcg8e59v
+        NSHealthShareUsageDescription: "SiezaGym usa tus datos de Salud para mostrar las calorías activas, los pasos y la distancia del día."
     dependencies:
       - package: Firebase
         product: FirebaseAuth
