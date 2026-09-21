@@ -5,6 +5,8 @@ struct WorkoutView: View {
     let store: GymStore
     let routine: Routine?
 
+    @Environment(ThemeStore.self) private var temas
+    @State private var actividad = LiveActivityController()
     @State private var draft: WorkoutDraft
     @State private var isSaving = false
     @State private var saveError: String?
@@ -48,6 +50,18 @@ struct WorkoutView: View {
         }
         .scrollDismissesKeyboard(.interactively)
         .tecladoConBotonListo()
+        .task {
+            actividad.comenzar(
+                routineName: routine?.name ?? "Entrenamiento libre",
+                startedAt: draft.startedAt,
+                themeID: temas.actual.id,
+                estado: estadoActividad
+            )
+        }
+        // Una sola fuente: cualquier cambio del borrador (marcar una serie,
+        // agregar una, cambiar el peso) vuelve a calcular lo que se muestra.
+        .onChange(of: estadoActividad) { _, nuevo in actividad.actualizar(nuevo) }
+        .onDisappear { actividad.terminar(estadoActividad) }
         .background { Backdrop() }
         .confirmationDialog(
             "Guardar \(draft.completedSets) series y \(Int(draft.volumeKg).formatted()) kg?",
@@ -149,6 +163,19 @@ struct WorkoutView: View {
                 .font(.system(size: 10))
                 .foregroundStyle(tema.texto2)
         }
+    }
+
+    private var estadoActividad: WorkoutActivityAttributes.ContentState {
+        WorkoutActivityState.contenido(
+            draft.exercises.map {
+                WorkoutProgress(
+                    exerciseName: $0.name,
+                    doneSets: $0.completedCount,
+                    totalSets: $0.sets.count
+                )
+            },
+            volumeKg: draft.volumeKg
+        )
     }
 
     private func elapsed(since start: Date, now: Date) -> String {

@@ -38,6 +38,14 @@ targets:
     platform: iOS
     sources:
       - path: SiezaGym
+      - path: SiezaGymCompartido
+    entitlements:
+      path: SiezaGym/SiezaGym.entitlements
+      properties:
+        com.apple.developer.healthkit: true
+        # El widget lee el resumen de acá: la cuenta gratuita no habilita App
+        # Groups, pero sí un grupo de llavero compartido (ver el README).
+        keychain-access-groups: ["$(AppIdentifierPrefix)com.siezagym.compartido"]
     # GENERATE_INFOPLIST_FILE no puede declarar CFBundleURLTypes (es un array de
     # diccionarios) y sin el esquema de URL iOS no sabe a quien devolverle el
     # callback de Google, asi que hace falta un Info.plist de verdad.
@@ -51,6 +59,7 @@ targets:
         CFBundleDevelopmentRegion: es
         CFBundleLocalizations: [es]
         UILaunchScreen: {}
+        NSSupportsLiveActivities: true
         UIStatusBarStyle: UIStatusBarStyleLightContent
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         # Es el REVERSED_CLIENT_ID del GoogleService-Info.plist. A diferencia de
@@ -62,6 +71,7 @@ targets:
               - com.googleusercontent.apps.172935039970-q91msrp5od5vkgd5mohj9bo5fcg8e59v
         NSHealthShareUsageDescription: "SiezaGym usa tus datos de Salud para mostrar las calorías activas, los pasos y la distancia del día."
     dependencies:
+      - target: SiezaGymWidgets
       - package: Firebase
         product: FirebaseAuth
       - package: Firebase
@@ -79,7 +89,31 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         ENABLE_USER_SCRIPT_SANDBOXING: YES
-        CODE_SIGN_ENTITLEMENTS: SiezaGym/SiezaGym.entitlements
+        TARGETED_DEVICE_FAMILY: "1"
+
+  SiezaGymWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: SiezaGymWidgets
+      - path: SiezaGymCompartido
+    info:
+      path: SiezaGymWidgets/Info.plist
+      properties:
+        CFBundleDisplayName: SiezaGym
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    entitlements:
+      path: SiezaGymWidgets/SiezaGymWidgets.entitlements
+      properties:
+        keychain-access-groups: ["$(AppIdentifierPrefix)com.siezagym.compartido"]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.siezagym.app.widgets
+        PRODUCT_NAME: SiezaGymWidgets
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        SKIP_INSTALL: YES
         TARGETED_DEVICE_FAMILY: "1"
 
   SiezaGymTests:

@@ -48,10 +48,24 @@ final class GymStore {
             self.sessions = try await sessions
             loadError = nil
             lastLoadedAt = Date()
+            publicarWidget()
         } catch {
             log.error("carga fallo: \(error.localizedDescription, privacy: .public)")
             loadError = "No pudimos traer tus datos. Deslizá para reintentar."
         }
+    }
+
+    /// El widget corre en otro proceso y no llega a Firestore: la app le deja
+    /// el resumen escrito cada vez que trae datos.
+    private func publicarWidget() {
+        WidgetBridge.publicar(
+            WidgetSnapshotBuilder.build(
+                themeID: ThemeStore.temaGuardado,
+                sessions: sessions,
+                routine: featuredRoutine,
+                catalog: catalog
+            )
+        )
     }
 
     func exercise(_ id: String) -> Exercise? { catalog[id] }

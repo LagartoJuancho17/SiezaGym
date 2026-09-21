@@ -18,7 +18,8 @@ const AQUI = dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
 const cssArg = args[args.indexOf("--css") + 1];
 const CSS = resolve(AQUI, "..", "..", cssArg || "../SiezaGym/app/design2.css");
-const SALIDA = resolve(AQUI, "..", "SiezaGym", "DesignSystem", "ThemeTokens.swift");
+// Vive en lo compartido porque el widget también pinta con estos colores.
+const SALIDA = resolve(AQUI, "..", "SiezaGymCompartido", "ThemeTokens.swift");
 
 const css = readFileSync(CSS, "utf8");
 

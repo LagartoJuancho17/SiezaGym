@@ -37,6 +37,8 @@
 	<string>1</string>
 	<key>NSHealthShareUsageDescription</key>
 	<string>SiezaGym usa tus datos de Salud para mostrar las calorías activas, los pasos y la distancia del día.</string>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UIStatusBarStyle</key>

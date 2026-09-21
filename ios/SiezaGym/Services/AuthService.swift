@@ -141,6 +141,9 @@ final class AuthService {
             // sin dejar elegir otra.
             GIDSignIn.sharedInstance.signOut()
             try Auth.auth().signOut()
+            // El widget vive fuera de la app: si no se limpia, sigue mostrando
+            // la racha del usuario anterior en la pantalla bloqueada.
+            WidgetBridge.limpiar()
             errorMessage = nil
         } catch {
             log.error("signOut fallo: \(error.localizedDescription, privacy: .public)")

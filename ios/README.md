@@ -43,7 +43,9 @@ SiezaGym/
   Services/        Firebase, repositorio de Firestore, estado compartido
   DesignSystem/    Paleta y componentes, espejo de app/globals.css
   Features/        Una carpeta por pantalla
-SiezaGymTests/     Swift Testing
+SiezaGymCompartido/  Lo que compilan los dos targets (tema, snapshot, calendario)
+SiezaGymWidgets/     Widgets de la pantalla de inicio y actividad en vivo
+SiezaGymTests/       Swift Testing
 ```
 
 `Domain/` es el port de la lógica de la web, función por función:
@@ -56,6 +58,7 @@ SiezaGymTests/     Swift Testing
 | `RoutineSummary`           | `lib/routines/summary.js`  |
 | `DraftExercise`            | `lib/routines/prescription.js` |
 | `RoutineCompose`           | `lib/routines/compose.js` + `muscleDistribution` de `lib/routines/summary.js` |
+| `WidgetSnapshotBuilder`    | no tiene equivalente: la web no tiene widgets |
 
 `RoutineDraftExercise` guarda las dos formas de prescribir que acepta el modelo,
 igual que la web: pareja (todas las series iguales) y detallada (una fila por
@@ -95,6 +98,37 @@ nada.
 
 **La hora es la de Argentina, no la del teléfono.** Un entrenamiento a las 22:00
 en Buenos Aires es de ese día aunque el dispositivo esté en otra zona.
+
+## Widgets y actividad en vivo
+
+Dos cosas distintas, con dos problemas distintos.
+
+**La actividad del entrenamiento** (pantalla bloqueada y Dynamic Island) no
+necesita compartir nada: ActivityKit lleva el estado de la app a la extensión
+por su cuenta. Las actualizaciones son locales (`Activity.update`), no por push,
+así que no hace falta cuenta paga ni APNs. El cronómetro es
+`Text(timerInterval:)`: lo corre el sistema, la app solo dice cuándo arrancó.
+
+**Los widgets de la pantalla de inicio** sí necesitan datos, y ahí está la
+trampa: el widget corre en otro proceso, sin la sesión de Firebase y sin
+presupuesto de memoria para el SDK de Firestore. Lo normal sería un App Group,
+pero **Apple no habilita App Groups en una cuenta de desarrollador gratuita** —
+el provisioning rechaza `com.apple.security.application-groups` con
+"doesn't include the App Groups capability". Lo que sí habilita, y está en el
+perfil, es un **grupo de llavero compartido**. Así que la app deja el resumen ya
+calculado en un item del llavero (`SnapshotStore`) y el widget lo lee.
+
+El item usa `kSecAttrAccessibleAfterFirstUnlock` porque el widget de la pantalla
+bloqueada tiene que poder leerlo con el teléfono trabado. Con una cuenta paga,
+esto se reemplaza por `UserDefaults(suiteName:)` y el resto no cambia.
+
+El snapshot lleva también el id del tema: el widget no puede leer el
+`@AppStorage` de la app (son dos contenedores distintos).
+
+**La isla expandida se dibuja siempre sobre negro**, así que va en blanco y no
+con los colores del tema: el sólido del tema Plata es casi negro y desaparecía.
+La pantalla bloqueada sí usa el tema, porque ahí el fondo lo pone
+`activityBackgroundTint`.
 
 ## Login con Google
 
@@ -145,8 +179,8 @@ xcodebuild test -project SiezaGym.xcodeproj -scheme SiezaGym \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 ```
 
-93 tests: la matemática de `Domain/`, el formato de las métricas de Salud y
-la traducción de errores de login. Son funciones puras, no tocan Firestore ni la
+105 tests: la matemática de `Domain/`, lo que muestran los widgets, el formato
+de las métricas de Salud y la traducción de errores de login. Son funciones puras, no tocan Firestore ni la
 red.
 
 ## El proyecto de Xcode
