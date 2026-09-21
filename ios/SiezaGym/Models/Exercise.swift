@@ -42,7 +42,7 @@ nonisolated enum MuscleGroup: String, CaseIterable, Sendable, Hashable {
     }
 }
 
-nonisolated enum Equipment: String, Sendable {
+nonisolated enum Equipment: String, CaseIterable, Sendable {
     case barra, mancuerna, maquina, polea, pesoCorporal = "peso_corporal", banda, kettlebell
 
     var label: String {
@@ -58,7 +58,7 @@ nonisolated enum Equipment: String, Sendable {
     }
 }
 
-nonisolated enum MovementPattern: String, Sendable {
+nonisolated enum MovementPattern: String, CaseIterable, Sendable {
     case empujeHorizontal = "empuje_horizontal"
     case empujeVertical = "empuje_vertical"
     case traccionHorizontal = "traccion_horizontal"
@@ -85,7 +85,7 @@ nonisolated enum MovementPattern: String, Sendable {
     }
 }
 
-nonisolated enum RegistrationType: String, Sendable {
+nonisolated enum RegistrationType: String, CaseIterable, Sendable {
     case pesoReps = "peso_reps"
     case reps
     case tiempo
@@ -122,9 +122,20 @@ nonisolated struct Exercise: Identifiable, Sendable, Hashable {
     let descriptionEs: String
     let mediaURL: URL?
     let source: ExerciseSource
+    /// Solo en los ejercicios propios: el link de YouTube que cargó el usuario.
+    let videoURL: URL?
 
     var primaryMuscle: MuscleGroup? {
         muscleWeights.max { $0.value < $1.value }?.key
+    }
+
+    /// Lo que se dibuja en la miniatura. Los del catálogo traen su gif; los
+    /// propios no tienen media, así que se usa la portada del video de YouTube,
+    /// que sale del id y no hace falta guardar.
+    var thumbnailURL: URL? {
+        if let mediaURL { return mediaURL }
+        guard let videoURL, let id = YouTubeLink.id(de: videoURL.absoluteString) else { return nil }
+        return YouTubeLink.miniatura(paraID: id)
     }
 }
 
@@ -140,6 +151,7 @@ nonisolated extension Exercise {
         unilateral = FirestoreValue.bool(data["unilateral"]) ?? false
         descriptionEs = data["descriptionEs"] as? String ?? ""
         mediaURL = (data["mediaUrl"] as? String).flatMap(URL.init(string:))
+        videoURL = (data["videoUrl"] as? String).flatMap(URL.init(string:))
         self.source = source
 
         var weights: [MuscleGroup: Double] = [:]

@@ -158,7 +158,7 @@ private struct TarjetaEjercicio: View {
         GlassCard(padding: 16) {
             VStack(alignment: .leading, spacing: 14) {
                 HStack(spacing: 13) {
-                    Miniatura(url: store.exercise(ejercicio.exerciseID)?.mediaURL, lado: 64)
+                    Miniatura(url: store.exercise(ejercicio.exerciseID)?.thumbnailURL, lado: 64)
                     Text(store.name(of: ejercicio.exerciseID))
                         .font(.system(size: 15, weight: .medium))
                         .foregroundStyle(tema.texto)

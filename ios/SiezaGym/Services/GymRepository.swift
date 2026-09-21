@@ -56,6 +56,25 @@ nonisolated struct GymRepository: Sendable {
         return all
     }
 
+    /// Crea un ejercicio propio en `users/{uid}/customExercises`.
+    ///
+    /// Es privado: las reglas solo dejan leerlo a su dueño y a su entrenador.
+    /// Devuelve el `Exercise` ya armado para meterlo en el catálogo en memoria
+    /// sin volver a leer de Firestore.
+    func createCustomExercise(uid: String, draft: CustomExerciseDraft) async throws -> Exercise {
+        try draft.validar()
+
+        var payload = draft.firestoreValue(ownerID: uid)
+        payload["createdAt"] = FieldValue.serverTimestamp()
+        payload["updatedAt"] = FieldValue.serverTimestamp()
+
+        let referencia = try await db.collection("users").document(uid)
+            .collection("customExercises").addDocument(data: payload)
+
+        log.info("ejercicio propio creado \(referencia.documentID, privacy: .public)")
+        return Exercise(id: referencia.documentID, data: payload, source: .custom)
+    }
+
     // MARK: - Perfil
 
     func profile(uid: String) async throws -> UserProfile? {

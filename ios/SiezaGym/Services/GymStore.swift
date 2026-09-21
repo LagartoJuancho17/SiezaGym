@@ -138,6 +138,15 @@ final class GymStore {
         await load()
     }
 
+    /// Crea un ejercicio propio y lo suma al catálogo en memoria, para que
+    /// aparezca en el selector sin recargar todo desde Firestore.
+    @discardableResult
+    func createCustomExercise(_ draft: CustomExerciseDraft) async throws -> Exercise {
+        let ejercicio = try await repository.createCustomExercise(uid: uid, draft: draft)
+        catalog[ejercicio.id] = ejercicio
+        return ejercicio
+    }
+
     func updateProfile(_ fields: [String: Any]) async {
         do {
             try await repository.updateProfile(uid: uid, fields: fields)

@@ -149,7 +149,7 @@ private struct FilaEjercicio: View {
         VStack(spacing: 0) {
             Button(action: alTocar) {
                 HStack(spacing: 12) {
-                    Miniatura(url: ejercicio?.mediaURL, lado: 54)
+                    Miniatura(url: ejercicio?.thumbnailURL, lado: 54)
                     VStack(alignment: .leading, spacing: 4) {
                         Text(nombre)
                             .font(.system(size: 14, weight: .medium))

@@ -7,10 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		03F659D058019C8EA8AB2DB5 /* CustomExerciseDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB34317AC8D6136CC35EEBFA /* CustomExerciseDraft.swift */; };
 		05F79F67B679E5552CE44AFE /* WorkoutActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37248E78EEF32A7F25E70489 /* WorkoutActivity.swift */; };
 		09BF360C5D608AA8940A33AD /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEC42CD9901F9007C6EF6E4C /* RootView.swift */; };
 		0B23DD40818F48CA7D89AA42 /* HoyWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E6F08807055187F66AB97E3 /* HoyWidget.swift */; };
 		106C3B5F379773A98FB4C5C5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3BF9C538E6A757304EFC3144 /* Assets.xcassets */; };
+		1467DB9BF571D0A493C06833 /* CustomExerciseSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 629768D30B5607A1DC2F3DD6 /* CustomExerciseSheet.swift */; };
 		17C1840289B6881288F34DAA /* ProgressMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65D3FDABC0463D11B668747F /* ProgressMetrics.swift */; };
 		19B8BDA9D3195F6A407AC092 /* HealthMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFBC030844B41AC2CA85228E /* HealthMetrics.swift */; };
 		25089B70FF4D361E8112FA9D /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A503466AED5D1CC5A073ABF /* Theme.swift */; };
@@ -45,6 +47,7 @@
 		8F2E921BEAA2B58013F8E450 /* ThemeTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF6ECA83E3BA00B298F73B83 /* ThemeTokens.swift */; };
 		8F39EEF6AAEB18DFEE31FE9B /* HealthKitConfigurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD7C5E866FDE71F8AEC3C985 /* HealthKitConfigurationTests.swift */; };
 		9068279C51F35720BFA0F85B /* WorkoutDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B20CDD344068C731A037D44 /* WorkoutDraft.swift */; };
+		92137B36659F1FB8DCDC432E /* CustomExerciseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32C968911E9AA6B64763A207 /* CustomExerciseTests.swift */; };
 		933863B1968124C52CB67D13 /* Pantallas.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66278651D9DB38E2D642B2FD /* Pantallas.swift */; };
 		9A7659413F1FC6EDEB2C21D2 /* GymStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00831C4B5DF350BB44E6270 /* GymStore.swift */; };
 		A972A0AAE8862B0EFDCFF589 /* HealthKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71EFA0ABC951C76A770D0C83 /* HealthKitService.swift */; };
@@ -117,6 +120,7 @@
 		1701F084780BFE7958223925 /* WorkoutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutView.swift; sourceTree = "<group>"; };
 		1B821EA63F7F81AE7EC6A134 /* RachaWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RachaWidget.swift; sourceTree = "<group>"; };
 		2BCA4F2347BCE2A9D4BDB6CF /* RoutineSummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoutineSummary.swift; sourceTree = "<group>"; };
+		32C968911E9AA6B64763A207 /* CustomExerciseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomExerciseTests.swift; sourceTree = "<group>"; };
 		37248E78EEF32A7F25E70489 /* WorkoutActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutActivity.swift; sourceTree = "<group>"; };
 		3A503466AED5D1CC5A073ABF /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		3B9A5A06B85393FC8A0FD251 /* ProgressScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressScreen.swift; sourceTree = "<group>"; };
@@ -128,6 +132,7 @@
 		6050D5EE6B1267B77E113FA9 /* Routine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Routine.swift; sourceTree = "<group>"; };
 		61A8217EE572685B2AF5F08A /* AuthMessageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthMessageTests.swift; sourceTree = "<group>"; };
 		621B7F67FB19EB5BA54204AA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		629768D30B5607A1DC2F3DD6 /* CustomExerciseSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomExerciseSheet.swift; sourceTree = "<group>"; };
 		65D3FDABC0463D11B668747F /* ProgressMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressMetrics.swift; sourceTree = "<group>"; };
 		66278651D9DB38E2D642B2FD /* Pantallas.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pantallas.swift; sourceTree = "<group>"; };
 		698A3E0F778AD459293863DB /* ExerciseMediaTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseMediaTests.swift; sourceTree = "<group>"; };
@@ -144,6 +149,7 @@
 		9BC67D543EEAF3E15E9493B2 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
 		A2232E5FBF4EB7B2D317BF3A /* RoutineDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoutineDraft.swift; sourceTree = "<group>"; };
 		A773B5C646AD6054BC247135 /* ExercisePickerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExercisePickerSheet.swift; sourceTree = "<group>"; };
+		AB34317AC8D6136CC35EEBFA /* CustomExerciseDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomExerciseDraft.swift; sourceTree = "<group>"; };
 		AB8208682EA38DFD34D98929 /* SiezaGymTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = SiezaGymTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		AE53E293A5BEE122C7F154F0 /* WidgetBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetBridge.swift; sourceTree = "<group>"; };
 		AE88FE15304FF74783052D63 /* LiveActivityController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityController.swift; sourceTree = "<group>"; };
@@ -171,7 +177,7 @@
 		F9F497722DB4661FFF746FD1 /* TrainingCalendar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainingCalendar.swift; sourceTree = "<group>"; };
 		F9F6A2EBFC13CEDC7984B640 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		FD8ADFF2CAA687963AB3D3AA /* Piezas.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Piezas.swift; sourceTree = "<group>"; };
-		"TEMP_1D6F08CF-315A-4ADC-936F-35DCEFA51CDE" /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
+		"TEMP_89602E3E-64B2-437A-88FA-722ACB351857" /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -211,6 +217,7 @@
 		3E5CBFCC6A703612FA8EC959 /* Domain */ = {
 			isa = PBXGroup;
 			children = (
+				AB34317AC8D6136CC35EEBFA /* CustomExerciseDraft.swift */,
 				4DA99ABA4DD2DEF013186323 /* Epley.swift */,
 				CFBC030844B41AC2CA85228E /* HealthMetrics.swift */,
 				D23EED55AC67DF9CAA4DB093 /* HomeMetrics.swift */,
@@ -371,6 +378,7 @@
 		E0D219A690B52623756AF401 /* Routines */ = {
 			isa = PBXGroup;
 			children = (
+				629768D30B5607A1DC2F3DD6 /* CustomExerciseSheet.swift */,
 				A773B5C646AD6054BC247135 /* ExercisePickerSheet.swift */,
 				D3BC5CCA0174C5F42B149FDD /* RoutineComposerScreen.swift */,
 				7BB942DE1A39FD7B6B945979 /* RoutineDetailScreen.swift */,
@@ -383,6 +391,7 @@
 			isa = PBXGroup;
 			children = (
 				61A8217EE572685B2AF5F08A /* AuthMessageTests.swift */,
+				32C968911E9AA6B64763A207 /* CustomExerciseTests.swift */,
 				698A3E0F778AD459293863DB /* ExerciseMediaTests.swift */,
 				CD7C5E866FDE71F8AEC3C985 /* HealthKitConfigurationTests.swift */,
 				C2EF42F69ECBC7B4BADFE19B /* HealthMetricsTests.swift */,
@@ -410,10 +419,10 @@
 			path = Progress;
 			sourceTree = "<group>";
 		};
-		"TEMP_A41A0BE8-C744-451C-9906-68AC730D6CB6" /* ios */ = {
+		"TEMP_771B34EB-1A26-4CA2-B81A-33CEEC902E6F" /* ios */ = {
 			isa = PBXGroup;
 			children = (
-				"TEMP_1D6F08CF-315A-4ADC-936F-35DCEFA51CDE" /* Signing.xcconfig */,
+				"TEMP_89602E3E-64B2-437A-88FA-722ACB351857" /* Signing.xcconfig */,
 			);
 			path = ios;
 			sourceTree = "<group>";
@@ -548,6 +557,8 @@
 			files = (
 				E7DBF80474A41676D85B7E86 /* AuthService.swift in Sources */,
 				F6E8391204D78ABD2F93C2DD /* BottomNav.swift in Sources */,
+				03F659D058019C8EA8AB2DB5 /* CustomExerciseDraft.swift in Sources */,
+				1467DB9BF571D0A493C06833 /* CustomExerciseSheet.swift in Sources */,
 				689D5D3F4C4C5A786417D2F7 /* DesignSystem.swift in Sources */,
 				765B33F0C6E2CA822388FC44 /* Epley.swift in Sources */,
 				8D087CEFB48437FF6FEECA76 /* Exercise.swift in Sources */,
@@ -613,6 +624,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B0B297E0FDAA904D85B665BE /* AuthMessageTests.swift in Sources */,
+				92137B36659F1FB8DCDC432E /* CustomExerciseTests.swift in Sources */,
 				76AF706F5D7BCAD8AB74FD5B /* ExerciseMediaTests.swift in Sources */,
 				8F39EEF6AAEB18DFEE31FE9B /* HealthKitConfigurationTests.swift in Sources */,
 				568E4A4B8F74B60CFC82DB9A /* HealthMetricsTests.swift in Sources */,
@@ -661,7 +673,7 @@
 		};
 		04764DE4336904985F4049C2 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_1D6F08CF-315A-4ADC-936F-35DCEFA51CDE" /* Signing.xcconfig */;
+			baseConfigurationReference = "TEMP_89602E3E-64B2-437A-88FA-722ACB351857" /* Signing.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -820,7 +832,7 @@
 		};
 		FC6682134BF5D75535C2BAE4 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_1D6F08CF-315A-4ADC-936F-35DCEFA51CDE" /* Signing.xcconfig */;
+			baseConfigurationReference = "TEMP_89602E3E-64B2-437A-88FA-722ACB351857" /* Signing.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;

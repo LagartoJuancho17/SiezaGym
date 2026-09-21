@@ -23,7 +23,8 @@ private func exercise(
         unilateral: false,
         descriptionEs: "",
         mediaURL: nil,
-        source: source
+        source: source,
+        videoURL: nil
     )
 }
 

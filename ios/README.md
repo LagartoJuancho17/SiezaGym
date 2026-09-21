@@ -59,6 +59,7 @@ SiezaGymTests/       Swift Testing
 | `DraftExercise`            | `lib/routines/prescription.js` |
 | `RoutineCompose`           | `lib/routines/compose.js` + `muscleDistribution` de `lib/routines/summary.js` |
 | `WidgetSnapshotBuilder`    | no tiene equivalente: la web no tiene widgets |
+| `CustomExerciseDraft`      | `lib/customExercises/customExercises.js` |
 
 `RoutineDraftExercise` guarda las dos formas de prescribir que acepta el modelo,
 igual que la web: pareja (todas las series iguales) y detallada (una fila por
@@ -130,6 +131,29 @@ con los colores del tema: el sólido del tema Plata es casi negro y desaparecía
 La pantalla bloqueada sí usa el tema, porque ahí el fondo lo pone
 `activityBackgroundTint`.
 
+## Ejercicios propios
+
+Lo que no está en el catálogo de 94 se carga desde el `+` del selector y vive en
+`users/{uid}/customExercises`, igual que en la web. Las reglas de Firestore
+exigen `ownerId`, `nameEs`, `equipment`, `pattern`, `registrationType` y un
+`muscleWeights` no vacío: sin alguno de esos el write vuelve como
+"Missing or insufficient permissions" y no se entiende por qué. Por eso el
+formulario pide músculos sí o sí, y equipamiento y patrón tienen valor por
+defecto.
+
+**El reparto muscular se carga por partes, no por porcentajes.** Tocar un
+músculo lo suma (×1, ×2, ×3) y al guardar se normaliza a 1.0, absorbiendo el
+resto del redondeo en el músculo que más participa. La web pide los porcentajes
+a mano con sliders y valida que sumen 1.0; en el teléfono eso es pelearse con
+tres campos, y el documento que sale es el mismo.
+
+**El video de YouTube es un agregado de la app.** Se guarda en `videoUrl`, un
+campo que la web todavía no lee (su serializador fija `mediaUrl: null` para los
+propios). La miniatura no se guarda: sale del id del video
+(`img.youtube.com/vi/<id>/mqdefault.jpg`), así que no hay dos verdades. Del link
+pegado se guarda solo el id en una URL limpia, porque los links de compartir
+vienen con seguimiento.
+
 ## Login con Google
 
 El `CLIENT_ID` sale del `GoogleService-Info.plist`, así que no hay nada que
@@ -179,8 +203,9 @@ xcodebuild test -project SiezaGym.xcodeproj -scheme SiezaGym \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 ```
 
-105 tests: la matemática de `Domain/`, lo que muestran los widgets, el formato
-de las métricas de Salud y la traducción de errores de login. Son funciones puras, no tocan Firestore ni la
+129 tests: la matemática de `Domain/`, lo que muestran los widgets, los links
+de YouTube, el formato de las métricas de Salud y la traducción de errores de
+login. Son funciones puras, no tocan Firestore ni la
 red.
 
 ## El proyecto de Xcode
@@ -215,12 +240,8 @@ El **panel de coach** (alumnos, códigos de invitación, asignar rutinas) sigue
 siendo solo web: es una superficie de escritorio. La app muestra las rutinas
 asignadas por el coach, pero no permite administrarlas.
 
-Del armador de rutinas faltan dos cosas que la web sí tiene, las dos dentro de
-`RoutineComposer`:
-
 - **Editar una rutina existente.** En la web es la misma pantalla con la rutina
   cargada (`/rutinas/[id]/editar`); en la app el armador solo crea.
-- **Crear un ejercicio propio** desde el selector. Los que ya creaste en la web
-  sí aparecen (marcados `Tuyo`, con `exerciseSource: "custom"`), pero el alta
-  escribe en `users/{uid}/customExercises` con su propia validación de reglas,
-  así que es una función aparte y no parte de crear la rutina.
+- **Borrar o editar un ejercicio propio.** Se pueden crear, pero no sacar:
+  `deleteCustomExercise` existe en la web y no está conectada a ninguna
+  pantalla, ni ahí ni acá.

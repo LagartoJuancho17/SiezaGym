@@ -14,13 +14,17 @@ struct ExercisePickerSheet: View {
     @State private var texto = ""
     @State private var region: MuscleRegion?
     @State private var elegidos: Set<String> = []
+    @State private var soloPropios = false
+    @State private var creando = false
 
     private var catalogo: [Exercise] {
         store.catalog.values.sorted { $0.nameEs.localizedCompare($1.nameEs) == .orderedAscending }
     }
     private var resultados: [Exercise] {
-        ExerciseSearch.filtrar(catalogo, texto: texto, region: region)
+        let filtrados = ExerciseSearch.filtrar(catalogo, texto: texto, region: region)
+        return soloPropios ? filtrados.filter { $0.source == .custom } : filtrados
     }
+    private var propios: Int { catalogo.count { $0.source == .custom } }
     private var cargando: Bool { store.isLoading && catalogo.isEmpty }
 
     var body: some View {
@@ -29,18 +33,14 @@ struct ExercisePickerSheet: View {
 
             VStack(spacing: 0) {
                 encabezado
-                buscador
+                barraBusqueda
                 regiones
 
                 ScrollView {
                     if resultados.isEmpty {
                         // Sin catálogo todavía no hay nada que no coincida:
                         // decir "ninguno coincide" mientras carga es mentira.
-                        Vacio(texto: cargando
-                              ? "Cargando ejercicios…"
-                              : (catalogo.isEmpty
-                                 ? "No pudimos traer el catálogo de ejercicios."
-                                 : "Ningún ejercicio coincide."))
+                        vacio
                             .padding(.horizontal, 18)
                             .padding(.bottom, 24)
                     } else {
@@ -66,8 +66,34 @@ struct ExercisePickerSheet: View {
             }
         }
         .tecladoConBotonListo()
+        .sheet(isPresented: $creando) {
+            // El texto que no encontró nada entra como nombre: si buscaste
+            // "jalón en polea baja" y no está, ese es el que querés crear.
+            CustomExerciseSheet(store: store, nombreInicial: texto) { nuevo in
+                // Queda marcado y a la vista: crearlo es para usarlo ya.
+                elegidos.insert(nuevo.id)
+                texto = ""
+                region = nil
+                soloPropios = true
+            }
+        }
         .task {
             if store.catalog.isEmpty && !store.isLoading { await store.load() }
+        }
+    }
+
+    @ViewBuilder
+    private var vacio: some View {
+        if cargando {
+            Vacio(texto: "Cargando ejercicios…")
+        } else if catalogo.isEmpty {
+            Vacio(texto: "No pudimos traer el catálogo de ejercicios.")
+        } else if soloPropios {
+            Vacio(texto: "Todavía no cargaste ejercicios propios.",
+                  accion: ("Crear uno", { creando = true }))
+        } else {
+            Vacio(texto: "Ningún ejercicio coincide.",
+                  accion: ("Crearlo yo", { creando = true }))
         }
     }
 
@@ -106,6 +132,23 @@ struct ExercisePickerSheet: View {
         .frame(height: 54)
         .background(tema.vidrio(1), in: .capsule)
         .overlay { Capsule().strokeBorder(tema.borde, lineWidth: 1) }
+    }
+
+    /// Buscador más el botón de crear. Está al lado del buscador porque es
+    /// justo donde te das cuenta de que el ejercicio no está en el catálogo.
+    private var barraBusqueda: some View {
+        HStack(spacing: 10) {
+            buscador
+
+            Button { creando = true } label: {
+                Image(systemName: "plus")
+                    .font(.system(size: 20, weight: .medium))
+                    .foregroundStyle(tema.sobreSolido)
+                    .frame(width: 54, height: 54)
+                    .background(tema.solido, in: .circle)
+            }
+            .accessibilityLabel("Crear un ejercicio propio")
+        }
         .padding(.horizontal, 18)
         .padding(.top, 8)
     }
@@ -113,7 +156,15 @@ struct ExercisePickerSheet: View {
     private var regiones: some View {
         ScrollView(.horizontal) {
             HStack(spacing: 8) {
-                chip("Todos", activo: region == nil) { region = nil }
+                chip("Todos", activo: region == nil && !soloPropios) {
+                    region = nil
+                    soloPropios = false
+                }
+                // Solo aparece si cargaste alguno: un filtro que siempre da
+                // vacío es ruido.
+                if propios > 0 {
+                    chip("Tus ejercicios", activo: soloPropios) { soloPropios.toggle() }
+                }
                 ForEach(MuscleRegion.allCases) { opcion in
                     chip(opcion.label, activo: region == opcion) {
                         region = region == opcion ? nil : opcion
@@ -147,7 +198,7 @@ struct ExercisePickerSheet: View {
             if marcado { elegidos.remove(ejercicio.id) } else { elegidos.insert(ejercicio.id) }
         } label: {
             HStack(spacing: 12) {
-                Miniatura(url: ejercicio.mediaURL, lado: 54)
+                Miniatura(url: ejercicio.thumbnailURL, lado: 54)
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(ejercicio.nameEs)

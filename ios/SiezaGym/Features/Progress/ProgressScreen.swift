@@ -202,7 +202,7 @@ struct ProgressScreen: View {
                             detalle: "\(fila.sessions) \(fila.sessions == 1 ? "entrenamiento" : "entrenamientos")",
                             valor: fila.bestOneRepMax > 0 ? "\(fila.bestOneRepMax.formatted()) kg" : nil,
                             unidad: fila.bestOneRepMax > 0 ? "1RM est." : nil,
-                            miniatura: store.exercise(fila.exerciseID)?.mediaURL,
+                            miniatura: store.exercise(fila.exerciseID)?.thumbnailURL,
                             chevron: false
                         )
                     }
