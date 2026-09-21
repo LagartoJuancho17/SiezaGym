@@ -20,6 +20,8 @@ final class GymStore {
     /// Nil hasta la primera carga: sirve para no mostrar "no hay nada" mientras carga.
     private(set) var lastLoadedAt: Date?
 
+    let healthKit = HealthKitService()
+
     private let repository = GymRepository()
 
     init(uid: String) {
@@ -107,6 +109,12 @@ final class GymStore {
             exercises: exercises
         )
         await load()
+    }
+
+    func deleteSession(_ session: WorkoutSession) async throws {
+        guard session.userID == uid else { return }
+        try await repository.deleteSession(uid: uid, sessionID: session.id)
+        sessions.removeAll { $0.id == session.id }
     }
 
     /// Crea una rutina y recarga, para que aparezca en la lista sin salir y

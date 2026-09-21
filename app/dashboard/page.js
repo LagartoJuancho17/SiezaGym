@@ -9,6 +9,7 @@ import "@/components/items/items-design2.css";
 import DashboardMetrics from "@/components/dashboard/DashboardMetrics";
 import { listUserSessions, listTrainedDates } from "@/lib/sessions/sessions";
 import { listExercises } from "@/lib/exercises/exercises";
+import { isAdminUser } from "@/lib/admin/access";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +31,9 @@ export default async function DashboardPage() {
   const links = [...destinations];
   if (profile?.isCoach || profile?.isAdmin) {
     links.push(["/dashboard/coach", "Profesores", "Alumnos, rutinas asignadas y seguimiento"]);
+  }
+  if (isAdminUser(user)) {
+    links.push(["/admin", "Administración", "Usuarios, actividad y catálogo global"]);
   }
 
   return (

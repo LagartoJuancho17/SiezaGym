@@ -9,6 +9,7 @@ struct WorkoutView: View {
     @State private var isSaving = false
     @State private var saveError: String?
     @State private var showFinishConfirm = false
+    @State private var showExitConfirm = false
     @Environment(\.dismiss) private var dismiss
 
     init(store: GymStore, routine: Routine?) {
@@ -18,33 +19,36 @@ struct WorkoutView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 10) {
-                summary
+        VStack(spacing: 0) {
+            topBar
 
-                ForEach($draft.exercises) { $exercise in
-                    ExerciseCard(exercise: $exercise, draft: draft)
+            ScrollView {
+                VStack(spacing: 10) {
+                    summary
+
+                    ForEach($draft.exercises) { $exercise in
+                        ExerciseCard(exercise: $exercise, draft: draft)
+                    }
+
+                    if let saveError {
+                        Text(saveError)
+                            .font(.system(size: 13))
+                            .foregroundStyle(tema.texto)
+                    }
+
+                    Button("Terminar entrenamiento") { showFinishConfirm = true }
+                        .buttonStyle(AccentButtonStyle())
+                        .disabled(!draft.canSave || isSaving)
+                        .opacity(draft.canSave ? 1 : 0.5)
+                        .overlay { if isSaving { ProgressView().tint(tema.sobreSolido) } }
+                        .padding(.top, 4)
                 }
-
-                if let saveError {
-                    Text(saveError)
-                        .font(.system(size: 13))
-                        .foregroundStyle(tema.texto)
-                }
-
-                Button("Terminar entrenamiento") { showFinishConfirm = true }
-                    .buttonStyle(AccentButtonStyle())
-                    .disabled(!draft.canSave || isSaving)
-                    .opacity(draft.canSave ? 1 : 0.5)
-                    .overlay { if isSaving { ProgressView().tint(.white) } }
-                    .padding(.top, 4)
+                .padding(12)
             }
-            .padding(12)
         }
         .scrollDismissesKeyboard(.interactively)
+        .tecladoConBotonListo()
         .background { Backdrop() }
-        .navigationTitle(routine?.name ?? "Entrenamiento")
-        .navigationBarTitleDisplayMode(.inline)
         .confirmationDialog(
             "Guardar \(draft.completedSets) series y \(Int(draft.volumeKg).formatted()) kg?",
             isPresented: $showFinishConfirm,
@@ -53,7 +57,60 @@ struct WorkoutView: View {
             Button("Guardar", action: finish)
             Button("Seguir entrenando", role: .cancel) {}
         }
+        .confirmationDialog(
+            "¿Salir del entrenamiento?",
+            isPresented: $showExitConfirm,
+            titleVisibility: .visible
+        ) {
+            Button("Salir sin guardar", role: .destructive) { dismiss() }
+            Button("Seguir entrenando", role: .cancel) {}
+        } message: {
+            Text("Las series que marcaste no se van a guardar.")
+        }
         .interactiveDismissDisabled(draft.completedSets > 0)
+    }
+
+    private var topBar: some View {
+        HStack(spacing: 12) {
+            Button(action: requestExit) {
+                Label("Volver", systemImage: "arrow.left")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(tema.texto)
+                    .padding(.horizontal, 12)
+                    .frame(minHeight: 44)
+                    .background(tema.vidrio(2), in: .capsule)
+                    .overlay { Capsule().strokeBorder(tema.borde, lineWidth: 1) }
+            }
+            .disabled(isSaving)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Entrenamiento")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(tema.solido)
+                    .textCase(.uppercase)
+                    .tracking(1)
+                Text(routine?.name ?? "Libre")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundStyle(tema.texto)
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            Circle()
+                .fill(tema.solido)
+                .frame(width: 9, height: 9)
+                .accessibilityHidden(true)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+    }
+
+    private func requestExit() {
+        if draft.completedSets > 0 {
+            showExitConfirm = true
+        } else {
+            dismiss()
+        }
     }
 
     private var summary: some View {
@@ -72,6 +129,13 @@ struct WorkoutView: View {
                 Spacer()
                 stat(Int(draft.volumeKg).formatted(), "kg")
             }
+        }
+        .overlay(alignment: .top) {
+            Capsule()
+                .fill(tema.solido)
+                .frame(height: 4)
+                .padding(.horizontal, 28)
+                .padding(.top, 1)
         }
     }
 
@@ -144,6 +208,12 @@ private struct ExerciseCard: View {
                 .buttonStyle(.plain)
                 .padding(.top, 2)
             }
+        }
+        .overlay(alignment: .leading) {
+            RoundedRectangle(cornerRadius: 3)
+                .fill(exercise.completedCount > 0 ? tema.solido : tema.borde)
+                .frame(width: 3)
+                .padding(.vertical, 14)
         }
     }
 

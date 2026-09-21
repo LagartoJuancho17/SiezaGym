@@ -29,6 +29,7 @@ struct RootView: View {
 }
 
 struct MainTabView: View {
+    @Environment(\.scenePhase) private var scenePhase
     /// Un solo store para las cinco pantallas. Si cada tab creara el suyo
     /// pagariamos las mismas lecturas cinco veces y podrian mostrar numeros
     /// distintos entre si.
@@ -66,6 +67,13 @@ struct MainTabView: View {
                 .padding(.bottom, BottomNav.bottomGap)
         }
         .ignoresSafeArea(.keyboard, edges: .bottom)
-        .task { if !store.hasLoaded { await store.load() } }
+        .task {
+            if !store.hasLoaded { await store.load() }
+            await store.healthKit.refreshIfConnected()
+        }
+        .onChange(of: scenePhase) { _, phase in
+            guard phase == .active else { return }
+            Task { await store.healthKit.refreshIfConnected() }
+        }
     }
 }

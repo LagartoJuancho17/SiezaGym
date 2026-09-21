@@ -22,9 +22,10 @@ service cloud.firestore {
     // aparte en users/{uid}/private/contact, nunca legibles por el entrenador.
     match /users/{uid} {
       allow read: if isSelf(uid) || isLinkedCoachOf(uid);
-      allow create: if isSelf(uid);
+      allow create: if isSelf(uid)
+        && !request.resource.data.keys().hasAny(['isAdmin', 'isCoach', 'role']);
       allow update: if isSelf(uid)
-        && (resource.data.role == null || request.resource.data.role == resource.data.role);
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['isAdmin', 'isCoach', 'role']);
       allow delete: if false;
 
       match /private/{document=**} {
@@ -102,7 +103,7 @@ service cloud.firestore {
         && request.resource.data.userId == request.auth.uid
         && request.resource.data.exercises.size() <= 40;
       allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow delete: if false; // borrar cuenta pasa por un flujo server-side, no un delete crudo
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
     }
 
     // ---- vinculo entrenador-alumno ----

@@ -5,6 +5,10 @@ import SwiftUI
 struct HistoryScreen: View {
     @Environment(\.tema) private var tema
     let store: GymStore
+    @State private var sessionToDelete: WorkoutSession?
+    @State private var showDeleteConfirm = false
+    @State private var deleteError: String?
+    @State private var deletingSessionID: String?
 
     var body: some View {
         NavigationStack {
@@ -30,12 +34,58 @@ struct HistoryScreen: View {
                                 )
                             }
                             .buttonStyle(.plain)
+                            .contextMenu {
+                                Button("Eliminar sesión", systemImage: "trash", role: .destructive) {
+                                    sessionToDelete = sesion
+                                    showDeleteConfirm = true
+                                }
+                            }
+                            .opacity(deletingSessionID == sesion.id ? 0.45 : 1)
                         }
                     }
                     .padding(.top, 24)
+
+                    Text("Mantené apretada una sesión para eliminarla.")
+                        .font(.system(size: 11))
+                        .foregroundStyle(tema.texto3)
+                        .padding(.top, 10)
                 }
             }
             .bottomNavInset()
+            .confirmationDialog(
+                "¿Eliminar esta sesión?",
+                isPresented: $showDeleteConfirm,
+                titleVisibility: .visible
+            ) {
+                Button("Eliminar sesión", role: .destructive) {
+                    guard let sessionToDelete else { return }
+                    delete(sessionToDelete)
+                }
+                Button("Cancelar", role: .cancel) {}
+            } message: {
+                Text("Se va a quitar del historial y no se puede deshacer.")
+            }
+            .alert("No se pudo eliminar", isPresented: Binding(
+                get: { deleteError != nil },
+                set: { if !$0 { deleteError = nil } }
+            )) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(deleteError ?? "Intentá de nuevo.")
+            }
+        }
+    }
+
+    private func delete(_ session: WorkoutSession) {
+        deletingSessionID = session.id
+        deleteError = nil
+        Task {
+            defer { deletingSessionID = nil }
+            do {
+                try await store.deleteSession(session)
+            } catch {
+                deleteError = "Revisá tu conexión e intentá de nuevo."
+            }
         }
     }
 

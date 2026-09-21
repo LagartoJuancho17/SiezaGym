@@ -19,6 +19,7 @@ import GoalRail from "@/components/design2/GoalRail";
 import TrainingWeek from "@/components/design2/TrainingWeek";
 import HomeRoutines from "@/components/design2/HomeRoutines";
 import TabBar from "@/components/design2/TabBar";
+import { isAdminUser } from "@/lib/admin/access";
 
 export const dynamic = "force-dynamic";
 
@@ -163,6 +164,12 @@ export default async function Home() {
             <span className="d2-setting-body"><span className="d2-setting-name">{profile?.isCoach || profile?.isAdmin ? "Mis alumnos" : "Tu profesor"}</span><span className="d2-setting-hint">{profile?.isCoach || profile?.isAdmin ? "Invitaciones y seguimiento" : "Vinculá tu cuenta desde Perfil"}</span></span>
             <span aria-hidden="true">↗</span>
           </Link>
+          {isAdminUser(user) && (
+            <Link href="/admin" className="d2-setting">
+              <span className="d2-setting-body"><span className="d2-setting-name">Administración</span><span className="d2-setting-hint">Usuarios, actividad y catálogo global</span></span>
+              <span aria-hidden="true">↗</span>
+            </Link>
+          )}
             </div>
           </div>
         </div>

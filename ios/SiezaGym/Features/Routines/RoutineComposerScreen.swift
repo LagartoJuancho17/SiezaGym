@@ -67,6 +67,7 @@ struct RoutineComposerScreen: View {
                     .padding(.top, 14)
             }
         }
+        .tecladoConBotonListo()
         .sheet(isPresented: $eligiendo) {
             ExercisePickerSheet(store: store, yaAgregados: agregados) { elegidos in
                 agregar(elegidos)

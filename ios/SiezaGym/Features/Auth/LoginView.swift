@@ -77,6 +77,7 @@ struct LoginView: View {
             .padding(24)
         }
         .scrollDismissesKeyboard(.interactively)
+        .tecladoConBotonListo()
         .animation(.smooth(duration: 0.25), value: auth.errorMessage)
     }
 

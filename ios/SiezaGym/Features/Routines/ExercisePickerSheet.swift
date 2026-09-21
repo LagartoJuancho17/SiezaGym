@@ -65,6 +65,7 @@ struct ExercisePickerSheet: View {
                 pie
             }
         }
+        .tecladoConBotonListo()
         .task {
             if store.catalog.isEmpty && !store.isLoading { await store.load() }
         }

@@ -145,8 +145,9 @@ xcodebuild test -project SiezaGym.xcodeproj -scheme SiezaGym \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 ```
 
-90 tests: la matemática de `Domain/` y la traducción de errores de login. Son
-funciones puras, no tocan Firestore ni la red.
+93 tests: la matemática de `Domain/`, el formato de las métricas de Salud y
+la traducción de errores de login. Son funciones puras, no tocan Firestore ni la
+red.
 
 ## El proyecto de Xcode
 
@@ -162,6 +163,17 @@ brew install xcodegen && xcodegen generate
 carpeta entera, pero la resuelve al generar: el `.pbxproj` lista los archivos uno
 por uno. Un archivo nuevo que no esté ahí no se compila, y si es de tests
 `xcodebuild test` pasa igual sin haberlos corrido.
+
+## Apple Salud y Fitness
+
+Inicio puede leer del día actual las calorías activas, los pasos y la distancia
+caminando/corriendo desde HealthKit. La app solo solicita permisos de lectura y
+no escribe datos en Apple Salud.
+
+En el iPhone, tocá `Conectar` en la tarjeta `Actividad de hoy` y aceptá el
+permiso de Salud. Si no aparecen datos, revisá `Ajustes > Salud > Apps >
+SiezaGym`. La información se vuelve a consultar al abrir la app y al volver a
+primer plano.
 
 ## Qué no está
 

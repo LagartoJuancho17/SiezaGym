@@ -45,6 +45,8 @@ struct ProfileScreen: View {
             .task { if !cargado { llenarDesdePerfil() } }
             .animation(.smooth(duration: 0.25), value: guardadoEn)
         }
+        // Peso, altura y meta usan teclado decimal, que no trae tecla de cerrar.
+        .tecladoConBotonListo()
     }
 
     // MARK: - Identidad
