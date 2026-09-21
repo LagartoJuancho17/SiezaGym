@@ -138,6 +138,20 @@ final class GymStore {
         await load()
     }
 
+    /// Guarda los cambios de una rutina y recarga, para que el detalle muestre
+    /// lo editado sin salir y volver a entrar.
+    func updateRoutine(_ routine: Routine, name: String, note: String, exercises: [RoutineDraftExercise]) async throws {
+        // Una rutina del coach vive en `assignments` y no es del alumno.
+        guard !routine.isAssigned else { throw RoutineEditError.esDelCoach }
+        try await repository.updateRoutine(
+            routineID: routine.id,
+            name: name,
+            note: note,
+            exercises: exercises
+        )
+        await load()
+    }
+
     /// Crea un ejercicio propio y lo suma al catálogo en memoria, para que
     /// aparezca en el selector sin recargar todo desde Firestore.
     @discardableResult
@@ -155,5 +169,13 @@ final class GymStore {
             log.error("perfil no se guardo: \(error.localizedDescription, privacy: .public)")
             loadError = "No se pudo guardar el perfil."
         }
+    }
+}
+
+nonisolated enum RoutineEditError: LocalizedError {
+    case esDelCoach
+
+    var errorDescription: String? {
+        "Las rutinas del coach se editan desde su panel."
     }
 }

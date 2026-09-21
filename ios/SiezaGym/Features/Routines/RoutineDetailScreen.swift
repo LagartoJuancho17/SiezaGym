@@ -10,21 +10,47 @@ struct RoutineDetailScreen: View {
     let onStart: (Routine) -> Void
 
     @State private var abierto: String?
+    @State private var editando = false
 
-    private var minutos: Int { RoutineSummary.estimatedMinutes(routine, catalog: store.catalog) }
+    /// La versión viva de la rutina. La que llegó por navegación es una copia
+    /// del momento en que se tocó la fila: después de editar quedó vieja.
+    private var actual: Routine {
+        store.routines.first { $0.id == routine.id && $0.isAssigned == routine.isAssigned } ?? routine
+    }
+
+    /// Las del coach se editan desde su panel, no desde acá.
+    private var sePuedeEditar: Bool { !actual.isAssigned }
+
+    private var minutos: Int { RoutineSummary.estimatedMinutes(actual, catalog: store.catalog) }
     private var reparto: [RoutineSummary.MuscleShare] {
-        RoutineSummary.muscleDistribution(routine, catalog: store.catalog)
+        RoutineSummary.muscleDistribution(actual, catalog: store.catalog)
     }
     private var hayGifs: Bool {
-        routine.exercises.contains { store.exercise($0.exerciseID)?.mediaURL != nil }
+        actual.exercises.contains { store.exercise($0.exerciseID)?.mediaURL != nil }
     }
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            Pantalla(titulo: routine.name, rotulo: routine.isAssigned ? "Rutina del coach" : nil, volver: true) {
+            Pantalla(
+                titulo: actual.name,
+                rotulo: actual.isAssigned ? "Rutina del coach" : nil,
+                volver: true
+            ) {
+                if sePuedeEditar {
+                    Button { editando = true } label: {
+                        Image(systemName: "pencil")
+                            .font(.system(size: 17, weight: .medium))
+                            .foregroundStyle(tema.texto)
+                            .frame(width: 44, height: 44)
+                            .background(tema.vidrio(1), in: .circle)
+                            .overlay { Circle().strokeBorder(tema.borde, lineWidth: 1) }
+                    }
+                    .accessibilityLabel("Editar la rutina")
+                }
+            } contenido: {
                 StatsCard(datos: [
-                    ("\(routine.exercises.count)", routine.exercises.count == 1 ? "ejercicio" : "ejercicios"),
-                    ("\(routine.totalSets)", routine.totalSets == 1 ? "serie" : "series"),
+                    ("\(actual.exercises.count)", actual.exercises.count == 1 ? "ejercicio" : "ejercicios"),
+                    ("\(actual.totalSets)", actual.totalSets == 1 ? "serie" : "series"),
                     // Es una cuenta sobre las series prescritas, no un tiempo
                     // medido: la pantalla lo dice.
                     ("\(minutos)", "min estimados"),
@@ -38,15 +64,18 @@ struct RoutineDetailScreen: View {
                         .padding(.top, 21)
                 }
 
-                SectionLabel("Ejercicios · \(routine.exercises.count)")
+                SectionLabel("Ejercicios · \(actual.exercises.count)")
                     .padding(.top, 24)
                     .padding(.bottom, 10)
 
-                if routine.exercises.isEmpty {
-                    Vacio(texto: "Esta rutina no tiene ejercicios.")
+                if actual.exercises.isEmpty {
+                    Vacio(
+                        texto: "Esta rutina no tiene ejercicios.",
+                        accion: sePuedeEditar ? ("Agregar ejercicios", { editando = true }) : nil
+                    )
                 } else {
                     PanelLista {
-                        ForEach(Array(routine.exercises.enumerated()), id: \.offset) { indice, item in
+                        ForEach(Array(actual.exercises.enumerated()), id: \.offset) { indice, item in
                             if indice > 0 {
                                 Rectangle().fill(tema.borde).frame(height: 1)
                             }
@@ -97,6 +126,9 @@ struct RoutineDetailScreen: View {
             boton
         }
         .bottomNavInset()
+        .fullScreenCover(isPresented: $editando) {
+            RoutineComposerScreen(store: store, routine: actual)
+        }
     }
 
     private func clave(_ indice: Int, _ item: RoutineExercise) -> String {
@@ -104,11 +136,11 @@ struct RoutineDetailScreen: View {
     }
 
     private var boton: some View {
-        Button { onStart(routine) } label: {
+        Button { onStart(actual) } label: {
             Label("Comenzar entrenamiento", systemImage: "play.fill")
         }
         .buttonStyle(SolidButtonStyle())
-        .disabled(routine.exercises.isEmpty)
+        .disabled(actual.exercises.isEmpty)
         .padding(.horizontal, 18)
         .padding(.bottom, 12)
     }

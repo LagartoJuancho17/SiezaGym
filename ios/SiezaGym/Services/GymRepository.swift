@@ -181,6 +181,33 @@ nonisolated struct GymRepository: Sendable {
         return reference.documentID
     }
 
+    /// Guarda los cambios de una rutina propia.
+    ///
+    /// Solo `name`, `note` y `exercises`: `createdAt` y `lastUsedAt` no se
+    /// tocan, si no editar una rutina la mandaría al fondo de la lista (que
+    /// ordena por uso) o diría que se creó hoy.
+    ///
+    /// Las reglas ya impiden editar la de otro (`resource.data.ownerId ==
+    /// request.auth.uid`), y las asignadas viven en otra colección.
+    func updateRoutine(
+        routineID: String,
+        name: String,
+        note: String,
+        exercises: [RoutineDraftExercise]
+    ) async throws {
+        try RoutineDraftValidation.validate(name: name, exercises: exercises)
+
+        try await db.collection("routines").document(routineID).updateData([
+            "name": name.trimmingCharacters(in: .whitespacesAndNewlines),
+            "note": note.trimmingCharacters(in: .whitespacesAndNewlines),
+            "exercises": exercises.enumerated().map { index, exercise in
+                exercise.firestoreValue(order: index)
+            },
+            "updatedAt": FieldValue.serverTimestamp(),
+        ])
+        log.info("rutina editada \(routineID, privacy: .public), \(exercises.count) ejercicios")
+    }
+
     // MARK: - Sesiones
 
     func sessions(uid: String, limit: Int = 50) async throws -> [WorkoutSession] {

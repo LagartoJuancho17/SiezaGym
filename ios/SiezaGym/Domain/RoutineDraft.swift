@@ -34,6 +34,21 @@ nonisolated struct RoutineDraftExercise: Identifiable, Sendable, Hashable {
         sets = nil
     }
 
+    /// Una rutina que ya existe, para editarla.
+    ///
+    /// Tiene que ser sin pérdida: si la rampa que cargó el coach se aplastara a
+    /// "4 × 10" al abrir el editor, guardar sin tocar nada rompería la rutina.
+    init(_ item: RoutineExercise) {
+        exerciseID = item.exerciseID
+        source = ExerciseSource(rawValue: item.source.rawValue) ?? .catalog
+        targetSets = item.targetSets
+        targetReps = item.targetReps
+        targetWeight = item.targetWeight
+        targetRIR = item.targetRIR
+        techniqueNote = item.techniqueNote
+        sets = (item.sets?.isEmpty == true) ? nil : item.sets
+    }
+
     var esDetallada: Bool { !(sets ?? []).isEmpty }
 
     /// Cuántas series prescribe, sea cual sea la forma.

@@ -131,6 +131,27 @@ con los colores del tema: el sólido del tema Plata es casi negro y desaparecía
 La pantalla bloqueada sí usa el tema, porque ahí el fondo lo pone
 `activityBackgroundTint`.
 
+## Editar una rutina
+
+El lápiz del detalle abre el mismo armador que el alta, con la rutina cargada:
+editar es agregar, sacar y volver a prescribir, exactamente lo mismo que crear.
+Igual que `RoutineComposer` con la prop `routine` en la web.
+
+Dos cosas que no son obvias:
+
+**Abrir el editor no puede perder nada.** `RoutineDraftExercise.init(_:)` copia
+la prescripción tal cual, incluida la rampa serie por serie. Si la aplastara a
+"4 × 10", guardar sin tocar nada rompería la rutina del coach. Hay un test que
+guarda sin cambios y compara.
+
+**La edición escribe solo `name`, `note`, `exercises` y `updatedAt`.**
+`lastUsedAt` y `createdAt` no se tocan: /rutinas y la portada ordenan por uso, y
+pisarlos mandaría la rutina recién editada al fondo de la lista o diría que se
+creó hoy.
+
+El detalle lee la rutina del store por id y no la que recibió al navegar: esa es
+una copia del momento en que se tocó la fila y queda vieja apenas se guarda.
+
 ## Ejercicios propios
 
 Lo que no está en el catálogo de 94 se carga desde el `+` del selector y vive en
@@ -203,7 +224,7 @@ xcodebuild test -project SiezaGym.xcodeproj -scheme SiezaGym \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 ```
 
-129 tests: la matemática de `Domain/`, lo que muestran los widgets, los links
+134 tests: la matemática de `Domain/`, lo que muestran los widgets, los links
 de YouTube, el formato de las métricas de Salud y la traducción de errores de
 login. Son funciones puras, no tocan Firestore ni la
 red.
@@ -240,8 +261,6 @@ El **panel de coach** (alumnos, códigos de invitación, asignar rutinas) sigue
 siendo solo web: es una superficie de escritorio. La app muestra las rutinas
 asignadas por el coach, pero no permite administrarlas.
 
-- **Editar una rutina existente.** En la web es la misma pantalla con la rutina
-  cargada (`/rutinas/[id]/editar`); en la app el armador solo crea.
 - **Borrar o editar un ejercicio propio.** Se pueden crear, pero no sacar:
   `deleteCustomExercise` existe en la web y no está conectada a ninguna
   pantalla, ni ahí ni acá.

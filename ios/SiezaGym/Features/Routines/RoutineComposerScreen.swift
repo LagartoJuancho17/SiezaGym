@@ -1,12 +1,16 @@
 import SwiftUI
 
-/// Armar una rutina nueva, igual que `/rutinas/nueva` en la web: el nombre, los
-/// ejercicios con su prescripción, la nota y el reparto muscular de lo que
-/// llevás cargado.
+/// Armar una rutina, nueva o existente: el nombre, los ejercicios con su
+/// prescripción, la nota y el reparto muscular de lo que llevás cargado.
+///
+/// Con `routine` entra en modo edición. Es la misma pantalla a propósito, igual
+/// que en la web: editar es agregar, sacar y volver a prescribir, exactamente
+/// lo mismo que crear.
 struct RoutineComposerScreen: View {
     @Environment(\.tema) private var tema
     @Environment(\.dismiss) private var dismiss
     let store: GymStore
+    var routine: Routine?
 
     @State private var nombre = ""
     @State private var nota = ""
@@ -15,12 +19,14 @@ struct RoutineComposerScreen: View {
     @State private var eligiendo = false
     @State private var error = ""
     @State private var guardando = false
+    @State private var cargada = false
 
     /// Los mismos topes que los campos de la web: el nombre es un título de
     /// lista, no un párrafo.
     private static let maxNombre = 60
     private static let maxNota = 2000
 
+    private var editando: Bool { routine != nil }
     private var agregados: Set<String> { Set(items.map(\.exerciseID)) }
 
     private var musculos: [RepartoMuscular] {
@@ -28,7 +34,7 @@ struct RoutineComposerScreen: View {
     }
 
     var body: some View {
-        Pantalla(titulo: "Nueva rutina", volver: true) {
+        Pantalla(titulo: editando ? "Editar rutina" : "Nueva rutina", volver: true) {
             Button(guardando ? "Guardando…" : "Guardar") { Task { await guardar() } }
                 .buttonStyle(SolidButtonStyle(expands: false))
                 .disabled(guardando)
@@ -68,6 +74,7 @@ struct RoutineComposerScreen: View {
             }
         }
         .tecladoConBotonListo()
+        .task { cargarRutina() }
         .sheet(isPresented: $eligiendo) {
             ExercisePickerSheet(store: store, yaAgregados: agregados) { elegidos in
                 agregar(elegidos)
@@ -204,6 +211,18 @@ struct RoutineComposerScreen: View {
 
     // MARK: - Acciones
 
+    /// Solo la primera vez: si se corriera en cada `task` pisaría lo que estás
+    /// editando cuando la pantalla vuelve del selector.
+    private func cargarRutina() {
+        guard let routine, !cargada else { return }
+        cargada = true
+        nombre = routine.name
+        nota = routine.note
+        items = routine.exercises
+            .sorted { $0.order < $1.order }
+            .map(RoutineDraftExercise.init)
+    }
+
     /// Filtra los que ya están: dos filas con el mismo id rompen el `ForEach`.
     private func agregar(_ elegidos: [Exercise]) {
         let nuevos = elegidos
@@ -228,7 +247,11 @@ struct RoutineComposerScreen: View {
 
         guardando = true
         do {
-            try await store.createRoutine(name: nombre, note: nota, exercises: items)
+            if let routine {
+                try await store.updateRoutine(routine, name: nombre, note: nota, exercises: items)
+            } else {
+                try await store.createRoutine(name: nombre, note: nota, exercises: items)
+            }
             dismiss()
         } catch {
             self.error = error.localizedDescription

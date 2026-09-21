@@ -450,3 +450,91 @@ struct RoutineDraftValidationTests {
         try RoutineDraftValidation.validate(name: "Empuje A", exercises: [item])
     }
 }
+
+// MARK: - Editar una rutina
+
+@Suite("Editar una rutina")
+struct RoutineEditTests {
+    private func guardado(
+        _ id: String = "press",
+        sets: Int = 4,
+        reps: Int = 8,
+        peso: Double? = 60,
+        rir: Int? = 2,
+        nota: String = "Espalda neutra",
+        series: [PlannedSet]? = nil,
+        origen: RoutineExercise.Source = .catalog
+    ) -> RoutineExercise {
+        RoutineExercise(
+            exerciseID: id,
+            source: origen,
+            order: 0,
+            targetSets: sets,
+            targetReps: reps,
+            targetRIR: rir,
+            targetWeight: peso,
+            techniqueNote: nota,
+            sets: series
+        )
+    }
+
+    @Test("abrir el editor no pierde nada de lo prescrito")
+    func abrirNoPierde() {
+        let borrador = RoutineDraftExercise(guardado())
+
+        #expect(borrador.exerciseID == "press")
+        #expect(borrador.targetSets == 4)
+        #expect(borrador.targetReps == 8)
+        #expect(borrador.targetWeight == 60)
+        #expect(borrador.targetRIR == 2)
+        #expect(borrador.techniqueNote == "Espalda neutra")
+        #expect(borrador.esDetallada == false)
+    }
+
+    /// Si la rampa se aplastara a "4 × 10" al abrir el editor, guardar sin
+    /// tocar nada rompería la rutina que cargó el coach.
+    @Test("una rampa sobrevive a abrir y guardar sin tocar nada")
+    func rampaSobrevive() {
+        let rampa = [
+            PlannedSet(setNumber: 1, weight: 40, reps: 12, rir: 3),
+            PlannedSet(setNumber: 2, weight: 50, reps: 10, rir: 2),
+            PlannedSet(setNumber: 3, weight: 60, reps: 8, rir: 1),
+        ]
+        let borrador = RoutineDraftExercise(guardado(series: rampa))
+
+        #expect(borrador.esDetallada)
+        #expect(borrador.resumen(esDeTiempo: false) == "12 · 10 · 8")
+
+        let series = borrador.firestoreValue(order: 0)["sets"] as? [[String: Any]]
+        #expect(series?.map { $0["reps"] as? Int } == [12, 10, 8])
+        #expect(series?.map { $0["weight"] as? Double } == [40, 50, 60])
+        #expect(series?.map { $0["rir"] as? Int } == [3, 2, 1])
+    }
+
+    @Test("un ejercicio propio sigue siendo propio después de editar")
+    func origenSeConserva() {
+        let borrador = RoutineDraftExercise(guardado(origen: .custom))
+
+        #expect(borrador.source == .custom)
+        #expect(borrador.firestoreValue(order: 0)["exerciseSource"] as? String == "custom")
+    }
+
+    /// `sets: []` es lo que deja un documento viejo; tiene que leerse como
+    /// forma pareja y no como una rampa de cero series.
+    @Test("un sets vacío se lee como prescripción pareja")
+    func setsVacio() {
+        let borrador = RoutineDraftExercise(guardado(series: []))
+
+        #expect(borrador.esDetallada == false)
+        #expect(borrador.cantidadSeries == 4)
+        #expect(borrador.firestoreValue(order: 0)["sets"] is NSNull)
+    }
+
+    @Test("el orden se renumera desde cero al guardar")
+    func ordenRenumerado() {
+        let items = ["a", "b", "c"].map { RoutineDraftExercise(guardado($0)) }
+        let ordenes = items.enumerated().map { $1.firestoreValue(order: $0)["order"] as? Int }
+
+        #expect(ordenes == [0, 1, 2])
+    }
+}
