@@ -20,6 +20,9 @@ final class WorkoutDraft {
         let exerciseID: String
         let name: String
         let isTimeBased: Bool
+        let mediaURL: URL?
+        let videoURL: URL?
+        let description: String?
         var sets: [SetDraft]
 
         var completedCount: Int { sets.filter(\.done).count }
@@ -47,6 +50,9 @@ final class WorkoutDraft {
                 exerciseID: item.exerciseID,
                 name: exercise?.nameEs ?? item.exerciseID,
                 isTimeBased: exercise?.registrationType.isTimeBased ?? false,
+                mediaURL: exercise?.mediaURL,
+                videoURL: exercise?.videoURL,
+                description: exercise?.descriptionEs,
                 sets: sets
             )
         }

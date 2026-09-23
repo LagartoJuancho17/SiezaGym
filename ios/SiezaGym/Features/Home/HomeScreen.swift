@@ -40,7 +40,11 @@ struct HomeScreen: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar(.hidden, for: .navigationBar)
             .fullScreenCover(item: $workout) { target in
-                WorkoutView(store: store, routine: target.routine)
+                WorkoutView(
+                    store: store,
+                    routine: target.routine,
+                    existingDraft: store.activeWorkout?.routine?.id == target.routine?.id ? store.activeWorkout : nil
+                )
             }
         }
     }

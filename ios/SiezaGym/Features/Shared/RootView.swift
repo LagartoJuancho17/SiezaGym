@@ -35,6 +35,7 @@ struct MainTabView: View {
     /// distintos entre si.
     @State private var store: GymStore
     @State private var tab: AppTab = .home
+    @State private var resumingWorkout = false
 
     init(store: GymStore) {
         _store = State(initialValue: store)
@@ -62,9 +63,23 @@ struct MainTabView: View {
                 .toolbar(.hidden, for: .tabBar)
         }
         .overlay(alignment: .bottom) {
-            BottomNav(selection: $tab)
-                .padding(.horizontal, 20)
-                .padding(.bottom, BottomNav.bottomGap)
+            VStack(spacing: 8) {
+                if let active = store.activeWorkout {
+                    ActiveWorkoutMiniBar(
+                        workout: active,
+                        onResume: { resumingWorkout = true },
+                        onDiscard: { store.activeWorkout = nil }
+                    )
+                }
+                BottomNav(selection: $tab)
+            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, BottomNav.bottomGap)
+        }
+        .fullScreenCover(isPresented: $resumingWorkout) {
+            if let active = store.activeWorkout {
+                WorkoutView(store: store, routine: active.routine, existingDraft: active)
+            }
         }
         .ignoresSafeArea(.keyboard, edges: .bottom)
         .task {
@@ -75,5 +90,64 @@ struct MainTabView: View {
             guard phase == .active else { return }
             Task { await store.healthKit.refreshIfConnected() }
         }
+    }
+}
+
+private struct ActiveWorkoutMiniBar: View {
+    @Environment(\.tema) private var tema
+    let workout: WorkoutDraft
+    let onResume: () -> Void
+    let onDiscard: () -> Void
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Circle()
+                .fill(tema.solido)
+                .frame(width: 8, height: 8)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(workout.routine?.name ?? "Entrenamiento en curso")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(tema.texto)
+                    .lineLimit(1)
+
+                HStack(spacing: 6) {
+                    TimelineView(.periodic(from: workout.startedAt, by: 1)) { context in
+                        let total = max(0, Int(context.date.timeIntervalSince(workout.startedAt)))
+                        Text(String(format: "%02d:%02d", total / 60, total % 60))
+                            .monospacedDigit()
+                    }
+                    Text("•")
+                    Text("\(workout.completedSets)/\(workout.totalSets) series")
+                }
+                .font(.system(size: 11))
+                .foregroundStyle(tema.texto2)
+            }
+
+            Spacer(minLength: 0)
+
+            Button("Reanudar", action: onResume)
+                .font(.system(size: 12, weight: .bold))
+                .foregroundStyle(tema.sobreSolido)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(tema.solido, in: .capsule)
+
+            Button(action: onDiscard) {
+                Image(systemName: "xmark")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(tema.texto2)
+                    .padding(6)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(tema.vidrio(3), in: .rect(cornerRadius: 16))
+        .overlay {
+            RoundedRectangle(cornerRadius: 16)
+                .strokeBorder(tema.solido.opacity(0.35), lineWidth: 1)
+        }
+        .shadow(color: .black.opacity(0.12), radius: 8, y: 3)
     }
 }

@@ -65,7 +65,11 @@ struct RoutinesScreen: View {
             }
             .bottomNavInset()
             .fullScreenCover(item: $workout) { objetivo in
-                WorkoutView(store: store, routine: objetivo.routine)
+                WorkoutView(
+                    store: store,
+                    routine: objetivo.routine,
+                    existingDraft: store.activeWorkout?.routine?.id == objetivo.routine?.id ? store.activeWorkout : nil
+                )
             }
             .fullScreenCover(isPresented: $creando) {
                 RoutineComposerScreen(store: store)

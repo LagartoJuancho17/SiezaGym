@@ -20,6 +20,9 @@ final class GymStore {
     /// Nil hasta la primera carga: sirve para no mostrar "no hay nada" mientras carga.
     private(set) var lastLoadedAt: Date?
 
+    /// Rutina en curso mantenida en stand-by
+    var activeWorkout: WorkoutDraft?
+
     let healthKit = HealthKitService()
 
     private let repository = GymRepository()

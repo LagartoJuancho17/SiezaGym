@@ -1,5 +1,24 @@
 import ActivityKit
+import AppIntents
 import Foundation
+
+extension Notification.Name {
+    public static nonisolated let terminarSerieDesdeWidget = Notification.Name("com.siezagym.terminarSerieDesdeWidget")
+}
+
+public struct TerminarSerieIntent: LiveActivityIntent {
+    public static let title: LocalizedStringResource = "Terminar serie"
+    public static let description = IntentDescription("Marca la serie en curso como terminada")
+
+    public init() {}
+
+    @MainActor
+    public func perform() async throws -> some IntentResult {
+        NotificationCenter.default.post(name: .terminarSerieDesdeWidget, object: nil)
+        return .result()
+    }
+}
+
 
 /// El entrenamiento en curso, en la pantalla bloqueada y en la Dynamic Island.
 ///

@@ -102,6 +102,21 @@ private struct PantallaBloqueada: View {
             }
             .font(.system(size: 11))
             .foregroundStyle(tema.texto2)
+
+            if contexto.state.exerciseName != nil {
+                Button(intent: TerminarSerieIntent()) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "checkmark.circle.fill")
+                        Text("Terminar serie")
+                    }
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(tema.sobreSolido)
+                    .frame(maxWidth: .infinity, minHeight: 32)
+                    .background(tema.solido, in: .capsule)
+                }
+                .buttonStyle(.plain)
+                .padding(.top, 2)
+            }
         }
         .padding(16)
     }
