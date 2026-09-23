@@ -968,38 +968,18 @@
 
 .d2-signout { display: flex; align-items: center; justify-content: center; width: 100%; min-height: calc(50 * var(--d2-u)); margin-top: calc(24 * var(--d2-u)); border-radius: 999px; border: 1px solid var(--d2-border); color: var(--d2-text-2); font-size: calc(14 * var(--d2-u)); }
 
-/* Transición suave entre rutas */
-.d2-route-transition {
-  animation: d2RouteEnter 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
-  will-change: opacity, transform;
-  width: 100%;
-}
-
-@keyframes d2RouteEnter {
-  0% {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 .d2-tabbar { position: fixed; bottom: max(calc(16 * var(--d2-u)), env(safe-area-inset-bottom)); inset-inline: 0; z-index: 50; display: flex; justify-content: center; pointer-events: none; padding-inline: calc(20 * var(--d2-u)); }
 /* Con cinco destinos, la pastilla activa necesita mas ancho para que quepa
    la etiqueta mas larga sin cortarse. */
 .d2-tabbar-shell { display: flex; align-items: center; gap: calc(5 * var(--d2-u)); width: calc(330 * var(--d2-u)); max-width: 100%; height: calc(52 * var(--d2-u)); padding: calc(4 * var(--d2-u)); border-radius: 999px; pointer-events: auto; border-color: var(--d2-border-strong); box-shadow: inset 1px 1px 1px var(--d2-ring-track); }
-.d2-tab-indicator { display: none; }
-.d2-tab { display: flex; align-items: center; justify-content: center; flex: 0 0 calc(44 * var(--d2-u)); width: calc(44 * var(--d2-u)); height: calc(44 * var(--d2-u)); border-radius: 999px; transition: flex 0.35s cubic-bezier(0.25, 1, 0.35, 1), width 0.35s cubic-bezier(0.25, 1, 0.35, 1), background-color 0.28s ease, color 0.25s ease, transform 0.15s cubic-bezier(0.2, 0, 0, 1); }
-.d2-tab:active { transform: scale(0.92); }
+.d2-tab { display: flex; align-items: center; justify-content: center; flex: 0 0 calc(44 * var(--d2-u)); width: calc(44 * var(--d2-u)); height: calc(44 * var(--d2-u)); border-radius: 999px; }
 /* En telefono la etiqueta existe solo en la pestana activa: cinco nombres no
    entran, y el icono solo alcanza para reconocer donde estas parado. */
 .d2-tab:not(.d2-tab-active) .d2-tab-label { display: none; }
-.d2-tab-icon { display: flex; align-items: center; justify-content: center; flex: none; transition: width 0.3s cubic-bezier(0.25, 1, 0.35, 1), height 0.3s cubic-bezier(0.25, 1, 0.35, 1), background-color 0.28s ease, color 0.25s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.d2-tab-icon { display: flex; align-items: center; justify-content: center; flex: none; }
 .d2-tab:not(.d2-tab-active) .d2-tab-icon svg { width: calc(20 * var(--d2-u)); height: calc(20 * var(--d2-u)); }
 .d2-tab-active { flex: 1; min-width: 0; gap: calc(6 * var(--d2-u)); padding: calc(4 * var(--d2-u)); padding-left: calc(14 * var(--d2-u)); background: var(--d2-ink); color: var(--d2-on-ink); }
-.d2-tab-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; font-size: calc(13 * var(--d2-u)); font-weight: 400; transition: opacity 0.25s ease, transform 0.28s cubic-bezier(0.25, 1, 0.35, 1); }
+.d2-tab-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; font-size: calc(13 * var(--d2-u)); font-weight: 400; }
 .d2-tab-active .d2-tab-icon { width: calc(36 * var(--d2-u)); height: calc(36 * var(--d2-u)); border-radius: 50%; background: var(--d2-on-ink); color: var(--d2-ink); }
 .d2-tab-active .d2-tab-icon svg { width: calc(15 * var(--d2-u)); height: calc(15 * var(--d2-u)); }
 .d2-tab-active .d2-tab-icon svg path { fill: currentColor; }
@@ -1025,35 +1005,8 @@
 
   /* ---- la barra se convierte en panel lateral ---- */
   .d2-tabbar { top: 0; bottom: 0; left: 0; right: auto; width: 248px; align-items: stretch; padding: 24px 16px; }
-  .d2-tabbar-shell { position: relative; flex-direction: column; align-items: stretch; width: 100%; height: auto; gap: 4px; padding: 12px; border-radius: 28px; }
-  .d2-tab-indicator {
-    display: block;
-    position: absolute;
-    top: 12px;
-    left: 12px;
-    width: calc(100% - 24px);
-    height: 48px;
-    border-radius: 16px;
-    background: var(--d2-ink);
-    box-shadow: var(--d2-ink-shadow);
-    pointer-events: none;
-    z-index: 1;
-    transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.25, 1), opacity 0.22s ease;
-  }
-  .d2-tab {
-    position: relative;
-    z-index: 2;
-    flex: none;
-    width: 100%;
-    height: 48px;
-    justify-content: flex-start;
-    gap: 12px;
-    padding-inline: 14px;
-    border-radius: 16px;
-    transition: transform 0.18s cubic-bezier(0.2, 0, 0, 1), color 0.22s ease, background-color 0.2s ease;
-  }
-  .d2-tab:active { transform: scale(0.97); }
-  .d2-tab:hover:not(.d2-tab-active) { transform: translateX(3px); }
+  .d2-tabbar-shell { flex-direction: column; align-items: stretch; width: 100%; height: auto; gap: 4px; padding: 12px; border-radius: 28px; }
+  .d2-tab { flex: none; width: 100%; height: 48px; justify-content: flex-start; gap: 12px; padding-inline: 14px; border-radius: 16px; }
   /* Con lugar de sobra, los cinco nombres van escritos: obligar a adivinar
      por el icono es una limitación del teléfono, no una decisión. */
   .d2-tab:not(.d2-tab-active) .d2-tab-label { display: block; }
@@ -1061,7 +1014,7 @@
   /* El icono adelante, como en cualquier menú vertical. */
   .d2-tab-icon { order: -1; width: 30px; height: 30px; }
   .d2-tab:not(.d2-tab-active) .d2-tab-icon svg { width: 19px; height: 19px; }
-  .d2-tab-active { padding-left: 14px; background: transparent; }
+  .d2-tab-active { padding-left: 14px; }
   .d2-tab-active .d2-tab-icon { width: 30px; height: 30px; }
   .d2-tab-active .d2-tab-icon svg { width: 15px; height: 15px; }
 

@@ -36,10 +36,12 @@ struct BottomNav: View {
                                 .lineLimit(1)
                                 .minimumScaleFactor(0.8)
                                 .frame(maxWidth: .infinity)
-                            NavIcon(tab: tab)
-                                .frame(width: 36, height: 36)
-                                .background(tema.sobreSolido, in: .circle)
-                                .foregroundStyle(tema.solido)
+                            NavIcon(
+                                tab: tab,
+                                color: tema.id == "plata" ? .black : tema.solido
+                            )
+                            .frame(width: 36, height: 36)
+                            .background(tema.sobreSolido, in: .circle)
                         }
                         .padding(.leading, 14)
                         .padding(4)
@@ -48,8 +50,7 @@ struct BottomNav: View {
                         .background(tema.solido, in: .capsule)
                         .contentShape(.rect)
                     } else {
-                        NavIcon(tab: tab)
-                            .foregroundStyle(tema.texto)
+                        NavIcon(tab: tab, color: tema.texto)
                             .frame(width: 44, height: 44)
                             .background(tema.vidrio(1), in: .circle)
                             .overlay { Circle().strokeBorder(tema.borde, lineWidth: 1) }
@@ -98,12 +99,13 @@ extension AppTab {
 /// Aca se dibujan con Path sobre el mismo sistema de coordenadas.
 private struct NavIcon: View {
     let tab: AppTab
+    var color: Color = .white
 
     var body: some View {
         Canvas { context, size in
             let scale = size.width / 24
             context.scaleBy(x: scale, y: scale)
-            context.fill(path, with: .color(.white), style: FillStyle(eoFill: true))
+            context.fill(path, with: .color(color), style: FillStyle(eoFill: true))
         }
         .frame(width: 22, height: 22)
     }
@@ -197,3 +199,24 @@ extension View {
         safeAreaPadding(.bottom, BottomNav.height + BottomNav.bottomGap + 12)
     }
 }
+
+#Preview("Tema Plata") {
+    ZStack {
+        Backdrop()
+        BottomNav(selection: .constant(.history))
+            .padding(.horizontal, 20)
+            .padding(.bottom, BottomNav.bottomGap)
+    }
+    .environment(\.tema, Theme.conId("plata"))
+}
+
+#Preview("Tema Noche") {
+    ZStack {
+        Backdrop()
+        BottomNav(selection: .constant(.history))
+            .padding(.horizontal, 20)
+            .padding(.bottom, BottomNav.bottomGap)
+    }
+    .environment(\.tema, Theme.conId("noche"))
+}
+
