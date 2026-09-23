@@ -2,8 +2,9 @@
 
 import Image from "next/image";
 import "./routine-technique.css";
-import { useId } from "react";
-import { CheckIcon, CheckRingIcon, ChevronDownIcon, WeightIcon } from "./Icons";
+import { useId, useState } from "react";
+import { CheckIcon, CheckRingIcon, ChevronDownIcon, CloseIcon, PlayIcon, WeightIcon } from "./Icons";
+import { playSetCompleteSound, triggerHaptic } from "@/lib/audio/workoutSound";
 
 /** La celda de un valor prescrito. Vacío se muestra como raya, no como cero. */
 function Cell({ value, unit = "" }) {
@@ -48,24 +49,44 @@ function Plan({ exercise }) {
 
 /**
  * La planilla del entrenamiento: lo prescrito como punto de partida, editable,
- * y un tilde por serie.
- *
- * El tilde es lo que hace que una serie cuente. Sin marcarla no entra en la
- * sesión: la planilla arranca con el plan, y guardar el plan sin confirmarlo
- * sería inventar un entrenamiento.
+ * botones de ajuste de peso cómodos, y un tilde por serie con feedback auditivo y háptico.
  */
-function Log({ exercise, rows, onRowChange, onToggleDone, onAddSet, onDropSet, savingSet, allowFailed }) {
+function Log({
+  exercise,
+  rows,
+  onRowChange,
+  onToggleDone,
+  onAddSet,
+  onDropSet,
+  savingSet,
+  allowFailed,
+  onShowMedia,
+}) {
   const repsLabel = exercise.timeBased ? "Tiempo (s)" : "Reps";
 
   return (
     <>
       <div className="d2-log">
-        <p className="d2-plan-row">
-          <span className="d2-plan-n" aria-hidden />
-          <span className="d2-plan-head">{repsLabel}</span>
-          {exercise.showWeight && <span className="d2-plan-head">Peso (kg)</span>}
-          <span className="d2-log-spacer" aria-hidden />
-        </p>
+        <div className="d2-log-header-tools">
+          <p className="d2-plan-row d2-log-labels">
+            <span className="d2-plan-n" aria-hidden />
+            <span className="d2-plan-head">{repsLabel}</span>
+            {exercise.showWeight && <span className="d2-plan-head">Peso (kg)</span>}
+            <span className="d2-log-spacer" aria-hidden />
+          </p>
+
+          {exercise.mediaUrl && (
+            <button
+              type="button"
+              onClick={onShowMedia}
+              className="d2-media-btn"
+              aria-label={`Ver técnica animada de ${exercise.name}`}
+            >
+              <PlayIcon size={12} width={1.8} />
+              <span>Ver GIF</span>
+            </button>
+          )}
+        </div>
 
         {rows.map((row, index) => {
           const saving = savingSet === index;
@@ -92,19 +113,45 @@ function Log({ exercise, rows, onRowChange, onToggleDone, onAddSet, onDropSet, s
               />
 
               {exercise.showWeight && (
-                <input
-                  type="number"
-                  inputMode="decimal"
-                  step="0.5"
-                  min={0}
-                  placeholder="—"
-                  aria-label={`Peso en kilos, serie ${index + 1} de ${exercise.name}`}
-                  value={row.weight ?? ""}
-                  onChange={(event) => {
-                    const raw = event.target.value;
-                    onRowChange(index, { weight: raw === "" ? null : Number(raw) });
-                  }}
-                />
+                <div className="d2-weight-stepper">
+                  <button
+                    type="button"
+                    className="d2-stepper-btn"
+                    aria-label={`Bajar 2.5 kg en serie ${index + 1}`}
+                    onClick={() => {
+                      const cur = Number(row.weight || 0);
+                      const next = Math.max(0, Math.round((cur - 2.5) * 10) / 10);
+                      onRowChange(index, { weight: next === 0 && row.weight == null ? null : next });
+                    }}
+                  >
+                    -
+                  </button>
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    step="0.5"
+                    min={0}
+                    placeholder="—"
+                    aria-label={`Peso en kilos, serie ${index + 1} de ${exercise.name}`}
+                    value={row.weight ?? ""}
+                    onChange={(event) => {
+                      const raw = event.target.value;
+                      onRowChange(index, { weight: raw === "" ? null : Number(raw) });
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="d2-stepper-btn"
+                    aria-label={`Subir 2.5 kg en serie ${index + 1}`}
+                    onClick={() => {
+                      const cur = Number(row.weight || 0);
+                      const next = Math.round((cur + 2.5) * 10) / 10;
+                      onRowChange(index, { weight: next });
+                    }}
+                  >
+                    +
+                  </button>
+                </div>
               )}
 
               {allowFailed && (
@@ -120,7 +167,13 @@ function Log({ exercise, rows, onRowChange, onToggleDone, onAddSet, onDropSet, s
               )}
               <button
                 type="button"
-                onClick={() => onToggleDone(index)}
+                onClick={() => {
+                  if (!row.done) {
+                    playSetCompleteSound();
+                    triggerHaptic();
+                  }
+                  onToggleDone(index);
+                }}
                 disabled={saving}
                 aria-pressed={row.done}
                 aria-label={`Serie ${index + 1} hecha`}
@@ -167,6 +220,7 @@ export default function RoutineExercise({
   allowFailed = true,
 }) {
   const detailId = useId();
+  const [showMediaModal, setShowMediaModal] = useState(false);
 
   return (
     <div>
@@ -178,7 +232,16 @@ export default function RoutineExercise({
           aria-controls={detailId}
           className="d2-ex-toggle"
         >
-          <span className="d2-ex-thumb">
+          <span
+            className="d2-ex-thumb"
+            onClick={(e) => {
+              if (exercise.mediaUrl) {
+                e.stopPropagation();
+                setShowMediaModal(true);
+              }
+            }}
+            title={exercise.mediaUrl ? "Tocar para ampliar GIF de técnica" : undefined}
+          >
             {exercise.mediaUrl ? (
               <Image src={exercise.mediaUrl} alt="" width={54} height={54} unoptimized />
             ) : (
@@ -199,6 +262,13 @@ export default function RoutineExercise({
             <span className="d2-ex-summary">{exercise.summary}</span>
           )}
 
+          {exercise.group && (
+            <span className={`d2-group-pill d2-grp-${exercise.groupColor || "teal"}`} title={`Grupo: ${exercise.group}`}>
+              <span className="d2-group-dot" />
+              <span>{exercise.group}</span>
+            </span>
+          )}
+
           <ChevronDownIcon size={15} width={1.8} className="d2-ex-chevron" />
         </button>
       </div>
@@ -215,6 +285,7 @@ export default function RoutineExercise({
               onDropSet={onDropSet}
               savingSet={savingSet}
               allowFailed={allowFailed}
+              onShowMedia={() => setShowMediaModal(true)}
             />
           ) : (
             <>
@@ -239,6 +310,70 @@ export default function RoutineExercise({
           </details>
         </div>
       )}
+
+      {/* Modal flotante para ver GIF/video durante el entrenamiento */}
+      {showMediaModal && exercise.mediaUrl && (
+        <div className="d2-modal" onClick={() => setShowMediaModal(false)}>
+          <div
+            className="d2-glass-strong d2-modal-card d2-media-modal-card"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="d2-media-modal-head">
+              <div>
+                <h3 className="d2-media-modal-title">{exercise.name}</h3>
+                <span className="d2-ex-muscle">{exercise.muscle}</span>
+              </div>
+              <button
+                type="button"
+                className="d2-media-close"
+                onClick={() => setShowMediaModal(false)}
+                aria-label="Cerrar demostración"
+              >
+                <CloseIcon size={18} width={2} />
+              </button>
+            </div>
+
+            <div className="d2-media-modal-body">
+              <div className="d2-media-modal-thumb">
+                <Image
+                  src={exercise.mediaUrl}
+                  alt={`Demostración animada de ${exercise.name}`}
+                  width={340}
+                  height={340}
+                  unoptimized
+                  className="d2-media-modal-gif"
+                />
+              </div>
+
+              {exercise.description && (
+                <p className="d2-media-modal-desc">{exercise.description}</p>
+              )}
+              {exercise.techniqueNote && (
+                <p className="d2-media-modal-note">
+                  <strong>Nota del ejercicio:</strong> {exercise.techniqueNote}
+                </p>
+              )}
+              <p className="d2-technique-credit">
+                Animación ©{" "}
+                <a href="https://gymvisual.com/" target="_blank" rel="noopener noreferrer">
+                  Gym visual
+                </a>
+              </p>
+            </div>
+
+            <div className="d2-modal-actions">
+              <button
+                type="button"
+                onClick={() => setShowMediaModal(false)}
+                className="d2-modal-primary"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+

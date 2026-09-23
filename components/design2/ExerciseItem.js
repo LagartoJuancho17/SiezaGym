@@ -43,7 +43,7 @@ function Field({ label, value, onChange, min = 0, max = 999, placeholder = "—"
  * porque una rutina de diez ejercicios con todos los campos desplegados no se
  * puede leer.
  */
-export default function ExerciseItem({ item, exercise, onChange, onRemove }) {
+export default function ExerciseItem({ item, exercise, onChange, onRemove, onOpenGroup, reorder }) {
   const [open, setOpen] = useState(false);
   const detailId = useId();
 
@@ -53,6 +53,8 @@ export default function ExerciseItem({ item, exercise, onChange, onRemove }) {
   const repsLabel = timeBased ? "Tiempo (s)" : "Reps";
   const detailed = isDetailed(item);
   const count = setCount(item);
+  const exerciseName = exercise?.nameEs || item.exerciseId;
+  const groupClass = item.groupColor ? `d2-grp-${item.groupColor}` : "";
 
   function setSeries(next) {
     const total = Math.min(MAX_SETS, Math.max(1, Number(next) || 1));
@@ -75,7 +77,7 @@ export default function ExerciseItem({ item, exercise, onChange, onRemove }) {
   }
 
   return (
-    <div>
+    <div className={groupClass}>
       <div className="d2-ex-head">
         <button
           type="button"
@@ -93,7 +95,7 @@ export default function ExerciseItem({ item, exercise, onChange, onRemove }) {
           </span>
 
           <span className="d2-ex-body">
-            <span className="d2-ex-name">{exercise?.nameEs || item.exerciseId}</span>
+            <span className="d2-ex-name">{exerciseName}</span>
             <span className="d2-ex-muscle">{primaryMuscleLabel(exercise) || "Sin datos"}</span>
           </span>
 
@@ -101,10 +103,44 @@ export default function ExerciseItem({ item, exercise, onChange, onRemove }) {
           <ChevronDownIcon size={15} width={1.8} className="d2-ex-chevron" />
         </button>
 
+        {onOpenGroup && (
+          <button
+            type="button"
+            onClick={onOpenGroup}
+            className={`d2-group-pill ${item.group ? "d2-group-pill-active" : ""}`}
+            title={item.group ? `Grupo: ${item.group}` : "Asignar grupo"}
+            aria-label={item.group ? `Grupo: ${item.group}` : "Asignar grupo"}
+          >
+            <span className="d2-group-dot" />
+            <span>{item.group || "+ Grupo"}</span>
+          </button>
+        )}
+
+        {reorder && (
+          <div className="d2-reorder d2-reorder-inline">
+            <button
+              type="button"
+              aria-label={`Subir ${exerciseName}`}
+              disabled={reorder.isFirst}
+              onClick={reorder.onUp}
+            >
+              ↑
+            </button>
+            <button
+              type="button"
+              aria-label={`Bajar ${exerciseName}`}
+              disabled={reorder.isLast}
+              onClick={reorder.onDown}
+            >
+              ↓
+            </button>
+          </div>
+        )}
+
         <button
           type="button"
           onClick={onRemove}
-          aria-label={`Quitar ${exercise?.nameEs || "el ejercicio"}`}
+          aria-label={`Quitar ${exerciseName}`}
           className="d2-ex-remove"
         >
           <CloseIcon size={15} width={1.8} />

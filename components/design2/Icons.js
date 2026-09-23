@@ -153,3 +153,11 @@ export const PauseIcon = (props) => (
     <path d="M9.5 5v14M14.5 5v14" />
   </Stroke>
 );
+
+export const InfoIcon = (props) => (
+  <Stroke {...props}>
+    <circle cx="12" cy="12" r="9.5" />
+    <path d="M12 11v5.5M12 7.5h.01" />
+  </Stroke>
+);
+

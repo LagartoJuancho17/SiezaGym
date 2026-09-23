@@ -23,6 +23,7 @@ export default async function NuevaRutinaPage() {
     id: exercise.id,
     nameEs: exercise.nameEs,
     nameEn: exercise.nameEn,
+    equipment: exercise.equipment || "peso_corporal",
     mediaUrl: exercise.mediaUrl || null,
     muscleWeights: exercise.muscleWeights || {},
     registrationType: exercise.registrationType,
@@ -32,7 +33,7 @@ export default async function NuevaRutinaPage() {
   return (
     <ThemeRoot>
       <Backdrop />
-      <div className="d2-page">
+      <div className="d2-page d2-page-full">
         <RoutineComposer exercises={exercises} />
       </div>
     </ThemeRoot>

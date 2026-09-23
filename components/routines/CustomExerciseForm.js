@@ -18,8 +18,8 @@ const WEIGHT_EPSILON = 0.01;
 
 export default function CustomExerciseForm({ onCreated, onCancel }) {
   const [nameEs, setNameEs] = useState("");
-  const [equipment, setEquipment] = useState(EQUIPMENT[0]);
-  const [pattern, setPattern] = useState(PATTERNS[0]);
+  const [equipment, setEquipment] = useState("");
+  const [pattern, setPattern] = useState("");
   const [registrationType, setRegistrationType] = useState(REGISTRATION_TYPES[0]);
   const [unilateral, setUnilateral] = useState(false);
   const [descriptionEs, setDescriptionEs] = useState("");
@@ -29,20 +29,35 @@ export default function CustomExerciseForm({ onCreated, onCancel }) {
   const [saving, setSaving] = useState(false);
 
   const sum = useMemo(() => muscleWeightsSum(weights), [weights]);
-  const sumOk = selectedMuscles.length > 0 && Math.abs(sum - 1) <= WEIGHT_EPSILON;
+  const hasMuscles = selectedMuscles.length > 0;
+  const sumOk = !hasMuscles || Math.abs(sum - 1) <= WEIGHT_EPSILON;
 
   function toggleMuscle(muscle) {
     setSelectedMuscles((prev) => {
+      let next;
       if (prev.includes(muscle)) {
-        setWeights((w) => {
-          const next = { ...w };
-          delete next[muscle];
-          return next;
-        });
-        return prev.filter((m) => m !== muscle);
+        next = prev.filter((m) => m !== muscle);
+      } else {
+        next = [...prev, muscle];
       }
-      const next = [...prev, muscle];
-      setWeights((w) => ({ ...w, [muscle]: w[muscle] ?? 0 }));
+
+      if (next.length === 0) {
+        setWeights({});
+      } else {
+        // Repartir automáticamente para que siempre sumen 1.0 por defecto
+        const evenWeight = Number((1 / next.length).toFixed(2));
+        const newWeights = {};
+        let currentTotal = 0;
+        next.forEach((m, idx) => {
+          if (idx === next.length - 1) {
+            newWeights[m] = Number((1 - currentTotal).toFixed(2));
+          } else {
+            newWeights[m] = evenWeight;
+            currentTotal += evenWeight;
+          }
+        });
+        setWeights(newWeights);
+      }
       return next;
     });
   }
@@ -60,32 +75,36 @@ export default function CustomExerciseForm({ onCreated, onCancel }) {
       setError("Ponele un nombre al ejercicio.");
       return;
     }
-    if (!sumOk) {
+    if (hasMuscles && !sumOk) {
       setError(`Los pesos musculares suman ${sum.toFixed(2)}, tienen que sumar 1.0.`);
       return;
     }
+
+    const finalEquipment = equipment || null;
+    const finalPattern = pattern || null;
+    const finalWeights = hasMuscles ? weights : {};
 
     setSaving(true);
     try {
       const id = await createCustomExercise({
         nameEs: nameEs.trim(),
-        equipment,
-        pattern,
+        equipment: finalEquipment,
+        pattern: finalPattern,
         registrationType,
         unilateral,
-        descriptionEs,
-        muscleWeights: weights,
+        descriptionEs: descriptionEs.trim(),
+        muscleWeights: finalWeights,
       });
       onCreated({
         id,
         nameEs: nameEs.trim(),
         nameEn: nameEs.trim(),
-        equipment,
-        pattern,
+        equipment: finalEquipment,
+        pattern: finalPattern,
         registrationType,
         unilateral,
-        descriptionEs,
-        muscleWeights: weights,
+        descriptionEs: descriptionEs.trim(),
+        muscleWeights: finalWeights,
         mediaUrl: null,
         source: "custom",
       });
@@ -103,7 +122,7 @@ export default function CustomExerciseForm({ onCreated, onCancel }) {
           Ejercicio propio
         </p>
         <p className="d2-setting-hint">
-          No lo encontrás en el catálogo. creá el tuyo. Es privado, solo lo ves vos.
+          No lo encontrás en el catálogo: creá el tuyo. Es privado, solo lo ves vos.
         </p>
       </div>
 
@@ -126,6 +145,7 @@ export default function CustomExerciseForm({ onCreated, onCancel }) {
             value={equipment}
             onChange={(e) => setEquipment(e.target.value)}
           >
+            <option value="">Sin especificar (opcional)</option>
             {EQUIPMENT.map((eq) => (
               <option key={eq} value={eq}>
                 {EQUIPMENT_LABELS[eq]}
@@ -140,6 +160,7 @@ export default function CustomExerciseForm({ onCreated, onCancel }) {
             value={pattern}
             onChange={(e) => setPattern(e.target.value)}
           >
+            <option value="">Sin especificar (opcional)</option>
             {PATTERNS.map((p) => (
               <option key={p} value={p}>
                 {PATTERN_LABELS[p]}
@@ -187,16 +208,15 @@ export default function CustomExerciseForm({ onCreated, onCancel }) {
 
       <div>
         <div className="d2-inline-actions">
-          <span className="d2-form-note">Músculos que trabaja</span>
-          <span
-            className="d2-form-note" role="status"
-          >
-            Total: {sum.toFixed(2)}
-          </span>
+          <span className="d2-form-note">Músculos que trabaja (opcional)</span>
+          {hasMuscles && (
+            <span className="d2-form-note" role="status">
+              Total: {sum.toFixed(2)}
+            </span>
+          )}
         </div>
         <p className="d2-setting-hint">
-          Elegí uno o más y repartí el peso entre todos hasta que sumen 1.0. así entra bien en
-          las estadísticas de progreso.
+          Opcional: elegí uno o más músculos si querés que sume al reparto muscular y estadísticas.
         </p>
         <div className="d2-segs">
           {MUSCLE_GROUPS.map((muscle) => {
@@ -215,7 +235,7 @@ export default function CustomExerciseForm({ onCreated, onCancel }) {
           })}
         </div>
 
-        {selectedMuscles.length > 0 ? (
+        {hasMuscles ? (
           <div className="d2-stack">
             {selectedMuscles.map((muscle) => (
               <div key={muscle} className="d2-range-row">
@@ -257,7 +277,7 @@ export default function CustomExerciseForm({ onCreated, onCancel }) {
         </button>
         <button
           type="submit"
-          disabled={saving || !sumOk || !nameEs.trim()}
+          disabled={saving || !nameEs.trim() || (hasMuscles && !sumOk)}
           className="d2-form-save"
         >
           {saving ? "Creando..." : "Crear ejercicio"}

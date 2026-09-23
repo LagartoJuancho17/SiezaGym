@@ -157,3 +157,60 @@ describe("Prescripción por ejercicio", () => {
     expect(itemSource).toContain('onChange(raw === "" ? null : Number(raw))');
   });
 });
+
+describe("Agrupación de ejercicios por colores", () => {
+  it("incluye presets rápidos para Movilidad, Fuerza y Descanso", () => {
+    expect(composerSource).toContain('"Movilidad"');
+    expect(composerSource).toContain('"Fuerza"');
+    expect(composerSource).toContain('"Descanso"');
+    expect(composerSource).toContain('color: "teal"');
+    expect(composerSource).toContain('color: "amber"');
+    expect(composerSource).toContain('color: "blue"');
+  });
+
+  it("permite asignar y editar grupos desde el armador y los items", () => {
+    expect(composerSource).toContain("openGroupModalForIndex");
+    expect(composerSource).toContain("openGroupModalForSection");
+    expect(itemSource).toContain("onOpenGroup");
+    expect(itemSource).toContain("d2-group-pill");
+  });
+
+  it("renderiza cabeceras de grupo con punto de color y contador", () => {
+    expect(composerSource).toContain("d2-group-header");
+    expect(composerSource).toContain("d2-group-header-title");
+    expect(composerSource).toContain("d2-group-header-count");
+  });
+
+  it("define estilos temáticos para los colores de grupo en design2.css", () => {
+    expect(cssSource).toContain("--d2-grp-teal:");
+    expect(cssSource).toContain("--d2-grp-amber:");
+    expect(cssSource).toContain("--d2-grp-blue:");
+    expect(cssSource).toContain(".d2-grp-teal");
+    expect(cssSource).toContain(".d2-grp-amber");
+    expect(cssSource).toContain(".d2-grp-blue");
+  });
+});
+
+describe("Optimización para escritorio (Desktop)", () => {
+  it("permite que los ejercicios ocupen el ancho de la pantalla", () => {
+    expect(cssSource).toContain(".d2-sheet-inner { display: flex; flex-direction: column; width: 100%; max-width: 100%;");
+    expect(cssSource).toContain(".d2-compose-container { width: 100%; max-width: 100%; }");
+  });
+
+  it("el botón Crear Ejercicio Propio está al lado del buscador", () => {
+    expect(pickerSource).toContain("d2-picker-search-row");
+    expect(pickerSource).toContain("d2-create-own-btn");
+    expect(pickerSource).toContain("Crear ejercicio propio");
+  });
+
+  it("compacta la miniatura y padding de ejercicios en desktop", () => {
+    expect(cssSource).toMatch(/@media \(min-width: 768px\) \{[\s\S]*?\.d2-ex-thumb \{ width: 40px; height: 40px;/);
+    expect(cssSource).toMatch(/@media \(min-width: 768px\) \{[\s\S]*?\.d2-ex-head \{ padding: 8px 12px;/);
+  });
+
+  it("ofrece controles de reorden inline para no ocupar filas extra", () => {
+    expect(itemSource).toContain("d2-reorder-inline");
+    expect(cssSource).toContain(".d2-reorder-inline");
+  });
+});
+

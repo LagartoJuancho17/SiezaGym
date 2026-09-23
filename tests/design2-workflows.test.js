@@ -50,6 +50,11 @@ describe("Migración completa design2", () => {
     for (const label of ["Nombre", "Equipamiento", "Patrón", "Tipo de registro", "Descripción", "Músculos que trabaja"]) expect(form).toContain(label);
     expect(form).not.toMatch(/text-teal|bg-glass2|border-hair/);
   });
+  it("equipamiento, patrón y músculos son opcionales al crear un ejercicio propio", () => {
+    const form = render(CustomExerciseForm, {});
+    expect(form).toContain("Sin especificar (opcional)");
+    expect(form).toContain("Músculos que trabaja (opcional)");
+  });
 });
 
 describe("Selección y orden: regresión y casos límite", () => {

@@ -41,6 +41,8 @@ function shapeExercise(item, position, lookup) {
     showWeight: exercise?.registrationType === "peso_reps",
     equipment: EQUIPMENT_LABELS[exercise?.equipment] || null,
     techniqueNote: item.techniqueNote || "",
+    group: item.group || "",
+    groupColor: item.groupColor || "",
     summary: prescriptionSummary(item, { timeBased }),
     sets: plannedSets(item),
   };

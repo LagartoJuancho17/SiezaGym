@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { MUSCLE_GROUP_LABELS } from "@/lib/exercises/constants";
 import {
@@ -32,10 +32,26 @@ import RoutineExercise from "./RoutineExercise";
 import TabBar from "./TabBar";
 import {
   ArrowLeftIcon,
+  ClockIcon,
+  CloseIcon,
   MoreIcon,
   PauseIcon,
   PlayIcon,
 } from "./Icons";
+import {
+  clearActiveWorkout,
+  getActiveWorkout,
+  saveActiveWorkout,
+} from "@/lib/routines/activeWorkout";
+import {
+  setupMediaSession,
+  teardownMediaSession,
+} from "@/lib/workout/mediaSessionManager";
+import {
+  playRestCompleteSound,
+  playSetCompleteSound,
+  triggerHaptic,
+} from "@/lib/audio/workoutSound";
 
 /**
  * Detalle de una rutina y entrenamiento en curso.
@@ -51,26 +67,82 @@ import {
 export default function RoutineScreen({ routine }) {
   const router = useRouter();
 
-  const [openId, setOpenId] = useState(null);
+  const [openId, setOpenId] = useState(() => {
+    const active = getActiveWorkout();
+    if (active && active.routineId === routine.id && active.openId !== undefined && active.openId !== null) {
+      return active.openId;
+    }
+    return null;
+  });
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const sections = useMemo(() => {
+    if (!routine?.exercises?.length) return [];
+    const hasAnyGroup = routine.exercises.some((e) => e.group);
+    if (!hasAnyGroup) {
+      return [{ id: "all", groupName: "", groupColor: "", exercises: routine.exercises }];
+    }
+    const result = [];
+    let current = null;
+    routine.exercises.forEach((ex, idx) => {
+      const gName = ex.group?.trim() || "";
+      const gColor = ex.groupColor || (gName ? "teal" : "");
+      if (!current || current.groupName !== gName || current.groupColor !== gColor) {
+        current = { id: `${gName || "sin-grupo"}-${idx}`, groupName: gName, groupColor: gColor, exercises: [ex] };
+        result.push(current);
+      } else {
+        current.exercises.push(ex);
+      }
+    });
+    return result;
+  }, [routine?.exercises]);
   const [modal, setModal] = useState(null); // "delete" | "discard" | "assign" | "done"
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [showOnHome, setShowOnHome] = useState(routine.showOnHome);
 
   // Entrenamiento en curso.
-  const [running, setRunning] = useState(false);
-  const [sheet, setSheet] = useState({});
-  const [clock, setClock] = useState({ startedAt: null, pausedMs: 0, pausedAt: null });
+  const [running, setRunning] = useState(() => {
+    const active = getActiveWorkout();
+    return Boolean(active && active.routineId === routine.id && active.sheet && active.clock?.startedAt);
+  });
+  const [sheet, setSheet] = useState(() => {
+    const active = getActiveWorkout();
+    if (active && active.routineId === routine.id && active.sheet) return active.sheet;
+    return {};
+  });
+  const [clock, setClock] = useState(() => {
+    const active = getActiveWorkout();
+    if (active && active.routineId === routine.id && active.clock) return active.clock;
+    return { startedAt: null, pausedMs: 0, pausedAt: null };
+  });
   const [now, setNow] = useState(0);
   const [savingSet, setSavingSet] = useState(null); // `${exerciseId}-${index}`
   const [summary, setSummary] = useState(null);
+
+  // Cronómetro de descanso (segundos restantes).
+  const [restSecondsLeft, setRestSecondsLeft] = useState(null);
 
   const seconds = elapsedSeconds({ ...clock, now });
   const paused = clock.pausedAt != null;
   const done = doneCount(sheet);
   const planned = plannedCount(sheet);
   const volume = volumeKg(sheet);
+
+  // Guardar en stand by automáticamente ante cualquier cambio de estado.
+  useEffect(() => {
+    if (!running) return;
+    saveActiveWorkout({
+      routineId: routine.id,
+      routineName: routine.name,
+      sheet,
+      clock,
+      openId,
+      isAssigned: routine.isAssigned,
+      assignmentId: routine.assignmentId,
+      totalExercises: routine.exercises.length,
+    });
+  }, [running, sheet, clock, openId, routine]);
 
   // El cronómetro se lee del reloj del sistema en cada tick. Un contador que se
   // incrementa se atrasa y se frena con la pestaña en segundo plano, y el
@@ -81,7 +153,24 @@ export default function RoutineScreen({ routine }) {
     return () => clearInterval(id);
   }, [running, paused]);
 
-  // Recargar con un entrenamiento abierto pierde todo lo cargado.
+  // Cuenta regresiva del temporizador de descanso entre series.
+  useEffect(() => {
+    if (restSecondsLeft === null || restSecondsLeft <= 0) return undefined;
+    const interval = setInterval(() => {
+      setRestSecondsLeft((current) => {
+        if (current == null) return null;
+        if (current <= 1) {
+          playRestCompleteSound();
+          triggerHaptic([60, 80, 60]);
+          return null;
+        }
+        return current - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [restSecondsLeft]);
+
+  // Recargar con un entrenamiento abierto previene salida accidental sin guardar.
   useEffect(() => {
     if (!running) return undefined;
     function warn(event) {
@@ -92,11 +181,69 @@ export default function RoutineScreen({ routine }) {
     return () => window.removeEventListener("beforeunload", warn);
   }, [running]);
 
+  // Mantener referencia actualizada de toggleDone para MediaSession sin recrear handlers.
+  const toggleDoneRef = useRef(null);
+
+  // Sincronizar MediaSession API (control y widget en pantalla bloqueada de iOS y Android).
+  useEffect(() => {
+    if (!running) {
+      teardownMediaSession();
+      return undefined;
+    }
+
+    const currentEx =
+      routine.exercises.find((e) => e.position === openId) ||
+      routine.exercises.find((e) => !isExerciseDone(sheet, e.position)) ||
+      routine.exercises[0];
+
+    const currentRows = (currentEx && sheet[currentEx.position]) || [];
+    const firstIncompleteIdx = currentRows.findIndex((r) => !r.done);
+    const setNum = currentRows.length > 0 ? (firstIncompleteIdx !== -1 ? firstIncompleteIdx + 1 : currentRows.length) : 1;
+
+    setupMediaSession({
+      exerciseName: currentEx?.name || routine.name,
+      setNumber: setNum,
+      totalSets: currentRows.length || 3,
+      routineName: routine.name,
+      mediaUrl: currentEx?.mediaUrl || null,
+      timeString: formatClock(seconds),
+      onFinishSet: () => {
+        if (!currentEx || !toggleDoneRef.current) return;
+        const rowsNow = sheet[currentEx.position] || [];
+        const nextIdx = rowsNow.findIndex((r) => !r.done);
+        if (nextIdx !== -1) {
+          toggleDoneRef.current(currentEx, nextIdx);
+          playSetCompleteSound();
+          triggerHaptic();
+        } else {
+          // Si el ejercicio actual ya terminó, pasar al siguiente incompleto
+          const nextEx = routine.exercises.find((e) => !isExerciseDone(sheet, e.position));
+          if (nextEx) {
+            setOpenId(nextEx.position);
+            const nextRows = sheet[nextEx.position] || [];
+            const targetIdx = nextRows.findIndex((r) => !r.done);
+            if (targetIdx !== -1) {
+              toggleDoneRef.current(nextEx, targetIdx);
+              playSetCompleteSound();
+              triggerHaptic();
+            }
+          }
+        }
+      },
+      onTogglePause: () => togglePause(),
+    });
+
+    return () => {
+      // Cleanup on unmount handled gracefully
+    };
+  }, [running, openId, sheet, seconds, routine]);
+
   function start() {
     setSheet(startSheet(routine.exercises));
     setClock({ startedAt: Date.now(), pausedMs: 0, pausedAt: null });
     setNow(Date.now());
     setRunning(true);
+    setRestSecondsLeft(null);
     setError("");
     setMenuOpen(false);
     // Se abre el primero: entrenando, el primer ejercicio es el que se carga.
@@ -117,9 +264,12 @@ export default function RoutineScreen({ routine }) {
   }
 
   function discard() {
+    clearActiveWorkout();
+    teardownMediaSession();
     setRunning(false);
     setSheet({});
     setClock({ startedAt: null, pausedMs: 0, pausedAt: null });
+    setRestSecondsLeft(null);
     setModal(null);
     setOpenId(null);
     setError("");
@@ -150,6 +300,11 @@ export default function RoutineScreen({ routine }) {
     const next = !row.done;
     patchRow(exercise.position, index, { done: next });
 
+    if (next) {
+      // Iniciar automáticamente descanso de 90 segundos entre series
+      setRestSecondsLeft(90);
+    }
+
     if (!next || !routine.isAssigned) return;
 
     setSavingSet(`${exercise.position}-${index}`);
@@ -165,6 +320,7 @@ export default function RoutineScreen({ routine }) {
       setSavingSet(null);
     }
   }
+  toggleDoneRef.current = toggleDone;
 
   async function finish() {
     const exercises = sessionExercises(routine.exercises, sheet);
@@ -192,6 +348,10 @@ export default function RoutineScreen({ routine }) {
             exercises,
           });
 
+      clearActiveWorkout();
+      teardownMediaSession();
+      setRestSecondsLeft(null);
+
       setSummary({
         seconds: durationSeconds,
         sets: result.totalSetsCompleted,
@@ -208,10 +368,13 @@ export default function RoutineScreen({ routine }) {
   }
 
   function closeSummary() {
+    clearActiveWorkout();
+    teardownMediaSession();
     setModal(null);
     setSummary(null);
     setSheet({});
     setClock({ startedAt: null, pausedMs: 0, pausedAt: null });
+    setRestSecondsLeft(null);
     setOpenId(null);
     router.refresh();
   }
@@ -274,9 +437,22 @@ export default function RoutineScreen({ routine }) {
           {running ? (
             <button
               type="button"
-              onClick={() => setModal("discard")}
-              aria-label="Salir del entrenamiento"
+              onClick={() => {
+                saveActiveWorkout({
+                  routineId: routine.id,
+                  routineName: routine.name,
+                  sheet,
+                  clock,
+                  openId,
+                  isAssigned: routine.isAssigned,
+                  assignmentId: routine.assignmentId,
+                  totalExercises: routine.exercises.length,
+                });
+                router.push("/rutinas");
+              }}
+              aria-label="Volver a rutinas (continúa en segundo plano)"
               className="d2-back"
+              title="Volver a rutinas (la rutina continúa en stand-by)"
             >
               <ArrowLeftIcon size={20} width={1.8} />
             </button>
@@ -291,69 +467,83 @@ export default function RoutineScreen({ routine }) {
             {routine.isAssigned && <span className="d2-detail-tag">Rutina del coach</span>}
           </h1>
 
-          {!running && (canEdit || routine.students.length > 0) && (
+          {running ? (
             <div className="d2-menu-wrap">
               <button
                 type="button"
-                onClick={() => setMenuOpen((value) => !value)}
-                aria-label="Opciones de la rutina"
-                aria-expanded={menuOpen}
+                onClick={() => setModal("discard")}
+                aria-label="Descartar entrenamiento"
                 className="d2-back"
+                title="Descartar entrenamiento"
               >
-                <MoreIcon size={20} width={1.8} />
+                <CloseIcon size={18} width={1.8} />
               </button>
-
-              {menuOpen && (
-                <>
-                  <div
-                    className="d2-menu-backdrop"
-                    onClick={() => setMenuOpen(false)}
-                    aria-hidden
-                  />
-                  <div className="d2-glass-strong d2-menu">
-                    {canEdit && (
-                      <Link href={`/rutinas/${routine.id}/editar`} className="d2-menu-item">
-                        Editar
-                      </Link>
-                    )}
-                    {canEdit && (
-                      <button type="button" onClick={duplicate} disabled={busy} className="d2-menu-item">
-                        Duplicar
-                      </button>
-                    )}
-                    {canEdit && (
-                      <button type="button" onClick={toggleShowOnHome} className="d2-menu-item">
-                        {showOnHome ? "Quitar de la portada" : "Mostrar en la portada"}
-                      </button>
-                    )}
-                    {routine.students.length > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setMenuOpen(false);
-                          setModal("assign");
-                        }}
-                        className="d2-menu-item"
-                      >
-                        Asignar a un alumno
-                      </button>
-                    )}
-                    {canEdit && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setMenuOpen(false);
-                          setModal("delete");
-                        }}
-                        className="d2-menu-item"
-                      >
-                        Eliminar
-                      </button>
-                    )}
-                  </div>
-                </>
-              )}
             </div>
+          ) : (
+            (canEdit || routine.students.length > 0) && (
+              <div className="d2-menu-wrap">
+                <button
+                  type="button"
+                  onClick={() => setMenuOpen((value) => !value)}
+                  aria-label="Opciones de la rutina"
+                  aria-expanded={menuOpen}
+                  className="d2-back"
+                >
+                  <MoreIcon size={20} width={1.8} />
+                </button>
+
+                {menuOpen && (
+                  <>
+                    <div
+                      className="d2-menu-backdrop"
+                      onClick={() => setMenuOpen(false)}
+                      aria-hidden
+                    />
+                    <div className="d2-glass-strong d2-menu">
+                      {canEdit && (
+                        <Link href={`/rutinas/${routine.id}/editar`} className="d2-menu-item">
+                          Editar
+                        </Link>
+                      )}
+                      {canEdit && (
+                        <button type="button" onClick={duplicate} disabled={busy} className="d2-menu-item">
+                          Duplicar
+                        </button>
+                      )}
+                      {canEdit && (
+                        <button type="button" onClick={toggleShowOnHome} className="d2-menu-item">
+                          {showOnHome ? "Quitar de la portada" : "Mostrar en la portada"}
+                        </button>
+                      )}
+                      {routine.students.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMenuOpen(false);
+                            setModal("assign");
+                          }}
+                          className="d2-menu-item"
+                        >
+                          Asignar a un alumno
+                        </button>
+                      )}
+                      {canEdit && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMenuOpen(false);
+                            setModal("delete");
+                          }}
+                          className="d2-menu-item"
+                        >
+                          Eliminar
+                        </button>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            )
           )}
         </header>
 
@@ -388,71 +578,86 @@ export default function RoutineScreen({ routine }) {
             lista. En teléfono se apilan igual que siempre. */}
         <div className="d2-split">
           <div>
-        <p className="d2-label">
-          {running ? `Planilla · ${pluralSets(planned)}` : `Ejercicios · ${routine.exercises.length}`}
-        </p>
+            <p className="d2-label">
+              {running ? `Planilla · ${pluralSets(planned)}` : `Ejercicios · ${routine.exercises.length}`}
+            </p>
 
-        {routine.exercises.length === 0 ? (
-          <p className="d2-glass d2-empty">Esta rutina no tiene ejercicios.</p>
-        ) : (
-          <div className="d2-panel">
-            {routine.exercises.map((exercise) => (
-              <RoutineExercise
-                key={exercise.position}
-                exercise={exercise}
-                open={openId === exercise.position}
-                onToggle={() =>
-                  setOpenId((current) => (current === exercise.position ? null : exercise.position))
-                }
-                running={running}
-                allowFailed={!routine.isAssigned}
-                rows={sheet[exercise.position] || []}
-                done={running && isExerciseDone(sheet, exercise.position)}
-                savingSet={
-                  savingSet?.startsWith(`${exercise.position}-`)
-                    ? Number(savingSet.split("-")[1])
-                    : null
-                }
-                onRowChange={(index, changes) => patchRow(exercise.position, index, changes)}
-                onToggleDone={(index) => toggleDone(exercise, index)}
-                onAddSet={() =>
-                  setSheet((current) => ({
-                    ...current,
-                    [exercise.position]: appendSet(current[exercise.position]),
-                  }))
-                }
-                onDropSet={() =>
-                  setSheet((current) => ({
-                    ...current,
-                    [exercise.position]: dropSet(current[exercise.position]),
-                  }))
-                }
-              />
-            ))}
-          </div>
-        )}
-
+            {routine.exercises.length === 0 ? (
+              <p className="d2-glass d2-empty">Esta rutina no tiene ejercicios.</p>
+            ) : (
+              sections.map((section) => (
+                <div
+                  key={section.id}
+                  className={`d2-panel ${section.groupName ? `d2-group-panel d2-grp-${section.groupColor || "teal"}` : ""}`}
+                >
+                  {section.groupName && (
+                    <div className="d2-group-header">
+                      <div className="d2-group-header-info">
+                        <span className="d2-group-dot" />
+                        <span className="d2-group-header-title">{section.groupName}</span>
+                        <span className="d2-group-header-count">
+                          {section.exercises.length} {section.exercises.length === 1 ? "ejercicio" : "ejercicios"}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  {section.exercises.map((exercise) => (
+                    <RoutineExercise
+                      key={exercise.position}
+                      exercise={exercise}
+                      open={openId === exercise.position}
+                      onToggle={() =>
+                        setOpenId((current) => (current === exercise.position ? null : exercise.position))
+                      }
+                      running={running}
+                      allowFailed={!routine.isAssigned}
+                      rows={sheet[exercise.position] || []}
+                      done={running && isExerciseDone(sheet, exercise.position)}
+                      savingSet={
+                        savingSet?.startsWith(`${exercise.position}-`)
+                          ? Number(savingSet.split("-")[1])
+                          : null
+                      }
+                      onRowChange={(index, changes) => patchRow(exercise.position, index, changes)}
+                      onToggleDone={(index) => toggleDone(exercise, index)}
+                      onAddSet={() =>
+                        setSheet((current) => ({
+                          ...current,
+                          [exercise.position]: appendSet(current[exercise.position]),
+                        }))
+                      }
+                      onDropSet={() =>
+                        setSheet((current) => ({
+                          ...current,
+                          [exercise.position]: dropSet(current[exercise.position]),
+                        }))
+                      }
+                    />
+                  ))}
+                </div>
+              ))
+            )}
           </div>
 
           <div>
-        {!running && routine.muscles.length > 0 && (
-          <>
-            <p className="d2-label">Músculos que trabaja</p>
-            <div className="d2-panel d2-muscles">
-              {routine.muscles.map((row) => (
-                <div key={row.muscle} className="d2-muscle-row">
-                  <p className="d2-muscle-head">
-                    <span>{MUSCLE_GROUP_LABELS[row.muscle] || row.muscle}</span>
-                    <span>{row.percent}%</span>
-                  </p>
-                  <span className="d2-muscle-bar">
-                    <span style={{ width: `${row.percent}%` }} />
-                  </span>
+            {!running && routine.muscles.length > 0 && (
+              <>
+                <p className="d2-label">Músculos que trabaja</p>
+                <div className="d2-panel d2-muscles">
+                  {routine.muscles.map((row) => (
+                    <div key={row.muscle} className="d2-muscle-row">
+                      <p className="d2-muscle-head">
+                        <span>{MUSCLE_GROUP_LABELS[row.muscle] || row.muscle}</span>
+                        <span>{row.percent}%</span>
+                      </p>
+                      <span className="d2-muscle-bar">
+                        <span style={{ width: `${row.percent}%` }} />
+                      </span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </>
-        )}
+              </>
+            )}
           </div>
         </div>
 
@@ -470,23 +675,73 @@ export default function RoutineScreen({ routine }) {
 
       <div className={running ? "d2-dock d2-dock-low" : "d2-dock"}>
         {running ? (
-          <div className="d2-glass-strong d2-run">
-            <div className="d2-run-top">
-              <span className="d2-run-clock">{formatClock(seconds)}</span>
-              <span className="d2-run-progress">
-                {done} de {pluralSets(planned)}
-                {volume > 0 && ` · ${volume} kg`}
-                {paused && <span className="d2-run-hold">En pausa</span>}
-              </span>
-            </div>
-            <div className="d2-run-actions">
-              <button type="button" onClick={togglePause} className="d2-ghost">
-                {paused ? <PlayIcon size={15} width={1.8} /> : <PauseIcon size={15} width={1.8} />}
-                {paused ? "Seguir" : "Pausar"}
-              </button>
-              <button type="button" onClick={finish} disabled={busy} className="d2-finish">
-                {busy ? "Guardando…" : "Terminar"}
-              </button>
+          <div className="d2-run-wrapper">
+            {/* Banner flotante de temporizador de descanso */}
+            {restSecondsLeft !== null && (
+              <div className="d2-glass-strong d2-rest-timer">
+                <div className="d2-rest-timer-info">
+                  <ClockIcon size={16} width={2} />
+                  <span className="d2-rest-timer-label">Descanso</span>
+                  <span className="d2-rest-timer-digits">
+                    {Math.floor(restSecondsLeft / 60)}:{String(restSecondsLeft % 60).padStart(2, "0")}
+                  </span>
+                </div>
+                <div className="d2-rest-timer-actions">
+                  <button
+                    type="button"
+                    onClick={() => setRestSecondsLeft((s) => (s || 0) + 30)}
+                    className="d2-rest-btn"
+                    aria-label="Sumar 30 segundos de descanso"
+                  >
+                    +30s
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRestSecondsLeft((s) => Math.max(1, (s || 0) - 15))}
+                    className="d2-rest-btn"
+                    aria-label="Restar 15 segundos de descanso"
+                  >
+                    -15s
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRestSecondsLeft(null)}
+                    className="d2-rest-btn d2-rest-btn-skip"
+                    aria-label="Saltar descanso"
+                  >
+                    Saltar
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div className="d2-glass-strong d2-run">
+              <div className="d2-run-top">
+                <span className="d2-run-clock">{formatClock(seconds)}</span>
+                <span className="d2-run-progress">
+                  {done} de {pluralSets(planned)}
+                  {volume > 0 && ` · ${volume} kg`}
+                  {paused && <span className="d2-run-hold">En pausa</span>}
+                </span>
+              </div>
+              <div className="d2-run-actions">
+                <button
+                  type="button"
+                  onClick={() => setRestSecondsLeft((s) => (s == null ? 90 : s + 30))}
+                  className="d2-ghost"
+                  title="Temporizador de descanso"
+                >
+                  <ClockIcon size={15} width={1.8} />
+                  <span>{restSecondsLeft != null ? `${restSecondsLeft}s` : "Descanso"}</span>
+                </button>
+                <button type="button" onClick={togglePause} className="d2-ghost">
+                  {paused ? <PlayIcon size={15} width={1.8} /> : <PauseIcon size={15} width={1.8} />}
+                  {paused ? "Seguir" : "Pausar"}
+                </button>
+                <button type="button" onClick={finish} disabled={busy} className="d2-finish">
+                  {busy ? "Guardando…" : "Terminar"}
+                </button>
+              </div>
             </div>
           </div>
         ) : (
@@ -613,3 +868,4 @@ export default function RoutineScreen({ routine }) {
     </>
   );
 }
+
