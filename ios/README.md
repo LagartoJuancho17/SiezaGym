@@ -11,6 +11,30 @@ al revés. No hay una segunda base de datos ni sincronización que mantener.
 Login con email/contraseña o con Google. Entrar con Google cae en la **misma
 cuenta de Firebase** que la web: mismo uid, mismas rutinas.
 
+## Bienvenida de tres pantallas
+
+En el primer arranque, antes del login, se muestran tres escenas fotográficas
+en blanco y negro con controles opacos de la paleta SIEZA. Explican tres pasos
+reales de la app: armar rutinas, registrar series y consultar progreso; la
+tercera menciona Apple Salud solo como conexión opcional. Se puede avanzar,
+volver u omitir. El último botón y «Omitir» abren el login si no hay sesión, o
+la app directamente si ya la hay. No se crea ninguna cuenta ni se piden
+permisos de Salud desde estas pantallas.
+
+La elección se guarda **una vez por instalación** en
+`sieza.onboarding.completed.v1` (UserDefaults). Cerrar la app a mitad del
+recorrido vuelve a mostrarlo desde el principio; al completarlo no reaparece
+en cada apertura. Para revisar el primer arranque, desinstalá la app del
+simulador y volvé a instalarla. Las fotos son recursos locales del catálogo y
+están versionadas con Git LFS, para que también funcionen sin internet.
+
+Pruebas: `ios/SiezaGymTests/OnboardingFlowTests.swift` verifica orden, límites y
+navegación. `tests/ios-onboarding.eval.test.js` comprueba que las tres fotos
+existan, sean verticales y distintas, y que el recorrido siga conectado al
+inicio de sesión. Para revisión visual en iPhone chico/grande, comprobar que
+los títulos y botones no se corten, que la foto no tape el texto, y que
+VoiceOver lea «Omitir», «Volver» y «Continuar/Empezar» en ese orden.
+
 ## Tema SIEZA
 
 En instalaciones nuevas, la app abre con **SIEZA**: una interfaz oscura y

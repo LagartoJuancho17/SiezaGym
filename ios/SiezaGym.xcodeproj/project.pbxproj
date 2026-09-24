@@ -52,6 +52,7 @@
 		92137B36659F1FB8DCDC432E /* CustomExerciseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32C968911E9AA6B64763A207 /* CustomExerciseTests.swift */; };
 		933863B1968124C52CB67D13 /* Pantallas.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66278651D9DB38E2D642B2FD /* Pantallas.swift */; };
 		9A7659413F1FC6EDEB2C21D2 /* GymStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00831C4B5DF350BB44E6270 /* GymStore.swift */; };
+		9FBD7B25F52BB46BAC1D2D2A /* OnboardingFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6790BEA45D1AF4889557274E /* OnboardingFlowTests.swift */; };
 		A972A0AAE8862B0EFDCFF589 /* HealthKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71EFA0ABC951C76A770D0C83 /* HealthKitService.swift */; };
 		ABA103924F05BED951B0F783 /* RoutinesScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CFC52007334BD08265F60F4 /* RoutinesScreen.swift */; };
 		ACFC0AA6A365C88D4CEA48C8 /* Piezas.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8ADFF2CAA687963AB3D3AA /* Piezas.swift */; };
@@ -71,11 +72,13 @@
 		D317C7E99F21783DB9D03BA1 /* SnapshotStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FCB09C4AAFE60F78F355E02 /* SnapshotStore.swift */; };
 		D5A1D4CDE82275A9CF26E004 /* TrainingCalendar.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9F497722DB4661FFF746FD1 /* TrainingCalendar.swift */; };
 		D9F80FBFC6018FC60BD5CA5F /* Routine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6050D5EE6B1267B77E113FA9 /* Routine.swift */; };
+		DBD02380D042E74446C09159 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C01B5A2C147AA61FE89D195B /* OnboardingView.swift */; };
 		DE44A41DE6B533874B948B4F /* ProgressScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B9A5A06B85393FC8A0FD251 /* ProgressScreen.swift */; };
 		E69798908BAAFF66FE14C618 /* RoutineDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2232E5FBF4EB7B2D317BF3A /* RoutineDraft.swift */; };
 		E7DBF80474A41676D85B7E86 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BC67D543EEAF3E15E9493B2 /* AuthService.swift */; };
 		EB0C93A38C9E98C5631C0EB0 /* ThemeTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF6ECA83E3BA00B298F73B83 /* ThemeTokens.swift */; };
 		F2D0B7CF3656FC67EF2F1973 /* WidgetBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE53E293A5BEE122C7F154F0 /* WidgetBridge.swift */; };
+		F30FF49886709816AE959ADE /* OnboardingFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D54F6EE3CF45B6BB631153EE /* OnboardingFlow.swift */; };
 		F6E8391204D78ABD2F93C2DD /* BottomNav.swift in Sources */ = {isa = PBXBuildFile; fileRef = F59182899A1B9BF47AA4539C /* BottomNav.swift */; };
 		FD7E1F7BAF130DB4B6856EB6 /* EntrenamientoActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11AF2E7FBBDB372A8A95CFE5 /* EntrenamientoActivity.swift */; };
 		FDF0CE94FDFAA457ACE041DD /* RoutineComposerScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3BC5CCA0174C5F42B149FDD /* RoutineComposerScreen.swift */; };
@@ -137,6 +140,7 @@
 		629768D30B5607A1DC2F3DD6 /* CustomExerciseSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomExerciseSheet.swift; sourceTree = "<group>"; };
 		65D3FDABC0463D11B668747F /* ProgressMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressMetrics.swift; sourceTree = "<group>"; };
 		66278651D9DB38E2D642B2FD /* Pantallas.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pantallas.swift; sourceTree = "<group>"; };
+		6790BEA45D1AF4889557274E /* OnboardingFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlowTests.swift; sourceTree = "<group>"; };
 		698A3E0F778AD459293863DB /* ExerciseMediaTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseMediaTests.swift; sourceTree = "<group>"; };
 		6B0A282C126119F3E98FE7B2 /* SiezaGym.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = SiezaGym.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6FCB09C4AAFE60F78F355E02 /* SnapshotStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapshotStore.swift; sourceTree = "<group>"; };
@@ -158,6 +162,7 @@
 		AE88FE15304FF74783052D63 /* LiveActivityController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityController.swift; sourceTree = "<group>"; };
 		B00831C4B5DF350BB44E6270 /* GymStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GymStore.swift; sourceTree = "<group>"; };
 		B25E860F7C4AE7A29211C87F /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		C01B5A2C147AA61FE89D195B /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		C274E2BEAA284A87E09CB167 /* GymRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GymRepository.swift; sourceTree = "<group>"; };
 		C2EF42F69ECBC7B4BADFE19B /* HealthMetricsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthMetricsTests.swift; sourceTree = "<group>"; };
 		CA39B73463D8D7371833B997 /* WidgetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetTests.swift; sourceTree = "<group>"; };
@@ -167,6 +172,7 @@
 		D052F9BB534B8DE7EA4D9450 /* WorkoutControlsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutControlsTests.swift; sourceTree = "<group>"; };
 		D23EED55AC67DF9CAA4DB093 /* HomeMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeMetrics.swift; sourceTree = "<group>"; };
 		D3BC5CCA0174C5F42B149FDD /* RoutineComposerScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoutineComposerScreen.swift; sourceTree = "<group>"; };
+		D54F6EE3CF45B6BB631153EE /* OnboardingFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlow.swift; sourceTree = "<group>"; };
 		DC7A992A496B1479E246C07B /* SiezaGymWidgets.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = SiezaGymWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		DD844D5CFED5C704AFB9FB7C /* UserProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfile.swift; sourceTree = "<group>"; };
 		DF6ECA83E3BA00B298F73B83 /* ThemeTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeTokens.swift; sourceTree = "<group>"; };
@@ -181,7 +187,7 @@
 		F9F497722DB4661FFF746FD1 /* TrainingCalendar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainingCalendar.swift; sourceTree = "<group>"; };
 		F9F6A2EBFC13CEDC7984B640 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		FD8ADFF2CAA687963AB3D3AA /* Piezas.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Piezas.swift; sourceTree = "<group>"; };
-		"TEMP_FAC54409-DB84-40B2-AC11-8245B7A59BD8" /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
+		"TEMP_CF3F6F03-625A-4A0A-969E-B5266531BD34" /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -319,6 +325,7 @@
 				F278A40AC0A5C800BD62D206 /* Auth */,
 				494184929E4ED63CDBA6DCCD /* History */,
 				CFF9134CB377F9A368EEDCD9 /* Home */,
+				DDC453AB9769D79BC41094C6 /* Onboarding */,
 				9CE769D28181B3208E9AA2C7 /* Profile */,
 				F293637D89A782B7F81C97E5 /* Progress */,
 				E0D219A690B52623756AF401 /* Routines */,
@@ -380,6 +387,15 @@
 			path = SiezaGymWidgets;
 			sourceTree = "<group>";
 		};
+		DDC453AB9769D79BC41094C6 /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				D54F6EE3CF45B6BB631153EE /* OnboardingFlow.swift */,
+				C01B5A2C147AA61FE89D195B /* OnboardingView.swift */,
+			);
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
 		E0D219A690B52623756AF401 /* Routines */ = {
 			isa = PBXGroup;
 			children = (
@@ -401,6 +417,7 @@
 				CD7C5E866FDE71F8AEC3C985 /* HealthKitConfigurationTests.swift */,
 				C2EF42F69ECBC7B4BADFE19B /* HealthMetricsTests.swift */,
 				722FB1B611252D2E0EC76157 /* HomeMetricsTests.swift */,
+				6790BEA45D1AF4889557274E /* OnboardingFlowTests.swift */,
 				02298DDC76F85B66411B44D2 /* RoutineDraftTests.swift */,
 				00CB416B92890D19B623F38A /* TrainingCalendarTests.swift */,
 				CA39B73463D8D7371833B997 /* WidgetTests.swift */,
@@ -425,10 +442,10 @@
 			path = Progress;
 			sourceTree = "<group>";
 		};
-		"TEMP_2B625E9C-FBC5-4566-938A-58D5084DAEAB" /* ios */ = {
+		"TEMP_DA48BA54-3758-414D-9301-13EDB6220804" /* ios */ = {
 			isa = PBXGroup;
 			children = (
-				"TEMP_FAC54409-DB84-40B2-AC11-8245B7A59BD8" /* Signing.xcconfig */,
+				"TEMP_CF3F6F03-625A-4A0A-969E-B5266531BD34" /* Signing.xcconfig */,
 			);
 			path = ios;
 			sourceTree = "<group>";
@@ -579,6 +596,8 @@
 				7F0C06C58FF2DF941DA9EC1E /* HomeScreen.swift in Sources */,
 				CB6D8CF9E2B63894CAA0EEE4 /* LiveActivityController.swift in Sources */,
 				256AEA707CE2910A60D78CC5 /* LoginView.swift in Sources */,
+				F30FF49886709816AE959ADE /* OnboardingFlow.swift in Sources */,
+				DBD02380D042E74446C09159 /* OnboardingView.swift in Sources */,
 				933863B1968124C52CB67D13 /* Pantallas.swift in Sources */,
 				642B07B10CFEB9681166D86D /* ProfileScreen.swift in Sources */,
 				17C1840289B6881288F34DAA /* ProgressMetrics.swift in Sources */,
@@ -636,6 +655,7 @@
 				8F39EEF6AAEB18DFEE31FE9B /* HealthKitConfigurationTests.swift in Sources */,
 				568E4A4B8F74B60CFC82DB9A /* HealthMetricsTests.swift in Sources */,
 				B0271AE82DCF679E96BE2A0D /* HomeMetricsTests.swift in Sources */,
+				9FBD7B25F52BB46BAC1D2D2A /* OnboardingFlowTests.swift in Sources */,
 				6F07E98E52F1BB3440BC16EF /* RoutineDraftTests.swift in Sources */,
 				B1B3AA68F97836D037C4F264 /* TrainingCalendarTests.swift in Sources */,
 				C54F5A15042A76D2DA1223A6 /* WidgetTests.swift in Sources */,
@@ -681,7 +701,7 @@
 		};
 		04764DE4336904985F4049C2 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_FAC54409-DB84-40B2-AC11-8245B7A59BD8" /* Signing.xcconfig */;
+			baseConfigurationReference = "TEMP_CF3F6F03-625A-4A0A-969E-B5266531BD34" /* Signing.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -840,7 +860,7 @@
 		};
 		FC6682134BF5D75535C2BAE4 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_FAC54409-DB84-40B2-AC11-8245B7A59BD8" /* Signing.xcconfig */;
+			baseConfigurationReference = "TEMP_CF3F6F03-625A-4A0A-969E-B5266531BD34" /* Signing.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;

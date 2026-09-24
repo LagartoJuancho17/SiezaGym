@@ -5,21 +5,26 @@ struct RootView: View {
     /// El tema elegido vive acá arriba y baja por el entorno a toda la app,
     /// igual que `ThemeRoot` en la web.
     @State private var temas = ThemeStore()
+    @AppStorage("sieza.onboarding.completed.v1") private var onboardingCompleted = false
 
     var body: some View {
         ZStack {
             Backdrop()
 
-            switch auth.state {
-            case .loading:
-                ProgressView().tint(temas.actual.texto)
-            case .signedOut:
-                LoginView()
-            case let .signedIn(uid, _):
-                MainTabView(store: GymStore(uid: uid))
-                    // Cambiar de cuenta tiene que rearmar todas las pantallas,
-                    // si no queda data del usuario anterior en pantalla.
-                    .id(uid)
+            if !onboardingCompleted {
+                OnboardingView { onboardingCompleted = true }
+            } else {
+                switch auth.state {
+                case .loading:
+                    ProgressView().tint(temas.actual.texto)
+                case .signedOut:
+                    LoginView()
+                case let .signedIn(uid, _):
+                    MainTabView(store: GymStore(uid: uid))
+                        // Cambiar de cuenta tiene que rearmar todas las pantallas,
+                        // si no queda data del usuario anterior en pantalla.
+                        .id(uid)
+                }
             }
         }
         .environment(\.tema, temas.actual)
