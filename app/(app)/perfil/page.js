@@ -152,15 +152,16 @@ export default async function PerfilPage() {
               <ChevronRightIcon size={16} width={1.6} className="d2-setting-go" />
             </Link>
           ) : (
-            <div className="d2-setting">
+            <a href="#vincular-profesor" className="d2-setting" style={{ textDecoration: "none" }}>
               <span className="d2-setting-body">
                 <span className="d2-setting-name">Entrenador</span>
                 <span className="d2-setting-hint">Quien te asigna rutinas</span>
               </span>
-              <span className="d2-setting-value">
+              <span className="d2-setting-value" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                 {linkedCoach?.displayName || "Sin vincular"}
+                <ChevronRightIcon size={16} width={1.6} className="d2-setting-go" />
               </span>
-            </div>
+            </a>
           )}
 
           <div className="d2-setting">

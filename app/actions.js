@@ -26,3 +26,19 @@ export async function redeemInvitationCode(code) {
   revalidatePath("/dashboard");
   return { success: true, coachName };
 }
+
+export async function unlinkCurrentCoach() {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    throw new Error("Debes iniciar sesión.");
+  }
+
+  const { unlinkCoachFromStudent } = await import("@/lib/coach/students");
+  await unlinkCoachFromStudent(user.uid);
+
+  revalidatePath("/");
+  revalidatePath("/perfil");
+  revalidatePath("/dashboard");
+  return { success: true };
+}
