@@ -26,6 +26,11 @@ final class WorkoutDraft {
         var sets: [SetDraft]
 
         var completedCount: Int { sets.filter(\.done).count }
+
+        /// Todas las series marcadas. Un ejercicio al que le sacaste todas las
+        /// series tiene 0 de 0, que **no** es estar terminado: sin esa guarda
+        /// se pintaría de verde sin haber hecho nada.
+        var estaCompleto: Bool { !sets.isEmpty && completedCount == sets.count }
     }
 
     let routine: Routine?
@@ -70,6 +75,13 @@ final class WorkoutDraft {
     }
 
     var canSave: Bool { completedSets > 0 }
+
+    /// El ejercicio que conviene tener abierto: el primero que todavía tiene
+    /// series sin marcar. Los demás van plegados, que es lo que hace que la
+    /// pantalla entre en un teléfono cuando la rutina tiene ocho ejercicios.
+    var ejercicioEnCurso: String? {
+        proximaSerieSinMarcar().map { exercises[$0.ejercicio].id }
+    }
 
     /// Dónde está la próxima serie sin marcar, recorriendo los ejercicios en
     /// orden. Es la misma regla con la que la actividad en vivo decide en qué

@@ -41,6 +41,13 @@ struct Theme: Identifiable, Equatable, Sendable {
     /// fondo en vez de un degradado. `nil` en los demás.
     let obra: String?
 
+    /// El verde de "terminado". Es el único color fijo del diseño: no sale del
+    /// tema y no cambia con él, porque significa una sola cosa y tiene que
+    /// significarla igual en los cinco. El sólido de cada tema ya se usa para
+    /// "lo importante de esta pantalla"; si el terminado también fuera el
+    /// sólido, en Plata (que es casi negro) no se distinguiría de lo pendiente.
+    static let hecho = Color(r: 52, g: 199, b: 89, a: 1)
+
     static let porDefecto = Theme.todos.first { $0.id == "plata" } ?? Theme.todos[0]
 
     static func conId(_ id: String?) -> Theme {

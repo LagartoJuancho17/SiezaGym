@@ -216,3 +216,110 @@ struct NextSetTests {
         #expect(marco == false)
     }
 }
+
+// MARK: - Ejercicio terminado y plegado
+
+@Suite("Ejercicio terminado")
+@MainActor
+struct ExerciseCompletionTests {
+    private func borrador(_ porEjercicio: [Int]) -> WorkoutDraft {
+        let catalogo = Dictionary(uniqueKeysWithValues: porEjercicio.indices.map { indice in
+            ("e\(indice)", Exercise(
+                id: "e\(indice)", nameEs: "E\(indice)", nameEn: "", equipment: nil, pattern: nil,
+                muscleWeights: [:], registrationType: .pesoReps, unilateral: false,
+                descriptionEs: "", mediaURL: nil, source: .catalog, videoURL: nil
+            ))
+        })
+        let rutina = Routine(
+            id: "r1", ownerID: "u1", name: "Test", note: "",
+            exercises: porEjercicio.enumerated().map { indice, series in
+                RoutineExercise(
+                    exerciseID: "e\(indice)", source: .catalog, order: indice,
+                    targetSets: series, targetReps: 10, targetRIR: nil, targetWeight: nil,
+                    techniqueNote: "", sets: nil
+                )
+            },
+            showOnHome: true, lastUsedAt: nil, createdAt: nil, updatedAt: nil, isAssigned: false
+        )
+        return WorkoutDraft(routine: rutina, catalog: catalogo)
+    }
+
+    @Test("recién empezado no está terminado")
+    func sinMarcar() {
+        #expect(borrador([3]).exercises[0].estaCompleto == false)
+    }
+
+    @Test("con algunas marcadas tampoco")
+    func aMedias() {
+        let draft = borrador([3])
+        draft.exercises[0].sets[0].done = true
+
+        #expect(draft.exercises[0].estaCompleto == false)
+    }
+
+    @Test("con todas marcadas sí")
+    func todas() {
+        let draft = borrador([2])
+        for indice in draft.exercises[0].sets.indices {
+            draft.exercises[0].sets[indice].done = true
+        }
+
+        #expect(draft.exercises[0].estaCompleto)
+    }
+
+    /// Si le sacás todas las series queda 0 de 0. Sin la guarda de vacío se
+    /// pintaría de verde un ejercicio en el que no hiciste nada.
+    @Test("un ejercicio sin series no cuenta como terminado")
+    func sinSeries() {
+        let draft = borrador([2])
+        draft.removeSet(from: draft.exercises[0].id, at: IndexSet(integer: 1))
+        draft.removeSet(from: draft.exercises[0].id, at: IndexSet(integer: 0))
+
+        #expect(draft.exercises[0].sets.isEmpty)
+        #expect(draft.exercises[0].estaCompleto == false)
+    }
+
+    /// Una serie fallada cuenta como hecha: cargaste el peso y no llegaste, no
+    /// es que la debas.
+    @Test("una serie fallada también termina el ejercicio")
+    func falladaCuenta() {
+        let draft = borrador([1])
+        draft.exercises[0].sets[0].failed = true
+        draft.exercises[0].sets[0].done = true
+
+        #expect(draft.exercises[0].estaCompleto)
+    }
+
+    // MARK: Qué queda desplegado
+
+    @Test("al abrir, el desplegado es el primero")
+    func alAbrir() {
+        let draft = borrador([2, 2])
+
+        #expect(draft.ejercicioEnCurso == draft.exercises[0].id)
+    }
+
+    @Test("al terminar uno, pasa al siguiente")
+    func avanza() {
+        let draft = borrador([1, 1])
+        _ = draft.marcarProximaSerie()
+
+        #expect(draft.exercises[0].estaCompleto)
+        #expect(draft.ejercicioEnCurso == draft.exercises[1].id)
+    }
+
+    /// Con todo terminado no hay ninguno en curso: la pantalla queda toda
+    /// plegada, que es justo cuando querés ver el botón de terminar.
+    @Test("con el entrenamiento terminado no queda ninguno abierto")
+    func todoTerminado() {
+        let draft = borrador([1])
+        _ = draft.marcarProximaSerie()
+
+        #expect(draft.ejercicioEnCurso == nil)
+    }
+
+    @Test("una rutina vacía no tiene ejercicio en curso")
+    func rutinaVacia() {
+        #expect(borrador([]).ejercicioEnCurso == nil)
+    }
+}

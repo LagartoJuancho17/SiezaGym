@@ -1,6 +1,7 @@
 import AudioToolbox
 import Combine
 import SwiftUI
+import UIKit
 
 struct WorkoutView: View {
     @Environment(\.tema) private var tema
@@ -16,6 +17,8 @@ struct WorkoutView: View {
     @State private var showExitConfirm = false
     @State private var descanso = RestTimer()
     @State private var previewExercise: WorkoutDraft.ExerciseDraft? = nil
+    /// Qué ejercicio está desplegado. Arranca en el que estás haciendo.
+    @State private var abierto: String?
     @Environment(\.dismiss) private var dismiss
 
     private let secondTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
@@ -47,7 +50,13 @@ struct WorkoutView: View {
                         ExerciseCard(
                             exercise: $exercise,
                             draft: draft,
-                            onSetCompleted: handleSetCompleted,
+                            abierto: abierto == exercise.id,
+                            alTocar: {
+                                withAnimation(.snappy(duration: 0.22)) {
+                                    abierto = abierto == exercise.id ? nil : exercise.id
+                                }
+                            },
+                            onSetCompleted: { handleSetCompleted(en: exercise.id) },
                             onShowMedia: { previewExercise = exercise }
                         )
                     }
@@ -71,6 +80,7 @@ struct WorkoutView: View {
         .scrollDismissesKeyboard(.interactively)
         .tecladoConBotonListo()
         .task {
+            if abierto == nil { abierto = draft.ejercicioEnCurso }
             actividad.comenzar(
                 routineName: routine?.name ?? "Entrenamiento libre",
                 startedAt: draft.startedAt,
@@ -171,17 +181,37 @@ struct WorkoutView: View {
         dismiss()
     }
 
-    private func handleSetCompleted() {
+    /// Una serie marcada: sonido, vibración y descanso.
+    ///
+    /// La háptica se dispara acá y no en el botón para que también se sienta
+    /// cuando marcás desde la Dynamic Island, donde no hay botón que tocar.
+    private func handleSetCompleted(en ejercicioID: String? = nil) {
         AudioServicesPlaySystemSound(1057)
+
+        let termino = ejercicioID.flatMap { id in
+            draft.exercises.first { $0.id == id }?.estaCompleto
+        } ?? false
+
+        if termino {
+            // Terminar un ejercicio se siente distinto de terminar una serie.
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+        } else {
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        }
+
         withAnimation(.spring(duration: 0.3)) {
             descanso.arrancar()
+            // Con el ejercicio terminado, se pliega y se abre el que sigue.
+            if termino { abierto = draft.ejercicioEnCurso }
         }
     }
 
     /// Lo que dispara el botón "Terminar serie" de la actividad en vivo.
     private func completeNextSet() {
+        guard let proxima = draft.proximaSerieSinMarcar() else { return }
+        let ejercicioID = draft.exercises[proxima.ejercicio].id
         guard draft.marcarProximaSerie() else { return }
-        handleSetCompleted()
+        handleSetCompleted(en: ejercicioID)
     }
 
     private var summary: some View {
@@ -315,72 +345,133 @@ struct WorkoutView: View {
     }
 }
 
+/// Un ejercicio del entrenamiento.
+///
+/// Plegado por defecto: una rutina de ocho ejercicios con todas las series
+/// abiertas no entra en un teléfono, y en el gimnasio mirás uno por vez. Se
+/// abre solo el que estás haciendo.
 private struct ExerciseCard: View {
     @Environment(\.tema) private var tema
     @Binding var exercise: WorkoutDraft.ExerciseDraft
     let draft: WorkoutDraft
+    let abierto: Bool
+    let alTocar: () -> Void
     let onSetCompleted: () -> Void
     let onShowMedia: () -> Void
+
+    private var completo: Bool { exercise.estaCompleto }
 
     var body: some View {
         SurfaceCard(padding: 12) {
             VStack(alignment: .leading, spacing: 8) {
-                HStack(spacing: 8) {
-                    Text(exercise.name)
-                        .font(.system(size: 15, weight: .bold))
-                        .foregroundStyle(tema.texto)
-                        .lineLimit(1)
-
-                    if exercise.mediaURL != nil || exercise.videoURL != nil {
-                        Button(action: onShowMedia) {
-                            HStack(spacing: 4) {
-                                Image(systemName: "play.circle.fill")
-                                Text(exercise.mediaURL != nil ? "GIF" : "Video")
-                            }
-                            .font(.system(size: 11, weight: .bold))
-                            .foregroundStyle(tema.solido)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 3)
-                            .background(tema.vidrio(2), in: .capsule)
-                            .overlay { Capsule().strokeBorder(tema.borde, lineWidth: 1) }
-                        }
-                        .buttonStyle(.plain)
-                    }
-
-                    Spacer()
-
-                    Text("\(exercise.completedCount)/\(exercise.sets.count)")
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(exercise.completedCount == exercise.sets.count
-                                         ? tema.solido : tema.texto2)
-                }
-
-                ForEach($exercise.sets) { $set in
-                    SetRow(
-                        set: $set,
-                        index: index(of: set),
-                        isTimeBased: exercise.isTimeBased,
-                        onCompleted: onSetCompleted
-                    )
-                }
-
-                Button {
-                    draft.addSet(to: exercise.id)
-                } label: {
-                    Label("Agregar serie", systemImage: "plus")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(tema.texto)
-                }
-                .buttonStyle(.plain)
-                .padding(.top, 2)
+                encabezado
+                if abierto { detalle }
             }
         }
         .overlay(alignment: .leading) {
             RoundedRectangle(cornerRadius: 3)
-                .fill(exercise.completedCount > 0 ? tema.solido : tema.borde)
+                .fill(completo ? Theme.hecho : (exercise.completedCount > 0 ? tema.solido : tema.borde))
                 .frame(width: 3)
                 .padding(.vertical, 14)
         }
+        // El borde verde es lo que se ve de reojo al scrollear la lista.
+        .overlay {
+            RoundedRectangle(cornerRadius: Theme.radius)
+                .strokeBorder(Theme.hecho.opacity(completo ? 0.55 : 0), lineWidth: 1.5)
+        }
+        .animation(.snappy(duration: 0.25), value: completo)
+        .animation(.snappy(duration: 0.22), value: abierto)
+    }
+
+    private var encabezado: some View {
+        Button(action: alTocar) {
+            HStack(spacing: 8) {
+                // El nombre queda en el color del tema aunque esté terminado:
+                // el verde sobre el vidrio claro de Plata no se lee. El estado
+                // lo dicen el borde, la barra y el contador, que son tres
+                // señales y ninguna tapa el texto.
+                Text(exercise.name)
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundStyle(tema.texto)
+                    .lineLimit(1)
+
+                if exercise.mediaURL != nil || exercise.videoURL != nil {
+                    // Fuera del botón de plegar: abre la media, no despliega.
+                    Button(action: onShowMedia) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "play.circle.fill")
+                            Text(exercise.mediaURL != nil ? "GIF" : "Video")
+                        }
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(tema.solido)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(tema.vidrio(2), in: .capsule)
+                        .overlay { Capsule().strokeBorder(tema.borde, lineWidth: 1) }
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                Spacer(minLength: 4)
+
+                contador
+
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(tema.texto3)
+                    .rotationEffect(.degrees(abierto ? 180 : 0))
+            }
+            .contentShape(.rect)
+        }
+        .buttonStyle(.plain)
+        .accessibilityHint(abierto ? "Tocá para plegar" : "Tocá para ver las series")
+    }
+
+    private var contador: some View {
+        HStack(spacing: 4) {
+            if completo {
+                Image(systemName: "checkmark")
+                    .font(.system(size: 10, weight: .black))
+                    .transition(.scale.combined(with: .opacity))
+            }
+            Text("\(exercise.completedCount)/\(exercise.sets.count)")
+                .font(.system(size: 12, weight: .bold))
+                .monospacedDigit()
+        }
+        .foregroundStyle(completo ? .white : tema.texto2)
+        .padding(.horizontal, completo ? 8 : 0)
+        .padding(.vertical, completo ? 3 : 0)
+        .background(completo ? Theme.hecho : .clear, in: .capsule)
+        // El pulso al terminar: mínimo, una sola vez, sin animación en loop.
+        .scaleEffect(completo ? 1.08 : 1)
+        .animation(.spring(duration: 0.35, bounce: 0.5), value: completo)
+        .accessibilityLabel(completo
+                            ? "Ejercicio terminado, \(exercise.sets.count) series"
+                            : "\(exercise.completedCount) de \(exercise.sets.count) series")
+    }
+
+    private var detalle: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            ForEach($exercise.sets) { $set in
+                SetRow(
+                    set: $set,
+                    index: index(of: set),
+                    isTimeBased: exercise.isTimeBased,
+                    onCompleted: onSetCompleted
+                )
+            }
+
+            Button {
+                draft.addSet(to: exercise.id)
+            } label: {
+                Label("Agregar serie", systemImage: "plus")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(tema.texto)
+            }
+            .buttonStyle(.plain)
+            .padding(.top, 2)
+        }
+        .transition(.opacity.combined(with: .move(edge: .top)))
     }
 
     private func index(of set: WorkoutDraft.SetDraft) -> Int {

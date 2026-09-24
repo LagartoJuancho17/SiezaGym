@@ -144,6 +144,16 @@ clientes digan el mismo "17 min estimados"; los 90 son el descanso real que
 propone la app. Un test fija los dos valores para que nadie empareje uno con el
 otro pensando que es un bug.
 
+**Los ejercicios van plegados y se abre solo el que estás haciendo**
+(`WorkoutDraft.ejercicioEnCurso`). Al terminar uno se pliega y se abre el
+siguiente. Con ocho ejercicios abiertos la pantalla es un scroll infinito.
+
+**El verde de terminado (`Theme.hecho`) es el único color fijo del diseño**: no
+sale del tema. El sólido de cada tema ya significa "lo importante de esta
+pantalla", y en Plata es casi negro, así que un terminado pintado con el sólido
+no se distinguiría de lo pendiente. Va en el borde, la barra y el contador —
+**no en el nombre**, porque el verde sobre el vidrio claro de Plata no se lee.
+
 La actividad en vivo trae un botón "Terminar serie" (`TerminarSerieIntent`) que
 marca **la primera serie sin marcar** recorriendo los ejercicios en orden —
 `WorkoutDraft.proximaSerieSinMarcar()`. Es la misma regla que usa
@@ -243,7 +253,7 @@ xcodebuild test -project SiezaGym.xcodeproj -scheme SiezaGym \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 ```
 
-152 tests: la matemática de `Domain/`, lo que muestran los widgets, los links
+161 tests: la matemática de `Domain/`, lo que muestran los widgets, los links
 de YouTube, el formato de las métricas de Salud y la traducción de errores de
 login. Son funciones puras, no tocan Firestore ni la
 red.

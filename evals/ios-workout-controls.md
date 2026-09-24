@@ -28,6 +28,40 @@ actividad en vivo sin desbloquear el teléfono.
   descanso.
 - Una rutina sin ejercicios no lo rompe.
 
+## Ejercicios plegados
+
+- Al entrar, **solo está desplegado el ejercicio que estás haciendo**; el resto
+  va plegado. Una rutina de ocho ejercicios con todo abierto no entra en un
+  teléfono.
+- Plegado se ve el nombre, la insignia de GIF/Video, el contador `0/3` y el
+  chevron.
+- Tocar el encabezado despliega y vuelve a plegar cualquiera, incluso uno ya
+  terminado.
+- Tocar la insignia de GIF **no** despliega: abre la media.
+- Al terminar todas las series de un ejercicio, se pliega solo y se despliega el
+  siguiente.
+
+## Ejercicio terminado
+
+- Queda en verde: borde, barra izquierda y el contador `✓ 3/3` en una pastilla
+  verde sólida.
+- **El nombre NO se pinta de verde.** Sobre el vidrio claro del tema Plata no se
+  leía; el estado lo dicen las otras tres señales.
+- El contador hace un pulso corto al completarse, una sola vez.
+- Un ejercicio al que le sacaste todas las series queda en 0 de 0 y **no** se
+  pinta de verde.
+- Una serie fallada cuenta como hecha: cargaste el peso y no llegaste.
+
+## Vibración
+
+- Marcar una serie vibra (impacto medio).
+- Terminar **todas** las series de un ejercicio vibra distinto (éxito), para que
+  se note sin mirar.
+- También vibra al marcar desde el botón de la Dynamic Island, donde no hay
+  botón en pantalla que lo dispare.
+- Si no se siente, revisá Ajustes › Sonidos y vibraciones › Vibración del
+  sistema: la app no puede forzarla.
+
 ## Lo que no es un bug
 
 **El descanso arranca en 90s y la estimación de duración usa 75s.** Son dos
