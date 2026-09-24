@@ -14,7 +14,7 @@ struct WorkoutView: View {
     @State private var saveError: String?
     @State private var showFinishConfirm = false
     @State private var showExitConfirm = false
-    @State private var restTimerSeconds: Int? = nil
+    @State private var descanso = RestTimer()
     @State private var previewExercise: WorkoutDraft.ExerciseDraft? = nil
     @Environment(\.dismiss) private var dismiss
 
@@ -38,8 +38,8 @@ struct WorkoutView: View {
                 VStack(spacing: 12) {
                     summary
 
-                    if let seconds = restTimerSeconds, seconds > 0 {
-                        restTimerCard(seconds: seconds)
+                    if descanso.corriendo {
+                        restTimerCard
                             .transition(.move(edge: .top).combined(with: .opacity))
                     }
 
@@ -85,13 +85,7 @@ struct WorkoutView: View {
             }
         }
         .onReceive(secondTimer) { _ in
-            guard let current = restTimerSeconds, current > 0 else { return }
-            if current <= 1 {
-                restTimerSeconds = nil
-                AudioServicesPlaySystemSound(1005)
-            } else {
-                restTimerSeconds = current - 1
-            }
+            if descanso.tick() { AudioServicesPlaySystemSound(1005) }
         }
         .onReceive(NotificationCenter.default.publisher(for: .terminarSerieDesdeWidget)) { _ in
             completeNextSet()
@@ -180,18 +174,14 @@ struct WorkoutView: View {
     private func handleSetCompleted() {
         AudioServicesPlaySystemSound(1057)
         withAnimation(.spring(duration: 0.3)) {
-            restTimerSeconds = 90
+            descanso.arrancar()
         }
     }
 
+    /// Lo que dispara el botón "Terminar serie" de la actividad en vivo.
     private func completeNextSet() {
-        for exerciseIndex in draft.exercises.indices {
-            if let setIndex = draft.exercises[exerciseIndex].sets.firstIndex(where: { !$0.done }) {
-                draft.exercises[exerciseIndex].sets[setIndex].done = true
-                handleSetCompleted()
-                break
-            }
-        }
+        guard draft.marcarProximaSerie() else { return }
+        handleSetCompleted()
     }
 
     private var summary: some View {
@@ -218,7 +208,7 @@ struct WorkoutView: View {
         }
     }
 
-    private func restTimerCard(seconds: Int) -> some View {
+    private var restTimerCard: some View {
         HStack(spacing: 12) {
             Image(systemName: "timer")
                 .font(.system(size: 18, weight: .bold))
@@ -229,7 +219,7 @@ struct WorkoutView: View {
                     .font(.system(size: 11, weight: .bold))
                     .foregroundStyle(tema.texto2)
                     .textCase(.uppercase)
-                Text(String(format: "%02d:%02d", seconds / 60, seconds % 60))
+                Text(descanso.texto)
                     .font(.system(size: 20, weight: .bold, design: .rounded))
                     .foregroundStyle(tema.texto)
                     .monospacedDigit()
@@ -239,7 +229,7 @@ struct WorkoutView: View {
 
             HStack(spacing: 6) {
                 Button("−15s") {
-                    restTimerSeconds = max(1, seconds - 15)
+                    descanso.restar()
                 }
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundStyle(tema.texto)
@@ -248,7 +238,7 @@ struct WorkoutView: View {
                 .background(tema.vidrio(2), in: .capsule)
 
                 Button("+30s") {
-                    restTimerSeconds = seconds + 30
+                    descanso.sumar()
                 }
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundStyle(tema.texto)
@@ -257,7 +247,7 @@ struct WorkoutView: View {
                 .background(tema.vidrio(2), in: .capsule)
 
                 Button("Saltar") {
-                    withAnimation { restTimerSeconds = nil }
+                    withAnimation { descanso.saltar() }
                 }
                 .font(.system(size: 12, weight: .bold))
                 .foregroundStyle(tema.texto2)

@@ -131,6 +131,25 @@ con los colores del tema: el sólido del tema Plata es casi negro y desaparecía
 La pantalla bloqueada sí usa el tema, porque ahí el fondo lo pone
 `activityBackgroundTint`.
 
+## El entrenamiento en curso
+
+El descanso entre series vive en `Domain/RestTimer.swift` y no dentro de la
+vista: son reglas (cuánto arranca, cómo baja, dónde corta), y metidas en
+`WorkoutView` no había forma de probarlas sin abrir la app y esperar minuto y
+medio.
+
+**El descanso arranca en 90s y la estimación de duración usa 75s.** No es un
+descuido: los 75 son los de `lib/routines/summary.js` y existen para que los dos
+clientes digan el mismo "17 min estimados"; los 90 son el descanso real que
+propone la app. Un test fija los dos valores para que nadie empareje uno con el
+otro pensando que es un bug.
+
+La actividad en vivo trae un botón "Terminar serie" (`TerminarSerieIntent`) que
+marca **la primera serie sin marcar** recorriendo los ejercicios en orden —
+`WorkoutDraft.proximaSerieSinMarcar()`. Es la misma regla que usa
+`WorkoutActivityState` para decidir qué ejercicio mostrar: si estuvieran escritas
+dos veces, el botón y el texto de la isla podrían apuntar a series distintas.
+
 ## Editar una rutina
 
 El lápiz del detalle abre el mismo armador que el alta, con la rutina cargada:
@@ -224,7 +243,7 @@ xcodebuild test -project SiezaGym.xcodeproj -scheme SiezaGym \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 ```
 
-134 tests: la matemática de `Domain/`, lo que muestran los widgets, los links
+152 tests: la matemática de `Domain/`, lo que muestran los widgets, los links
 de YouTube, el formato de las métricas de Salud y la traducción de errores de
 login. Son funciones puras, no tocan Firestore ni la
 red.

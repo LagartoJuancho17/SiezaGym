@@ -71,6 +71,28 @@ final class WorkoutDraft {
 
     var canSave: Bool { completedSets > 0 }
 
+    /// Dónde está la próxima serie sin marcar, recorriendo los ejercicios en
+    /// orden. Es la misma regla con la que la actividad en vivo decide en qué
+    /// ejercicio estás, así que el botón del widget y lo que dice la isla no
+    /// pueden apuntar a series distintas.
+    func proximaSerieSinMarcar() -> (ejercicio: Int, serie: Int)? {
+        for indice in exercises.indices {
+            if let serie = exercises[indice].sets.firstIndex(where: { !$0.done }) {
+                return (indice, serie)
+            }
+        }
+        return nil
+    }
+
+    /// Marca esa serie. Devuelve `false` si ya estaban todas: ahí no hay que
+    /// arrancar un descanso.
+    @discardableResult
+    func marcarProximaSerie() -> Bool {
+        guard let proxima = proximaSerieSinMarcar() else { return false }
+        exercises[proxima.ejercicio].sets[proxima.serie].done = true
+        return true
+    }
+
     func addSet(to exerciseID: String) {
         guard let index = exercises.firstIndex(where: { $0.id == exerciseID }) else { return }
         // La serie nueva copia la ultima cargada: en el gimnasio casi siempre se
