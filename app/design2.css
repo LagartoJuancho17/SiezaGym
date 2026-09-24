@@ -1254,11 +1254,33 @@
 
 /* Contenedor del armador */
 .d2-compose-container { width: 100%; max-width: 100%; }
-.d2-page.d2-page-full { max-width: 100%; }
+.d2-page.d2-page-full { max-width: 100%; margin-inline: auto; }
 
 /* ---- Desktop: ejercicios más compactos y mejor aprovechamiento del espacio ---- */
 @media (min-width: 768px) {
-  .d2-compose-container { width: 100%; max-width: 100%; }
+  .d2-page.d2-page-full {
+    max-width: 720px;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding-top: 48px;
+    padding-inline: 24px;
+    padding-bottom: 80px;
+  }
+  .d2-compose-container {
+    max-width: 720px;
+    margin-inline: auto;
+  }
+  .d2-compose-head {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+  .d2-compose-head .d2-page-title {
+    font-size: 26px;
+  }
+  .d2-sheet-inner {
+    max-width: 720px;
+    margin-inline: auto;
+  }
   .d2-ex-head { padding: 8px 12px; gap: 10px; }
   .d2-ex-thumb { width: 40px; height: 40px; border-radius: 12px; }
   .d2-ex-thumb > svg { width: 18px; height: 18px; }
@@ -1269,6 +1291,10 @@
   .d2-ex-remove svg { width: 13px; height: 13px; }
   .d2-reorder { padding: 0 12px 6px; gap: 6px; }
   .d2-reorder button { min-width: 28px; min-height: 28px; width: 28px; height: 28px; font-size: 12px; }
+  .d2-compose-container .d2-panel { border-radius: 16px; margin-bottom: 10px; }
+  .d2-compose-container .d2-add { min-height: 44px; font-size: 13.5px; border-radius: 14px; margin-top: 10px; cursor: pointer; transition: all 0.15s ease; }
+  .d2-compose-container .d2-add:hover { background: rgba(var(--d2-glass-tint), var(--d2-glass-2)); border-color: var(--d2-text); transform: translateY(-1px); }
+  .d2-compose-container .d2-textarea { min-height: 84px; font-size: 13.5px; border-radius: 14px; }
 }
 
 @media (min-width: 900px) { .d2-page.d2-page-wide { max-width: 960px; } }
