@@ -44,6 +44,8 @@ export default async function RutinasPage() {
     id: item.id,
     name: item.name,
     isAssigned,
+    weekNumber: item.weekNumber || null,
+    weekLabel: item.weekLabel || (item.weekNumber ? `Semana ${item.weekNumber}` : null),
     // Lo necesita el menú de mantener presionado, para decir si la acción
     // pone o saca de la portada.
     showOnHome: item.showOnHome !== false,
@@ -65,6 +67,8 @@ export default async function RutinasPage() {
           exercises: assignment.exercises,
           assignedAt: assignment.assignedAt,
           lastUsedAt: assignment.lastUsedAt,
+          weekNumber: assignment.weekNumber,
+          weekLabel: assignment.weekLabel,
         },
         true,
       ),

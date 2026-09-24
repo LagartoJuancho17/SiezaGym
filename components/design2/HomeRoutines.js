@@ -49,7 +49,11 @@ export default function HomeRoutines({ routines = [], limit = 4 }) {
                 <span className="d2-routine-body">
                   <span className="d2-routine-name">
                     <span>{routine.name}</span>
-                    {routine.isAssigned && <span className="d2-routine-tag">Del coach</span>}
+                    {routine.isAssigned && (
+                      <span className="d2-routine-tag">
+                        {routine.weekNumber ? `Semana ${routine.weekNumber} · Del coach` : "Del coach"}
+                      </span>
+                    )}
                   </span>
                   <span className="d2-routine-meta">{meta}</span>
                 </span>

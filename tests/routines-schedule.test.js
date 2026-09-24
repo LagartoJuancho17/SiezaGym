@@ -78,6 +78,13 @@ describe("groupByMonthAndWeek", () => {
     expect(groups).toEqual([]);
   });
 
+  it("respeta la semana asignada por el coach si existe", () => {
+    const customItem = [{ id: "custom", assignedAt: "2026-09-02", weekNumber: 3 }];
+    const groups = groupByMonthAndWeek(customItem, toParts);
+    expect(groups[0].weeks[0].week).toBe(3);
+    expect(groups[0].weeks[0].label).toBe("Semana 3");
+  });
+
   it("sin items no rompe", () => {
     expect(groupByMonthAndWeek([], toParts)).toEqual([]);
     expect(groupByMonthAndWeek(undefined, toParts)).toEqual([]);

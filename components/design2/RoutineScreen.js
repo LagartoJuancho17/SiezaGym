@@ -100,6 +100,7 @@ export default function RoutineScreen({ routine }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [showOnHome, setShowOnHome] = useState(routine.showOnHome);
+  const [assignWeek, setAssignWeek] = useState(1);
 
   // Entrenamiento en curso.
   const [running, setRunning] = useState(() => {
@@ -414,11 +415,11 @@ export default function RoutineScreen({ routine }) {
     }
   }
 
-  async function assign(studentId) {
+  async function assign(studentId, week = assignWeek) {
     setBusy(true);
     setError("");
     try {
-      await assignRoutine(routine.id, studentId);
+      await assignRoutine(routine.id, studentId, { weekNumber: week });
       setModal(null);
       router.refresh();
     } catch (err) {
@@ -464,7 +465,11 @@ export default function RoutineScreen({ routine }) {
 
           <h1 className="d2-detail-title">
             {routine.name}
-            {routine.isAssigned && <span className="d2-detail-tag">Rutina del coach</span>}
+            {routine.isAssigned && (
+              <span className="d2-detail-tag">
+                {routine.weekNumber ? `Semana ${routine.weekNumber} · Rutina del coach` : "Rutina del coach"}
+              </span>
+            )}
           </h1>
 
           {running ? (
@@ -802,28 +807,54 @@ export default function RoutineScreen({ routine }) {
       {modal === "assign" && (
         <div className="d2-modal">
           <div className="d2-glass-strong d2-modal-card">
-            <h2 className="d2-modal-title">Asignar la rutina</h2>
-            <p className="d2-modal-text">El alumno la ve en sus rutinas y vos, lo que carga.</p>
-            <div className="d2-panel d2-students">
-              {routine.students.map((student) => (
-                <button
-                  key={student.studentId}
-                  type="button"
-                  onClick={() => assign(student.studentId)}
-                  disabled={busy}
-                  className="d2-student"
-                >
-                  <span className="d2-student-initial">
-                    {(student.displayName || "?").charAt(0).toUpperCase()}
-                  </span>
-                  <span className="d2-student-body">
-                    <span className="d2-student-name">{student.displayName || "Sin nombre"}</span>
-                    {student.email && <span className="d2-student-mail">{student.email}</span>}
-                  </span>
-                </button>
-              ))}
+            <h2 className="d2-modal-title">Asignar rutina por semana</h2>
+            <p className="d2-modal-text">Elegí la semana y el alumno al que querés asignarle esta rutina.</p>
+
+            <div style={{ marginTop: "16px" }}>
+              <p className="d2-label" style={{ margin: "0 0 8px 0" }}>Semana del programa</p>
+              <div className="d2-segs">
+                {[1, 2, 3, 4].map((wk) => (
+                  <button
+                    key={wk}
+                    type="button"
+                    className={`d2-seg ${assignWeek === wk ? "d2-seg-on" : ""}`}
+                    onClick={() => setAssignWeek(wk)}
+                  >
+                    Semana {wk}
+                  </button>
+                ))}
+              </div>
             </div>
-            {error && <p className="d2-modal-text">{error}</p>}
+
+            <div className="d2-panel d2-students" style={{ marginTop: "16px" }}>
+              {routine.students.length === 0 ? (
+                <div style={{ padding: "16px", textAlign: "center", color: "var(--d2-text-2)", fontSize: "13px" }}>
+                  No tenés alumnos vinculados todavía.
+                </div>
+              ) : (
+                routine.students.map((student) => (
+                  <button
+                    key={student.studentId}
+                    type="button"
+                    onClick={() => assign(student.studentId, assignWeek)}
+                    disabled={busy}
+                    className="d2-student"
+                  >
+                    <span className="d2-student-initial">
+                      {(student.displayName || "?").charAt(0).toUpperCase()}
+                    </span>
+                    <span className="d2-student-body">
+                      <span className="d2-student-name">{student.displayName || "Sin nombre"}</span>
+                      {student.email && <span className="d2-student-mail">{student.email}</span>}
+                    </span>
+                    <span className="d2-routine-tag" style={{ marginLeft: "auto", flex: "none" }}>
+                      Asignar a Sem {assignWeek}
+                    </span>
+                  </button>
+                ))
+              )}
+            </div>
+            {error && <p className="d2-modal-text" style={{ color: "var(--d2-error)" }}>{error}</p>}
             <div className="d2-modal-actions">
               <button type="button" onClick={() => setModal(null)} className="d2-modal-secondary">
                 Cerrar

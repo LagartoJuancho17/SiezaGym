@@ -48,7 +48,7 @@ function shapeExercise(item, position, lookup) {
   };
 }
 
-function shapeRoutine(source, lookup, { isAssigned, assignmentId, readOnly, students }) {
+function shapeRoutine(source, lookup, { isAssigned, assignmentId, readOnly, students, weekNumber, weekLabel }) {
   const exercises = (source.exercises || []).map((item, position) =>
     shapeExercise(item, position, lookup),
   );
@@ -60,6 +60,8 @@ function shapeRoutine(source, lookup, { isAssigned, assignmentId, readOnly, stud
     isAssigned,
     assignmentId,
     readOnly,
+    weekNumber: weekNumber != null ? weekNumber : null,
+    weekLabel: weekLabel || (weekNumber != null ? `Semana ${weekNumber}` : null),
     showOnHome: source.showOnHome !== false,
     students,
     exercises,
@@ -119,7 +121,7 @@ export default async function RutinaDetallePage({ params }) {
         exercises: assignment.exercises,
       },
       lookup,
-      { isAssigned: true, assignmentId: assignment.id, readOnly: true, students: [] },
+      { isAssigned: true, assignmentId: assignment.id, readOnly: true, students: [], weekNumber: assignment.weekNumber, weekLabel: assignment.weekLabel },
     );
   }
 

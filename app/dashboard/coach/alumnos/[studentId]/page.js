@@ -5,6 +5,8 @@ import { getUserProfile } from "@/lib/users/users";
 import { isLinkedToCoach } from "@/lib/coach/students";
 import { listUserSessions } from "@/lib/sessions/sessions";
 import { listExercises } from "@/lib/exercises/exercises";
+import { listStudentAssignments } from "@/lib/assignments/assignments";
+import { listUserRoutines } from "@/lib/routines/routines";
 
 export const dynamic = "force-dynamic";
 
@@ -19,13 +21,25 @@ export default async function StudentDetailPage({ params }) {
   const linked = await isLinkedToCoach(studentId, user.uid);
   if (!linked) notFound();
 
-  const [studentProfile, sessions, catalogExercises] = await Promise.all([
+  const [studentProfile, sessions, catalogExercises, assignments, coachRoutines] = await Promise.all([
     getUserProfile(studentId),
     listUserSessions(studentId, { limitCount: 100 }),
     listExercises(),
+    listStudentAssignments(studentId),
+    listUserRoutines(user.uid),
   ]);
 
   if (!studentProfile) notFound();
 
-  return <StudentDetailView studentProfile={studentProfile} sessions={sessions} catalogExercises={catalogExercises} />;
+  const coachAssignments = (assignments || []).filter((a) => a.coachId === user.uid);
+
+  return (
+    <StudentDetailView
+      studentProfile={studentProfile}
+      sessions={sessions}
+      catalogExercises={catalogExercises}
+      assignments={coachAssignments}
+      coachRoutines={coachRoutines || []}
+    />
+  );
 }

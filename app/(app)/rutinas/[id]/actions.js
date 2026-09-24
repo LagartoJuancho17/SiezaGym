@@ -12,7 +12,7 @@ import {
   completeAssignmentSession as completeAssignmentSessionDb,
 } from "@/lib/assignments/assignments";
 
-export async function assignRoutine(routineId, studentId) {
+export async function assignRoutine(routineId, studentId, options = {}) {
   const user = await getCurrentUser();
   if (!user) throw new Error("Debes iniciar sesión.");
 
@@ -22,8 +22,15 @@ export async function assignRoutine(routineId, studentId) {
   const linked = await isLinkedToCoach(studentId, user.uid);
   if (!linked) throw new Error("El alumno no está vinculado a tu cuenta.");
 
-  const assignmentId = await assignDb(user.uid, studentId, routine);
+  const opts =
+    typeof options === "number"
+      ? { weekNumber: options }
+      : options || {};
+
+  const assignmentId = await assignDb(user.uid, studentId, routine, opts);
   revalidatePath("/rutinas");
+  revalidatePath("/dashboard/coach");
+  revalidatePath(`/dashboard/coach/alumnos/${studentId}`);
   return assignmentId;
 }
 

@@ -55,13 +55,27 @@ describe("Coach design2 render contracts", () => {
   });
 });
 
-const security = vi.hoisted(() => ({ getCurrentUser: vi.fn(), getUserProfile: vi.fn(), isLinkedToCoach: vi.fn(), listUserSessions: vi.fn(), listExercises: vi.fn() }));
-vi.mock("next/navigation", () => ({ redirect: (path) => { throw new Error(`redirect:${path}`); }, notFound: () => { throw new Error("notFound"); } }));
+const security = vi.hoisted(() => ({
+  getCurrentUser: vi.fn(),
+  getUserProfile: vi.fn(),
+  isLinkedToCoach: vi.fn(),
+  listUserSessions: vi.fn(),
+  listExercises: vi.fn(),
+  listStudentAssignments: vi.fn().mockResolvedValue([]),
+  listUserRoutines: vi.fn().mockResolvedValue([]),
+}));
+vi.mock("next/navigation", () => ({
+  redirect: (path) => { throw new Error(`redirect:${path}`); },
+  notFound: () => { throw new Error("notFound"); },
+  useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }),
+}));
 vi.mock("@/lib/firebase/session", () => ({ getCurrentUser: security.getCurrentUser }));
 vi.mock("@/lib/users/users", () => ({ getUserProfile: security.getUserProfile }));
 vi.mock("@/lib/coach/students", () => ({ isLinkedToCoach: security.isLinkedToCoach }));
 vi.mock("@/lib/sessions/sessions", () => ({ listUserSessions: security.listUserSessions }));
 vi.mock("@/lib/exercises/exercises", () => ({ listExercises: security.listExercises }));
+vi.mock("@/lib/assignments/assignments", () => ({ listStudentAssignments: security.listStudentAssignments }));
+vi.mock("@/lib/routines/routines", () => ({ listUserRoutines: security.listUserRoutines }));
 import StudentDetailPage from "@/app/dashboard/coach/alumnos/[studentId]/page";
 
 describe("Student detail authorization survives redesign", () => {
