@@ -44,7 +44,7 @@ export default function StudentDetailView({
   const [error, setError] = useState("");
   const [unassigningId, setUnassigningId] = useState(null);
 
-  const studentTargetId = studentProfile.studentId || studentProfile.id;
+  const studentTargetId = studentProfile.studentId || studentProfile.uid || studentProfile.id;
   const exerciseLookup = new Map((catalogExercises || []).map((e) => [e.id, e]));
   const chartPoints = [...(sessions || [])].reverse();
   const initial = (studentProfile.displayName || "?").charAt(0).toUpperCase();

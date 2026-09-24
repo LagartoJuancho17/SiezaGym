@@ -35,7 +35,10 @@ export default async function StudentDetailPage({ params }) {
 
   return (
     <StudentDetailView
-      studentProfile={studentProfile}
+      studentProfile={{
+        ...studentProfile,
+        studentId: studentProfile.studentId || studentId,
+      }}
       sessions={sessions}
       catalogExercises={catalogExercises}
       assignments={coachAssignments}

@@ -54,6 +54,10 @@ export async function assignRoutineToStudentAction({ studentId, routineId, weekN
     throw new Error("Debes iniciar sesión.");
   }
 
+  if (!studentId) {
+    throw new Error("Falta el identificador del alumno.");
+  }
+
   const routine = await getUserRoutine(user.uid, routineId);
   if (!routine) {
     throw new Error("Rutina no encontrada.");
