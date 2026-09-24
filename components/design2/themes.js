@@ -11,6 +11,7 @@ export const THEMES = [
   { id: "brasa", label: "Brasa", hint: "El bordo de SiezaGym" },
   { id: "electrico", label: "Eléctrico", hint: "Azul eléctrico y magenta" },
   { id: "pliegues", label: "Pliegues", hint: "Luz cálida entre pliegues" },
+  { id: "sieza", label: "SIEZA", hint: "Identidad de marca plana" },
 ];
 
 export const DEFAULT_THEME = "plata";

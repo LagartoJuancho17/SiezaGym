@@ -1043,7 +1043,8 @@
    queda en cincuenta pixeles y "Electrico" se corta. */
 .d2-themes { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(10 * var(--d2-u)); padding: calc(14 * var(--d2-u)) calc(18 * var(--d2-u)) calc(18 * var(--d2-u)); }
 .d2-theme { display: flex; min-width: 0; flex-direction: column; align-items: center; gap: calc(8 * var(--d2-u)); padding: calc(10 * var(--d2-u)) calc(6 * var(--d2-u)); border-radius: calc(18 * var(--d2-u)); border: 1px solid transparent; color: var(--d2-text-2); }
-.d2-theme-dot { width: calc(46 * var(--d2-u)); height: calc(46 * var(--d2-u)); border-radius: 50%; background: var(--d2-ground); background-size: cover; background-position: center; border: 1px solid var(--d2-border-strong); box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.25); }
+.d2-theme-dot { display: flex; align-items: center; justify-content: center; width: calc(46 * var(--d2-u)); height: calc(46 * var(--d2-u)); border-radius: 50%; background: var(--d2-ground); background-size: cover; background-position: center; border: 1px solid var(--d2-border-strong); box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.25); }
+.d2-theme-dot[data-d2-vars="sieza"]::after { content: ""; width: calc(16 * var(--d2-u)); height: calc(16 * var(--d2-u)); border-radius: 50%; background: var(--d2-ink); }
 .d2-theme-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; font-size: calc(12 * var(--d2-u)); line-height: 1.3; }
 /* El elegido se marca con el borde y el texto en primer plano, no con un
    tilde encima de la muestra: el tilde tapa justo lo que hay que mirar. */
