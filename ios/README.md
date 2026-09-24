@@ -260,8 +260,21 @@ brew install xcodegen && xcodegen generate
 
 **Agregar un archivo .swift también necesita regenerar.** El YAML toma la
 carpeta entera, pero la resuelve al generar: el `.pbxproj` lista los archivos uno
-por uno. Un archivo nuevo que no esté ahí no se compila, y si es de tests
-`xcodebuild test` pasa igual sin haberlos corrido.
+por uno. Un archivo nuevo que no esté ahí no se compila, y lo peor es cómo
+falla: `xcodebuild test` pasa igual **sin correr los tests nuevos**, y recién
+revienta al compilar para el dispositivo con un "cannot find X in scope" que no
+menciona el proyecto.
+
+Hay un guard para eso, porque pasó de verdad (un `git checkout` del `.pbxproj`
+para limpiar los UUIDs aleatorios que XcodeGen regenera se llevó puesta el alta
+de dos archivos):
+
+```bash
+node ios/scripts/check-project-sync.mjs
+```
+
+Falla listando los `.swift` que el proyecto no compila. Correlo antes de
+commitear cuando agregaste archivos.
 
 ## Apple Salud y Fitness
 

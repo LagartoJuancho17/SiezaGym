@@ -13,6 +13,7 @@
 		0B23DD40818F48CA7D89AA42 /* HoyWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E6F08807055187F66AB97E3 /* HoyWidget.swift */; };
 		106C3B5F379773A98FB4C5C5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3BF9C538E6A757304EFC3144 /* Assets.xcassets */; };
 		1467DB9BF571D0A493C06833 /* CustomExerciseSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 629768D30B5607A1DC2F3DD6 /* CustomExerciseSheet.swift */; };
+		1737C20D1CB5EB84138DDBB0 /* WorkoutControlsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D052F9BB534B8DE7EA4D9450 /* WorkoutControlsTests.swift */; };
 		17C1840289B6881288F34DAA /* ProgressMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65D3FDABC0463D11B668747F /* ProgressMetrics.swift */; };
 		19B8BDA9D3195F6A407AC092 /* HealthMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFBC030844B41AC2CA85228E /* HealthMetrics.swift */; };
 		25089B70FF4D361E8112FA9D /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A503466AED5D1CC5A073ABF /* Theme.swift */; };
@@ -27,6 +28,7 @@
 		48BF104E24EF4D98C227F1B7 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A503466AED5D1CC5A073ABF /* Theme.swift */; };
 		568E4A4B8F74B60CFC82DB9A /* HealthMetricsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2EF42F69ECBC7B4BADFE19B /* HealthMetricsTests.swift */; };
 		58A2A258E40613DA50FCAE15 /* RachaWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B821EA63F7F81AE7EC6A134 /* RachaWidget.swift */; };
+		63F8AB022BFBAB69283BF27A /* RestTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE7997B5960418F748BF7C38 /* RestTimer.swift */; };
 		642B07B10CFEB9681166D86D /* ProfileScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECAF92A0B6F1015DB00C6E84 /* ProfileScreen.swift */; };
 		6579BC0C63E884AFC31B9C91 /* TrainingCalendar.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9F497722DB4661FFF746FD1 /* TrainingCalendar.swift */; };
 		66699FE98C2D7712D367AC7E /* FirestoreValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0090F07F6E3B43CEC19FD58E /* FirestoreValue.swift */; };
@@ -152,6 +154,7 @@
 		AB34317AC8D6136CC35EEBFA /* CustomExerciseDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomExerciseDraft.swift; sourceTree = "<group>"; };
 		AB8208682EA38DFD34D98929 /* SiezaGymTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = SiezaGymTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		AE53E293A5BEE122C7F154F0 /* WidgetBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetBridge.swift; sourceTree = "<group>"; };
+		AE7997B5960418F748BF7C38 /* RestTimer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestTimer.swift; sourceTree = "<group>"; };
 		AE88FE15304FF74783052D63 /* LiveActivityController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityController.swift; sourceTree = "<group>"; };
 		B00831C4B5DF350BB44E6270 /* GymStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GymStore.swift; sourceTree = "<group>"; };
 		B25E860F7C4AE7A29211C87F /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
@@ -161,6 +164,7 @@
 		CD7C5E866FDE71F8AEC3C985 /* HealthKitConfigurationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitConfigurationTests.swift; sourceTree = "<group>"; };
 		CEC42CD9901F9007C6EF6E4C /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		CFBC030844B41AC2CA85228E /* HealthMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthMetrics.swift; sourceTree = "<group>"; };
+		D052F9BB534B8DE7EA4D9450 /* WorkoutControlsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutControlsTests.swift; sourceTree = "<group>"; };
 		D23EED55AC67DF9CAA4DB093 /* HomeMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeMetrics.swift; sourceTree = "<group>"; };
 		D3BC5CCA0174C5F42B149FDD /* RoutineComposerScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoutineComposerScreen.swift; sourceTree = "<group>"; };
 		DC7A992A496B1479E246C07B /* SiezaGymWidgets.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = SiezaGymWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -177,7 +181,7 @@
 		F9F497722DB4661FFF746FD1 /* TrainingCalendar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainingCalendar.swift; sourceTree = "<group>"; };
 		F9F6A2EBFC13CEDC7984B640 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		FD8ADFF2CAA687963AB3D3AA /* Piezas.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Piezas.swift; sourceTree = "<group>"; };
-		"TEMP_89602E3E-64B2-437A-88FA-722ACB351857" /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
+		"TEMP_D0296CDF-89D9-4CB1-97EF-9CE2CD9801EF" /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -222,6 +226,7 @@
 				CFBC030844B41AC2CA85228E /* HealthMetrics.swift */,
 				D23EED55AC67DF9CAA4DB093 /* HomeMetrics.swift */,
 				65D3FDABC0463D11B668747F /* ProgressMetrics.swift */,
+				AE7997B5960418F748BF7C38 /* RestTimer.swift */,
 				A2232E5FBF4EB7B2D317BF3A /* RoutineDraft.swift */,
 				2BCA4F2347BCE2A9D4BDB6CF /* RoutineSummary.swift */,
 				E2F85DEF1F4F5E0A0F7B422E /* WidgetSnapshotBuilder.swift */,
@@ -399,6 +404,7 @@
 				02298DDC76F85B66411B44D2 /* RoutineDraftTests.swift */,
 				00CB416B92890D19B623F38A /* TrainingCalendarTests.swift */,
 				CA39B73463D8D7371833B997 /* WidgetTests.swift */,
+				D052F9BB534B8DE7EA4D9450 /* WorkoutControlsTests.swift */,
 			);
 			path = SiezaGymTests;
 			sourceTree = "<group>";
@@ -419,10 +425,10 @@
 			path = Progress;
 			sourceTree = "<group>";
 		};
-		"TEMP_771B34EB-1A26-4CA2-B81A-33CEEC902E6F" /* ios */ = {
+		"TEMP_10A49826-DB86-45AC-B69F-E8D3B11A6CD9" /* ios */ = {
 			isa = PBXGroup;
 			children = (
-				"TEMP_89602E3E-64B2-437A-88FA-722ACB351857" /* Signing.xcconfig */,
+				"TEMP_D0296CDF-89D9-4CB1-97EF-9CE2CD9801EF" /* Signing.xcconfig */,
 			);
 			path = ios;
 			sourceTree = "<group>";
@@ -577,6 +583,7 @@
 				642B07B10CFEB9681166D86D /* ProfileScreen.swift in Sources */,
 				17C1840289B6881288F34DAA /* ProgressMetrics.swift in Sources */,
 				DE44A41DE6B533874B948B4F /* ProgressScreen.swift in Sources */,
+				63F8AB022BFBAB69283BF27A /* RestTimer.swift in Sources */,
 				09BF360C5D608AA8940A33AD /* RootView.swift in Sources */,
 				D9F80FBFC6018FC60BD5CA5F /* Routine.swift in Sources */,
 				FDF0CE94FDFAA457ACE041DD /* RoutineComposerScreen.swift in Sources */,
@@ -632,6 +639,7 @@
 				6F07E98E52F1BB3440BC16EF /* RoutineDraftTests.swift in Sources */,
 				B1B3AA68F97836D037C4F264 /* TrainingCalendarTests.swift in Sources */,
 				C54F5A15042A76D2DA1223A6 /* WidgetTests.swift in Sources */,
+				1737C20D1CB5EB84138DDBB0 /* WorkoutControlsTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -673,7 +681,7 @@
 		};
 		04764DE4336904985F4049C2 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_89602E3E-64B2-437A-88FA-722ACB351857" /* Signing.xcconfig */;
+			baseConfigurationReference = "TEMP_D0296CDF-89D9-4CB1-97EF-9CE2CD9801EF" /* Signing.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -832,7 +840,7 @@
 		};
 		FC6682134BF5D75535C2BAE4 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_89602E3E-64B2-437A-88FA-722ACB351857" /* Signing.xcconfig */;
+			baseConfigurationReference = "TEMP_D0296CDF-89D9-4CB1-97EF-9CE2CD9801EF" /* Signing.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
