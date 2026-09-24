@@ -36,7 +36,7 @@ struct Pantalla<Contenido: View, Accion: View>: View {
                                 .foregroundStyle(tema.texto2)
                         }
                         Text(titulo)
-                            .font(.system(size: volver ? 24 : 30, weight: .heavy))
+                            .font(.system(size: volver ? 24 : 30, weight: tema.plano ? .bold : .heavy))
                             .tracking(-0.7)
                             .foregroundStyle(tema.texto)
                             .lineLimit(2)
@@ -83,6 +83,7 @@ struct StatsCard: View {
                 VStack(spacing: 4) {
                     Text(dato.valor)
                         .font(.system(size: 22, weight: .semibold))
+                        .monospacedDigit()
                         .tracking(-0.7)
                         .foregroundStyle(tema.texto)
                         .lineLimit(1)
@@ -97,8 +98,11 @@ struct StatsCard: View {
         }
         .padding(.vertical, 16)
         .padding(.horizontal, 10)
-        .background(tema.vidrio(1), in: .rect(cornerRadius: 26))
-        .overlay { RoundedRectangle(cornerRadius: 26).strokeBorder(tema.borde, lineWidth: 1) }
+        .background(tema.vidrio(1), in: .rect(cornerRadius: tema.plano ? 18 : 26))
+        .overlay {
+            RoundedRectangle(cornerRadius: tema.plano ? 18 : 26)
+                .strokeBorder(tema.borde, lineWidth: 1)
+        }
     }
 }
 
@@ -110,8 +114,11 @@ struct PanelLista<Contenido: View>: View {
 
     var body: some View {
         VStack(spacing: 0) { contenido }
-            .background(tema.vidrio(1), in: .rect(cornerRadius: 24))
-            .overlay { RoundedRectangle(cornerRadius: 24).strokeBorder(tema.borde, lineWidth: 1) }
+            .background(tema.vidrio(1), in: .rect(cornerRadius: tema.plano ? 18 : 24))
+            .overlay {
+                RoundedRectangle(cornerRadius: tema.plano ? 18 : 24)
+                    .strokeBorder(tema.borde, lineWidth: 1)
+            }
     }
 }
 

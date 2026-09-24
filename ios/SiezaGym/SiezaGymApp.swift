@@ -34,7 +34,7 @@ struct SiezaGymApp: App {
             }
             // Google vuelve del navegador por el esquema de URL de la app.
             .onOpenURL { GIDSignIn.sharedInstance.handle($0) }
-            // Los cinco temas del diseño son oscuros: no hay modo claro.
+            // Todos los temas disponibles son oscuros: no hay modo claro.
             .preferredColorScheme(.dark)
             .tint(Theme.porDefecto.solido)
         }
@@ -60,7 +60,7 @@ private struct MissingConfigView: View {
                     .foregroundStyle(tema.texto)
                     .padding(12)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(.white.opacity(0.08), in: .rect(cornerRadius: Theme.radius))
+                    .background(Theme.porDefecto.vidrio(1), in: .rect(cornerRadius: 14))
             }
             .padding(24)
         }

@@ -48,7 +48,7 @@ struct LoginView: View {
                     .disabled(!canSubmit)
                     .opacity(canSubmit ? 1 : 0.5)
                     .overlay {
-                        if auth.isWorking { ProgressView().tint(.white) }
+                        if auth.isWorking { ProgressView().tint(tema.sobreSolido) }
                     }
 
                 separator
@@ -60,7 +60,7 @@ struct LoginView: View {
                 }
                 .disabled(auth.isWorking)
                 .frame(height: 50)
-                .clipShape(.rect(cornerRadius: Theme.radius))
+                .clipShape(.rect(cornerRadius: tema.plano ? 14 : Theme.radius))
 
                 Button {
                     withAnimation(.smooth(duration: 0.25)) {
@@ -99,7 +99,7 @@ struct LoginView: View {
 
     private var line: some View {
         Rectangle()
-            .fill(.white.opacity(0.14))
+            .fill(tema.borde)
             .frame(height: 1)
     }
 
@@ -127,9 +127,9 @@ struct LoginView: View {
             .foregroundStyle(tema.texto)
             .padding(.horizontal, 16)
             .frame(height: 52)
-            .background(.white.opacity(0.08), in: .rect(cornerRadius: Theme.radius))
+            .background(tema.vidrio(1), in: .rect(cornerRadius: tema.plano ? 14 : Theme.radius))
             .overlay {
-                RoundedRectangle(cornerRadius: Theme.radius)
+                RoundedRectangle(cornerRadius: tema.plano ? 14 : Theme.radius)
                     .strokeBorder(focus == field ? tema.solido : tema.borde, lineWidth: 1)
             }
             .animation(.snappy(duration: 0.15), value: focus)
@@ -143,9 +143,9 @@ struct LoginView: View {
             .foregroundStyle(tema.texto)
             .padding(.horizontal, 16)
             .frame(height: 52)
-            .background(.white.opacity(0.08), in: .rect(cornerRadius: Theme.radius))
+            .background(tema.vidrio(1), in: .rect(cornerRadius: tema.plano ? 14 : Theme.radius))
             .overlay {
-                RoundedRectangle(cornerRadius: Theme.radius)
+                RoundedRectangle(cornerRadius: tema.plano ? 14 : Theme.radius)
                     .strokeBorder(focus == .password ? tema.solido : tema.borde, lineWidth: 1)
             }
             .onSubmit(submit)

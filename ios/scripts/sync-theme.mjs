@@ -25,6 +25,7 @@ const css = readFileSync(CSS, "utf8");
 
 /** Las variables que la app nativa necesita. El resto del CSS no se usa acá. */
 const VARIABLES = [
+  "flat", "surface-1", "surface-2", "surface-3",
   "glass-1", "glass-2", "glass-3",
   "border", "border-strong",
   "text", "text-2", "text-3",
@@ -74,6 +75,7 @@ function color(valor) {
 }
 
 function swiftColor(valor, porDefecto = "Color.clear") {
+  if (!valor) return porDefecto;
   const c = color(valor);
   if (!c) return porDefecto;
   const [r, g, b, a] = c;
@@ -137,9 +139,13 @@ const cuerpos = TEMAS.map((id) => {
   return `        Theme(
             id: "${id}",
             nombre: "${nombre(id)}",
+            plano: ${v.flat === "1"},
             glass1: ${v["glass-1"]},
             glass2: ${v["glass-2"]},
             glass3: ${v["glass-3"]},
+            superficie1: ${swiftColor(v["surface-1"], "nil")},
+            superficie2: ${swiftColor(v["surface-2"], "nil")},
+            superficie3: ${swiftColor(v["surface-3"], "nil")},
             borde: ${swiftColor(v.border)},
             bordeFuerte: ${swiftColor(v["border-strong"])},
             texto: ${swiftColor(v.text)},
@@ -163,7 +169,7 @@ const cuerpos = TEMAS.map((id) => {
 });
 
 function nombre(id) {
-  return { noche: "Noche", plata: "Plata", brasa: "Brasa", electrico: "Eléctrico", pliegues: "Pliegues" }[id] || id;
+  return { noche: "Noche", plata: "Plata", brasa: "Brasa", electrico: "Eléctrico", pliegues: "Pliegues", sieza: "SIEZA" }[id] || id;
 }
 
 const swift = `// GENERADO por ios/scripts/sync-theme.mjs — no editar a mano.
@@ -184,12 +190,19 @@ extension Color {
 }
 
 extension Theme {
-    /// Los temas del diseño, en el mismo orden que el selector de la web.
+    /// Los temas del diseño; SIEZA se ofrece solo en el cliente iOS.
     static let todos: [Theme] = [
 ${cuerpos.join(",\n")}
     ]
 }
 `;
 
-writeFileSync(SALIDA, swift, "utf8");
-console.log(`${TEMAS.length} temas -> ${SALIDA.replace(process.cwd() + "/", "")}`);
+if (args.includes("--check")) {
+  if (readFileSync(SALIDA, "utf8") !== swift) {
+    throw new Error("ThemeTokens.swift está desactualizado. Corré node ios/scripts/sync-theme.mjs --css app/design2.css");
+  }
+  console.log(`${TEMAS.length} temas sincronizados`);
+} else {
+  writeFileSync(SALIDA, swift, "utf8");
+  console.log(`${TEMAS.length} temas -> ${SALIDA.replace(process.cwd() + "/", "")}`);
+}

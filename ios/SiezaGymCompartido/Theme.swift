@@ -6,11 +6,16 @@ import SwiftUI
 struct Theme: Identifiable, Equatable, Sendable {
     let id: String
     let nombre: String
+    let plano: Bool
 
-    /// Opacidad de la tinta del vidrio, en tres niveles.
+    /// Opacidad de la tinta del vidrio en los temas anteriores. SIEZA usa
+    /// superficies opacas en los mismos tres niveles.
     let glass1: Double
     let glass2: Double
     let glass3: Double
+    let superficie1: Color?
+    let superficie2: Color?
+    let superficie3: Color?
 
     let borde: Color
     let bordeFuerte: Color
@@ -43,12 +48,12 @@ struct Theme: Identifiable, Equatable, Sendable {
 
     /// El verde de "terminado". Es el único color fijo del diseño: no sale del
     /// tema y no cambia con él, porque significa una sola cosa y tiene que
-    /// significarla igual en los cinco. El sólido de cada tema ya se usa para
+    /// significarla igual en todos. El sólido de cada tema ya se usa para
     /// "lo importante de esta pantalla"; si el terminado también fuera el
     /// sólido, en Plata (que es casi negro) no se distinguiría de lo pendiente.
     static let hecho = Color(r: 52, g: 199, b: 89, a: 1)
 
-    static let porDefecto = Theme.todos.first { $0.id == "plata" } ?? Theme.todos[0]
+    static let porDefecto = Theme.todos.first { $0.id == "sieza" } ?? Theme.todos[0]
 
     static func conId(_ id: String?) -> Theme {
         Theme.todos.first { $0.id == id } ?? .porDefecto
@@ -58,9 +63,12 @@ struct Theme: Identifiable, Equatable, Sendable {
     /// degradado entero (una barra de sistema, un relleno de respaldo).
     var fondoPlano: Color { fondo.last?.color ?? .black }
 
-    /// El vidrio no tiene color propio: es blanco translúcido y el color se lo
-    /// da el fondo que difumina.
+    /// Los temas anteriores conservan el vidrio. En SIEZA cada superficie es
+    /// opaca: el fondo no se filtra ni cambia el contraste de los controles.
     func vidrio(_ nivel: Int = 1) -> Color {
+        if plano {
+            return (nivel >= 3 ? superficie3 : (nivel == 2 ? superficie2 : superficie1)) ?? fondoPlano
+        }
         let opacidad = nivel >= 3 ? glass3 : (nivel == 2 ? glass2 : glass1)
         return Color.white.opacity(opacidad)
     }

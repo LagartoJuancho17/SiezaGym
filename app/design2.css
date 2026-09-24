@@ -326,6 +326,58 @@
   --d2-noise-opacity: 0;
 }
 
+/* SIEZA: identidad de marca sin material translúcido. Los seis colores
+   parten del manual: Negro, Grafito, Blanco, Plata, Plata Oscura y Brasa.
+   Este bloque también es la fuente de los tokens del cliente iOS. */
+.d2[data-d2-theme="sieza"],
+[data-d2-vars="sieza"] {
+  --d2-flat: 1;
+  --d2-radius: 18px;
+  --d2-radius-lg: 22px;
+  --d2-radius-sm: 12px;
+
+  --d2-glass-tint: 26, 29, 34;
+  --d2-glass-1: 1;
+  --d2-glass-2: 1;
+  --d2-glass-3: 1;
+  --d2-glass-filter: none;
+  --d2-glass-filter-strong: none;
+  --d2-edge-top: transparent;
+  --d2-edge-bottom: transparent;
+  --d2-border: rgba(133, 138, 145, 0.28);
+  --d2-border-strong: #63666e;
+  --d2-shadow: none;
+  --d2-shadow-strong: none;
+
+  --d2-text: #f4f5f7;
+  --d2-text-2: rgba(244, 245, 247, 0.76);
+  --d2-text-3: #858a91;
+  --d2-ink: #ff5733;
+  --d2-on-ink: #0b0c0e;
+  --d2-ink-shadow: none;
+
+  --d2-ring-track: #63666e;
+  --d2-ring-fill: #ff5733;
+  --d2-ring-core: #1a1d22;
+  --d2-ring-core-border: #63666e;
+
+  --d2-bg-a: #0b0c0e;
+  --d2-bg-b: #0b0c0e;
+  --d2-bg-c: #0b0c0e;
+  --d2-bg-grad: #0b0c0e;
+  --d2-ground: #0b0c0e;
+  --d2-surface-1: #1a1d22;
+  --d2-surface-2: #1a1d22;
+  --d2-surface-3: #1a1d22;
+  --d2-blob-1: rgba(0, 0, 0, 0);
+  --d2-blob-2: rgba(0, 0, 0, 0);
+  --d2-blob-3: rgba(0, 0, 0, 0);
+  --d2-ribs: none;
+  --d2-noise-opacity: 0;
+}
+
+.d2[data-d2-theme="sieza"] .d2-blob { display: none; }
+
 /* ============================================================
    PIEZAS
    ============================================================ */
@@ -1645,5 +1697,3 @@
   color: var(--d2-text);
   background: rgba(var(--d2-glass-tint), var(--d2-glass-3));
 }
-
-

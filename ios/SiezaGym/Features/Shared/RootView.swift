@@ -24,6 +24,7 @@ struct RootView: View {
         }
         .environment(\.tema, temas.actual)
         .environment(temas)
+        .tint(temas.actual.solido)
         .animation(.smooth(duration: 0.3), value: auth.state)
     }
 }
@@ -148,6 +149,6 @@ private struct ActiveWorkoutMiniBar: View {
             RoundedRectangle(cornerRadius: 16)
                 .strokeBorder(tema.solido.opacity(0.35), lineWidth: 1)
         }
-        .shadow(color: .black.opacity(0.12), radius: 8, y: 3)
+        .shadow(color: .black.opacity(tema.plano ? 0 : 0.12), radius: 8, y: 3)
     }
 }

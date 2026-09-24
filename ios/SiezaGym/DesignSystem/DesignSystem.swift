@@ -39,8 +39,8 @@ extension EnvironmentValues {
 
 // MARK: - Piezas
 
-/// El fondo de la app: la obra del tema, o el degradado con sus tres luces y
-/// las manchas desenfocadas encima.
+/// El fondo de la app: superficie plana en SIEZA; en los temas anteriores,
+/// obra o degradado con luces y manchas.
 ///
 /// Las manchas no son decoración: el vidrio de las tarjetas difumina lo que
 /// tiene atrás, y sobre un color plano el desenfoque no se percibe.
@@ -53,24 +53,26 @@ struct Backdrop: View {
             let h = proxy.size.height
 
             ZStack {
-                LinearGradient(stops: tema.fondo, startPoint: tema.fondoInicio, endPoint: tema.fondoFin)
-
-                if let obra = tema.obra {
-                    Image(obra)
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: w, height: h)
-                        .clipped()
+                if tema.plano {
+                    tema.fondoPlano
                 } else {
-                    // Las tres luces, en las mismas posiciones que los
-                    // radial-gradient de la web.
-                    luz(tema.luzA, x: 0.18, y: 0.08, radio: w * 1.1)
-                    luz(tema.luzB, x: 0.88, y: 0.22, radio: w * 0.9)
-                    luz(tema.luzC, x: 0.50, y: 1.05, radio: w * 1.2)
+                    LinearGradient(stops: tema.fondo, startPoint: tema.fondoInicio, endPoint: tema.fondoFin)
 
-                    mancha(tema.mancha1, x: -0.14, y: 0.06, lado: 460)
-                    mancha(tema.mancha2, x: 0.86, y: 0.26, lado: 380)
-                    mancha(tema.mancha3, x: 0.24, y: 1.12, lado: 520)
+                    if let obra = tema.obra {
+                        Image(obra)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: w, height: h)
+                            .clipped()
+                    } else {
+                        luz(tema.luzA, x: 0.18, y: 0.08, radio: w * 1.1)
+                        luz(tema.luzB, x: 0.88, y: 0.22, radio: w * 0.9)
+                        luz(tema.luzC, x: 0.50, y: 1.05, radio: w * 1.2)
+
+                        mancha(tema.mancha1, x: -0.14, y: 0.06, lado: 460)
+                        mancha(tema.mancha2, x: 0.86, y: 0.26, lado: 380)
+                        mancha(tema.mancha3, x: 0.24, y: 1.12, lado: 520)
+                    }
                 }
             }
             .frame(width: w, height: h)
@@ -91,7 +93,7 @@ struct Backdrop: View {
     }
 }
 
-/// Tarjeta de vidrio: el contenedor de todo en este diseño.
+/// Tarjeta compartida: material en los temas clásicos, superficie opaca en SIEZA.
 struct GlassCard<Content: View>: View {
     @Environment(\.tema) private var tema
     var padding: CGFloat = 16
@@ -100,13 +102,24 @@ struct GlassCard<Content: View>: View {
     @ViewBuilder var content: Content
 
     var body: some View {
+        let esquina = tema.plano ? min(radius, 18) : radius
         content
             .padding(padding)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(.ultraThinMaterial.opacity(0.6), in: .rect(cornerRadius: radius))
-            .background(tema.vidrio(nivel), in: .rect(cornerRadius: radius))
+            .background {
+                if tema.plano {
+                    RoundedRectangle(cornerRadius: esquina).fill(tema.vidrio(nivel))
+                } else {
+                    RoundedRectangle(cornerRadius: esquina).fill(.ultraThinMaterial.opacity(0.6))
+                }
+            }
+            .background {
+                if !tema.plano {
+                    RoundedRectangle(cornerRadius: esquina).fill(tema.vidrio(nivel))
+                }
+            }
             .overlay {
-                RoundedRectangle(cornerRadius: radius)
+                RoundedRectangle(cornerRadius: esquina)
                     .strokeBorder(tema.borde, lineWidth: 1)
             }
     }
@@ -137,7 +150,7 @@ struct PageTitle: View {
 
     var body: some View {
         Text(texto)
-            .font(.system(size: 30, weight: .heavy))
+            .font(.system(size: 30, weight: tema.plano ? .bold : .heavy))
             .tracking(-0.7)
             .foregroundStyle(tema.texto)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -155,7 +168,7 @@ struct SolidButtonStyle: ButtonStyle {
             .foregroundStyle(tema.sobreSolido)
             .padding(.horizontal, 22)
             .frame(maxWidth: expands ? .infinity : nil, minHeight: 52)
-            .background(tema.solido, in: .capsule)
+            .background(tema.solido, in: .rect(cornerRadius: tema.plano ? 14 : 26))
             .opacity(configuration.isPressed ? 0.85 : 1)
             .scaleEffect(configuration.isPressed ? 0.98 : 1)
             .animation(.snappy(duration: 0.15), value: configuration.isPressed)
@@ -172,8 +185,11 @@ struct GhostButtonStyle: ButtonStyle {
             .foregroundStyle(tema.texto)
             .padding(.horizontal, 18)
             .frame(minHeight: 46)
-            .background(tema.vidrio(1), in: .capsule)
-            .overlay { Capsule().strokeBorder(tema.bordeFuerte, lineWidth: 1) }
+            .background(tema.vidrio(1), in: .rect(cornerRadius: tema.plano ? 14 : 23))
+            .overlay {
+                RoundedRectangle(cornerRadius: tema.plano ? 14 : 23)
+                    .strokeBorder(tema.bordeFuerte, lineWidth: 1)
+            }
             .opacity(configuration.isPressed ? 0.7 : 1)
     }
 }

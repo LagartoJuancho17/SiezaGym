@@ -11,6 +11,32 @@ al revés. No hay una segunda base de datos ni sincronización que mantener.
 Login con email/contraseña o con Google. Entrar con Google cae en la **misma
 cuenta de Firebase** que la web: mismo uid, mismas rutinas.
 
+## Tema SIEZA
+
+En instalaciones nuevas, la app abre con **SIEZA**: una interfaz oscura y
+plana, sin Liquid Glass, desenfoque, manchas, grano ni sombras. Las tarjetas,
+el login, la barra inferior y los widgets usan superficies opacas. Brasa se
+reserva para la acción principal y el estado activo; el texto del botón es
+Negro para mantener contraste. La tipografía de interfaz es la del sistema,
+con títulos en negrita y números tabulares donde los datos lo requieren.
+
+| Uso | Color |
+| --- | --- |
+| Fondo / Negro | `#0B0C0E` |
+| Tarjetas / Grafito | `#1A1D22` |
+| Texto principal / Blanco | `#F4F5F7` |
+| Texto secundario / Plata | `#858A91` |
+| Bordes y estado inactivo / Plata oscura | `#63666E` |
+| Acción / Brasa | `#FF5733` |
+
+Las elecciones previas de tema se conservan. El usuario puede cambiarlo en
+Perfil → Configuración → Tema. Los tokens se generan desde el bloque SIEZA de
+`app/design2.css` con `node ios/scripts/sync-theme.mjs --css app/design2.css`;
+`--check` verifica que `ThemeTokens.swift` esté actualizado sin modificarlo.
+Las pruebas de contraste y sincronización están en
+`tests/ios-sieza-theme*.test.js`, y las del tema nativo en
+`ios/SiezaGymTests/WidgetTests.swift`.
+
 ## Poner a andar el proyecto
 
 ```bash

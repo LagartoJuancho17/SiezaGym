@@ -5,8 +5,8 @@ enum AppTab: Hashable, CaseIterable {
     case home, routines, history, progress, profile
 }
 
-/// Barra inferior, igual a la de la web: una pastilla de vidrio flotando, con
-/// la sección activa marcada con el sólido del tema y su nombre escrito. No usa
+/// Barra inferior, con una superficie opaca en SIEZA o vidrio en los temas
+/// clásicos. La sección activa se marca con el sólido y su nombre. No usa
 /// la TabView nativa a proposito -- la barra del sistema no tiene nada que ver
 /// con este diseño.
 struct BottomNav: View {
@@ -47,7 +47,7 @@ struct BottomNav: View {
                         .padding(4)
                         .foregroundStyle(tema.sobreSolido)
                         .frame(maxWidth: .infinity, minHeight: 44)
-                        .background(tema.solido, in: .capsule)
+                        .background(tema.solido, in: .rect(cornerRadius: tema.plano ? 12 : 26))
                         .contentShape(.rect)
                     } else {
                         NavIcon(tab: tab, color: tema.texto)
@@ -67,10 +67,23 @@ struct BottomNav: View {
         // ("Historial") no entra y se corta.
         .frame(maxWidth: 340)
         .frame(height: Self.height)
-        .background(.ultraThinMaterial.opacity(0.7), in: .capsule)
-        .background(tema.vidrio(1), in: .capsule)
-        .overlay { Capsule().strokeBorder(tema.bordeFuerte, lineWidth: 1) }
-        .shadow(color: .black.opacity(0.28), radius: 18, y: 8)
+        .background {
+            if tema.plano {
+                RoundedRectangle(cornerRadius: 18).fill(tema.vidrio(1))
+            } else {
+                Capsule().fill(.ultraThinMaterial.opacity(0.7))
+            }
+        }
+        .background {
+            if !tema.plano {
+                Capsule().fill(tema.vidrio(1))
+            }
+        }
+        .overlay {
+            RoundedRectangle(cornerRadius: tema.plano ? 18 : 26)
+                .strokeBorder(tema.bordeFuerte, lineWidth: 1)
+        }
+        .shadow(color: .black.opacity(tema.plano ? 0 : 0.28), radius: 18, y: 8)
         .animation(.snappy(duration: 0.22), value: selection)
     }
 }
@@ -219,4 +232,3 @@ extension View {
     }
     .environment(\.tema, Theme.conId("noche"))
 }
-

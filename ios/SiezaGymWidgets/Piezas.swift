@@ -36,7 +36,7 @@ struct SemanaTira: View {
                             .foregroundStyle(tema.texto3)
                     }
                     Circle()
-                        .fill(entrenado ? tema.solido : Color.white.opacity(tema.glass2))
+                        .fill(entrenado ? tema.solido : (tema.plano ? tema.bordeFuerte : Color.white.opacity(tema.glass2)))
                         .frame(width: compacta ? 7 : 9, height: compacta ? 7 : 9)
                 }
             }
@@ -56,7 +56,8 @@ struct Dato: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 1) {
             Text(valor)
-                .font(.system(size: tamanio, weight: .bold, design: .rounded))
+                .font(.system(size: tamanio, weight: .bold, design: tema.plano ? .default : .rounded))
+                .monospacedDigit()
                 .foregroundStyle(tema.texto)
                 .minimumScaleFactor(0.6)
                 .lineLimit(1)
