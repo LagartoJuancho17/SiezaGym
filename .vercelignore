@@ -1,0 +1,7 @@
+# La app de iPhone vive en el mismo repo que la web, pero Vercel no la
+# necesita para nada: ni el código Swift, ni el proyecto de Xcode, ni sus
+# assets. Subirla infla el deploy (el checkout local llega a pesar 4.5GB
+# entre ios/build e ios/build-device, que están gitignoreados pero Vercel
+# no siempre respeta .gitignore de la misma forma que git) y fue lo que hizo
+# fallar `vercel deploy` con "Request body too large. Limit: 10mb".
+ios/
