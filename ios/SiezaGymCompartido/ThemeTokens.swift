@@ -5,7 +5,7 @@
 //
 //     node ios/scripts/sync-theme.mjs --css ../SiezaGym/app/design2.css
 //
-// Temas encontrados: noche, plata, brasa, pliegues, electrico
+// Temas encontrados: noche, plata, brasa, pliegues, electrico, sieza
 
 import SwiftUI
 
@@ -16,14 +16,18 @@ extension Color {
 }
 
 extension Theme {
-    /// Los temas del diseño, en el mismo orden que el selector de la web.
+    /// Los temas del diseño; SIEZA se ofrece solo en el cliente iOS.
     static let todos: [Theme] = [
         Theme(
             id: "noche",
             nombre: "Noche",
+            plano: false,
             glass1: 0.07,
             glass2: 0.11,
             glass3: 0.16,
+            superficie1: nil,
+            superficie2: nil,
+            superficie3: nil,
             borde: Color(r: 255, g: 255, b: 255, a: 0.11),
             bordeFuerte: Color(r: 255, g: 255, b: 255, a: 0.2),
             texto: Color(r: 255, g: 255, b: 255, a: 1),
@@ -49,9 +53,13 @@ extension Theme {
         Theme(
             id: "plata",
             nombre: "Plata",
+            plano: false,
             glass1: 0.19,
             glass2: 0.16,
             glass3: 0.24,
+            superficie1: nil,
+            superficie2: nil,
+            superficie3: nil,
             borde: Color(r: 255, g: 255, b: 255, a: 0.22),
             bordeFuerte: Color(r: 255, g: 255, b: 255, a: 0.3),
             texto: Color(r: 250, g: 252, b: 252, a: 1),
@@ -78,9 +86,13 @@ extension Theme {
         Theme(
             id: "brasa",
             nombre: "Brasa",
+            plano: false,
             glass1: 0.09,
             glass2: 0.14,
             glass3: 0.2,
+            superficie1: nil,
+            superficie2: nil,
+            superficie3: nil,
             borde: Color(r: 255, g: 255, b: 255, a: 0.13),
             bordeFuerte: Color(r: 255, g: 176, b: 150, a: 0.28),
             texto: Color(r: 255, g: 255, b: 255, a: 1),
@@ -106,9 +118,13 @@ extension Theme {
         Theme(
             id: "pliegues",
             nombre: "Pliegues",
+            plano: false,
             glass1: 0.07,
             glass2: 0.12,
             glass3: 0.18,
+            superficie1: nil,
+            superficie2: nil,
+            superficie3: nil,
             borde: Color(r: 255, g: 219, b: 199, a: 0.12),
             bordeFuerte: Color(r: 255, g: 186, b: 140, a: 0.3),
             texto: Color(r: 253, g: 244, b: 238, a: 1),
@@ -132,9 +148,13 @@ extension Theme {
         Theme(
             id: "electrico",
             nombre: "Eléctrico",
+            plano: false,
             glass1: 0.1,
             glass2: 0.15,
             glass3: 0.22,
+            superficie1: nil,
+            superficie2: nil,
+            superficie3: nil,
             borde: Color(r: 214, g: 224, b: 255, a: 0.16),
             bordeFuerte: Color(r: 198, g: 212, b: 255, a: 0.34),
             texto: Color(r: 242, g: 245, b: 255, a: 1),
@@ -154,6 +174,36 @@ extension Theme {
                 Gradient.Stop(color: Color(r: 0, g: 0, b: 0, a: 1), location: 0)
             ],
             obra: "fondo-electrico"
+        ),
+        Theme(
+            id: "sieza",
+            nombre: "SIEZA",
+            plano: true,
+            glass1: 1,
+            glass2: 1,
+            glass3: 1,
+            superficie1: Color(r: 26, g: 29, b: 34, a: 1),
+            superficie2: Color(r: 26, g: 29, b: 34, a: 1),
+            superficie3: Color(r: 26, g: 29, b: 34, a: 1),
+            borde: Color(r: 133, g: 138, b: 145, a: 0.28),
+            bordeFuerte: Color(r: 99, g: 102, b: 110, a: 1),
+            texto: Color(r: 244, g: 245, b: 247, a: 1),
+            texto2: Color(r: 244, g: 245, b: 247, a: 0.76),
+            texto3: Color(r: 133, g: 138, b: 145, a: 1),
+            solido: Color(r: 255, g: 87, b: 51, a: 1),
+            sobreSolido: Color(r: 11, g: 12, b: 14, a: 1),
+            luzA: Color(r: 11, g: 12, b: 14, a: 1),
+            luzB: Color(r: 11, g: 12, b: 14, a: 1),
+            luzC: Color(r: 11, g: 12, b: 14, a: 1),
+            mancha1: Color(r: 0, g: 0, b: 0, a: 0),
+            mancha2: Color(r: 0, g: 0, b: 0, a: 0),
+            mancha3: Color(r: 0, g: 0, b: 0, a: 0),
+            fondoInicio: UnitPoint(x: 0.5000, y: 0.0000),
+            fondoFin: UnitPoint(x: 0.5000, y: 1.0000),
+            fondo: [
+                Gradient.Stop(color: Color(r: 11, g: 12, b: 14, a: 1), location: 0)
+            ],
+            obra: nil
         )
     ]
 }

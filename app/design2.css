@@ -326,6 +326,58 @@
   --d2-noise-opacity: 0;
 }
 
+/* SIEZA: identidad de marca sin material translúcido. Los seis colores
+   parten del manual: Negro, Grafito, Blanco, Plata, Plata Oscura y Brasa.
+   Este bloque también es la fuente de los tokens del cliente iOS. */
+.d2[data-d2-theme="sieza"],
+[data-d2-vars="sieza"] {
+  --d2-flat: 1;
+  --d2-radius: 18px;
+  --d2-radius-lg: 22px;
+  --d2-radius-sm: 12px;
+
+  --d2-glass-tint: 26, 29, 34;
+  --d2-glass-1: 1;
+  --d2-glass-2: 1;
+  --d2-glass-3: 1;
+  --d2-glass-filter: none;
+  --d2-glass-filter-strong: none;
+  --d2-edge-top: transparent;
+  --d2-edge-bottom: transparent;
+  --d2-border: rgba(133, 138, 145, 0.28);
+  --d2-border-strong: #63666e;
+  --d2-shadow: none;
+  --d2-shadow-strong: none;
+
+  --d2-text: #f4f5f7;
+  --d2-text-2: rgba(244, 245, 247, 0.76);
+  --d2-text-3: #858a91;
+  --d2-ink: #ff5733;
+  --d2-on-ink: #0b0c0e;
+  --d2-ink-shadow: none;
+
+  --d2-ring-track: #63666e;
+  --d2-ring-fill: #ff5733;
+  --d2-ring-core: #1a1d22;
+  --d2-ring-core-border: #63666e;
+
+  --d2-bg-a: #0b0c0e;
+  --d2-bg-b: #0b0c0e;
+  --d2-bg-c: #0b0c0e;
+  --d2-bg-grad: #0b0c0e;
+  --d2-ground: #0b0c0e;
+  --d2-surface-1: #1a1d22;
+  --d2-surface-2: #1a1d22;
+  --d2-surface-3: #1a1d22;
+  --d2-blob-1: rgba(0, 0, 0, 0);
+  --d2-blob-2: rgba(0, 0, 0, 0);
+  --d2-blob-3: rgba(0, 0, 0, 0);
+  --d2-ribs: none;
+  --d2-noise-opacity: 0;
+}
+
+.d2[data-d2-theme="sieza"] .d2-blob { display: none; }
+
 /* ============================================================
    PIEZAS
    ============================================================ */
@@ -991,7 +1043,8 @@
    queda en cincuenta pixeles y "Electrico" se corta. */
 .d2-themes { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(10 * var(--d2-u)); padding: calc(14 * var(--d2-u)) calc(18 * var(--d2-u)) calc(18 * var(--d2-u)); }
 .d2-theme { display: flex; min-width: 0; flex-direction: column; align-items: center; gap: calc(8 * var(--d2-u)); padding: calc(10 * var(--d2-u)) calc(6 * var(--d2-u)); border-radius: calc(18 * var(--d2-u)); border: 1px solid transparent; color: var(--d2-text-2); }
-.d2-theme-dot { width: calc(46 * var(--d2-u)); height: calc(46 * var(--d2-u)); border-radius: 50%; background: var(--d2-ground); background-size: cover; background-position: center; border: 1px solid var(--d2-border-strong); box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.25); }
+.d2-theme-dot { display: flex; align-items: center; justify-content: center; width: calc(46 * var(--d2-u)); height: calc(46 * var(--d2-u)); border-radius: 50%; background: var(--d2-ground); background-size: cover; background-position: center; border: 1px solid var(--d2-border-strong); box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.25); }
+.d2-theme-dot[data-d2-vars="sieza"]::after { content: ""; width: calc(16 * var(--d2-u)); height: calc(16 * var(--d2-u)); border-radius: 50%; background: var(--d2-ink); }
 .d2-theme-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; font-size: calc(12 * var(--d2-u)); line-height: 1.3; }
 /* El elegido se marca con el borde y el texto en primer plano, no con un
    tilde encima de la muestra: el tilde tapa justo lo que hay que mirar. */
@@ -1645,5 +1698,3 @@
   color: var(--d2-text);
   background: rgba(var(--d2-glass-tint), var(--d2-glass-3));
 }
-
-

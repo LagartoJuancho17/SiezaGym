@@ -5,25 +5,31 @@ struct RootView: View {
     /// El tema elegido vive acá arriba y baja por el entorno a toda la app,
     /// igual que `ThemeRoot` en la web.
     @State private var temas = ThemeStore()
+    @AppStorage("sieza.onboarding.completed.v1") private var onboardingCompleted = false
 
     var body: some View {
         ZStack {
             Backdrop()
 
-            switch auth.state {
-            case .loading:
-                ProgressView().tint(temas.actual.texto)
-            case .signedOut:
-                LoginView()
-            case let .signedIn(uid, _):
-                MainTabView(store: GymStore(uid: uid))
-                    // Cambiar de cuenta tiene que rearmar todas las pantallas,
-                    // si no queda data del usuario anterior en pantalla.
-                    .id(uid)
+            if !onboardingCompleted {
+                OnboardingView { onboardingCompleted = true }
+            } else {
+                switch auth.state {
+                case .loading:
+                    ProgressView().tint(temas.actual.texto)
+                case .signedOut:
+                    LoginView()
+                case let .signedIn(uid, _):
+                    MainTabView(store: GymStore(uid: uid))
+                        // Cambiar de cuenta tiene que rearmar todas las pantallas,
+                        // si no queda data del usuario anterior en pantalla.
+                        .id(uid)
+                }
             }
         }
         .environment(\.tema, temas.actual)
         .environment(temas)
+        .tint(temas.actual.solido)
         .animation(.smooth(duration: 0.3), value: auth.state)
     }
 }
@@ -148,6 +154,6 @@ private struct ActiveWorkoutMiniBar: View {
             RoundedRectangle(cornerRadius: 16)
                 .strokeBorder(tema.solido.opacity(0.35), lineWidth: 1)
         }
-        .shadow(color: .black.opacity(0.12), radius: 8, y: 3)
+        .shadow(color: .black.opacity(tema.plano ? 0 : 0.12), radius: 8, y: 3)
     }
 }

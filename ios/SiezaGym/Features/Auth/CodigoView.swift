@@ -74,7 +74,7 @@ struct CodigoView: View {
                 .tracking(1.8)
                 .foregroundStyle(tema.texto2)
             Text("Revisá tu mail")
-                .font(.system(size: 30, weight: .heavy))
+                .font(.system(size: 30, weight: tema.plano ? .bold : .heavy))
                 .tracking(-0.7)
                 .foregroundStyle(tema.texto)
             Text("Te mandamos un código de 6 números a \(email).")
@@ -132,15 +132,17 @@ struct CodigoView: View {
         // El cursor se marca en el primer casillero vacío, y en el último
         // cuando ya están todos: si no, el código completo queda sin indicar.
         let enCurso = escribiendo && posicion == min(codigo.digitos.count, CodigoMFA.largo - 1)
+        // Misma regla que los campos de LoginView: 14 en SIEZA (plano).
+        let radio: CGFloat = tema.plano ? 14 : Theme.radiusSmall
 
         return Text(digito)
             .font(.system(size: 24, weight: .semibold, design: .rounded))
             .foregroundStyle(tema.texto)
             .frame(maxWidth: .infinity)
             .frame(height: 58)
-            .background(tema.vidrio(1), in: .rect(cornerRadius: Theme.radiusSmall))
+            .background(tema.vidrio(1), in: .rect(cornerRadius: radio))
             .overlay {
-                RoundedRectangle(cornerRadius: Theme.radiusSmall)
+                RoundedRectangle(cornerRadius: radio)
                     .strokeBorder(enCurso ? tema.solido : tema.borde, lineWidth: 1)
             }
             .animation(.snappy(duration: 0.15), value: enCurso)

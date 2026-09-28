@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 import Testing
 @testable import SiezaGym
 
@@ -152,6 +153,43 @@ struct WidgetSnapshotTests {
     @Test("un tema desconocido cae en el de por defecto y no rompe el widget")
     func temaDesconocido() {
         #expect(Theme.conId("inventado").id == Theme.porDefecto.id)
+    }
+}
+
+@Suite("Tema de marca SIEZA")
+struct BrandThemeTests {
+    @Test("SIEZA es el tema inicial y mantiene las opciones anteriores")
+    func disponibilidad() {
+        #expect(Theme.porDefecto.id == "sieza")
+        #expect(Theme.todos.count == 6)
+        #expect(Theme.conId("plata").id == "plata")
+        #expect(Theme.conId("noche").id == "noche")
+    }
+
+    @Test("las tres capas del tema son opacas y el fondo es plano")
+    func superficies() throws {
+        let tema = Theme.conId("sieza")
+        let superficie1 = try #require(tema.superficie1)
+        let superficie2 = try #require(tema.superficie2)
+        let superficie3 = try #require(tema.superficie3)
+
+        #expect(tema.plano)
+        #expect(tema.obra == nil)
+        #expect(tema.fondo.count == 1)
+        #expect(tema.fondoPlano == Color(r: 11, g: 12, b: 14, a: 1))
+        #expect(tema.vidrio(1) == superficie1)
+        #expect(tema.vidrio(2) == superficie2)
+        #expect(tema.vidrio(3) == superficie3)
+        #expect(tema.solido == Color(r: 255, g: 87, b: 51, a: 1))
+        #expect(tema.sobreSolido == Color(r: 11, g: 12, b: 14, a: 1))
+    }
+
+    @Test("los temas antiguos siguen usando vidrio")
+    func compatibilidad() {
+        let plata = Theme.conId("plata")
+        #expect(!plata.plano)
+        #expect(plata.superficie1 == nil)
+        #expect(plata.vidrio(1) == Color.white.opacity(plata.glass1))
     }
 }
 

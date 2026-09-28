@@ -68,7 +68,7 @@ struct LoginView: View {
                 .tracking(1.8)
                 .foregroundStyle(tema.texto2)
             Text(form.modo.titulo)
-                .font(.system(size: 30, weight: .heavy))
+                .font(.system(size: 30, weight: tema.plano ? .bold : .heavy))
                 .tracking(-0.7)
                 .foregroundStyle(tema.texto)
                 .contentTransition(.numericText())
@@ -77,10 +77,16 @@ struct LoginView: View {
     }
 
     /// Las dos pestañas, mitad y mitad: el `.d2-segs` de la web.
+    ///
+    /// El radio sigue la misma regla que `BottomNav`: 26 en los temas
+    /// clásicos, 12 en SIEZA (plano). Es el mismo par de valores, no
+    /// `Theme.radius`, para que la pestaña activa y la barra de abajo se vean
+    /// como la misma familia de control.
     private var pestanas: some View {
         HStack(spacing: 8) {
             ForEach(AuthMode.allCases, id: \.self) { modo in
                 let activa = form.modo == modo
+                let radio: CGFloat = tema.plano ? 12 : 26
                 Button {
                     withAnimation(.smooth(duration: 0.25)) {
                         form.cambiarA(modo)
@@ -92,9 +98,10 @@ struct LoginView: View {
                         .font(.system(size: 13))
                         .foregroundStyle(activa ? tema.sobreSolido : tema.texto2)
                         .frame(maxWidth: .infinity, minHeight: 38)
-                        .background(activa ? AnyShapeStyle(tema.solido) : AnyShapeStyle(tema.vidrio(1)), in: .capsule)
+                        .background(activa ? AnyShapeStyle(tema.solido) : AnyShapeStyle(tema.vidrio(1)), in: .rect(cornerRadius: radio))
                         .overlay {
-                            Capsule().strokeBorder(activa ? .clear : tema.borde, lineWidth: 1)
+                            RoundedRectangle(cornerRadius: radio)
+                                .strokeBorder(activa ? .clear : tema.borde, lineWidth: 1)
                         }
                 }
                 .buttonStyle(.plain)
@@ -111,8 +118,12 @@ struct LoginView: View {
     /// venía con su fondo blanco: sobre los temas oscuros parecía pegoteado de
     /// otra app. La G sigue siendo el logo oficial sin recolorear, que es lo que
     /// piden las guías de marca; lo que no exigen es usar su botón.
+    ///
+    /// El radio es el mismo 14/26 de `SolidButtonStyle`, no `Theme.radius`: es
+    /// justamente el botón que tiene que verse igual que el principal.
     private var botonGoogle: some View {
-        Button {
+        let radio: CGFloat = tema.plano ? 14 : 26
+        return Button {
             campo = nil
             Task { await auth.signInWithGoogle() }
         } label: {
@@ -125,8 +136,10 @@ struct LoginView: View {
             }
             .foregroundStyle(tema.texto)
             .frame(maxWidth: .infinity, minHeight: 50)
-            .background(tema.vidrio(2), in: .capsule)
-            .overlay { Capsule().strokeBorder(tema.bordeFuerte, lineWidth: 1) }
+            .background(tema.vidrio(2), in: .rect(cornerRadius: radio))
+            .overlay {
+                RoundedRectangle(cornerRadius: radio).strokeBorder(tema.bordeFuerte, lineWidth: 1)
+            }
         }
         .buttonStyle(.plain)
         .disabled(auth.isWorking)
@@ -245,6 +258,9 @@ struct LoginView: View {
     ) -> some View {
         let esPassword = cual == .password || cual == .repetir
         let prompt = Text(marcador).foregroundStyle(tema.texto3)
+        // 14 en SIEZA (plano), Theme.radiusSmall en los temas clásicos: la
+        // misma regla 14/base que el resto de los controles del tema plano.
+        let radio: CGFloat = tema.plano ? 14 : Theme.radiusSmall
 
         Group {
             if esPassword, !verContrasena {
@@ -261,9 +277,9 @@ struct LoginView: View {
         .onSubmit(siguienteCampo)
         .padding(.horizontal, 16)
         .frame(height: 52)
-        .background(tema.vidrio(1), in: .rect(cornerRadius: Theme.radiusSmall))
+        .background(tema.vidrio(1), in: .rect(cornerRadius: radio))
         .overlay {
-            RoundedRectangle(cornerRadius: Theme.radiusSmall)
+            RoundedRectangle(cornerRadius: radio)
                 .strokeBorder(campo == cual ? tema.solido : tema.borde, lineWidth: 1)
         }
         .animation(.snappy(duration: 0.15), value: campo)

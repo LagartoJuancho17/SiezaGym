@@ -89,7 +89,7 @@ private struct PantallaBloqueada: View {
 
             Barra(
                 relleno: tema.solido,
-                fondo: Color.white.opacity(tema.glass2),
+                fondo: tema.plano ? tema.bordeFuerte : Color.white.opacity(tema.glass2),
                 progreso: contexto.state.progress
             )
 

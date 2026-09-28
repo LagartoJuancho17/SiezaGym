@@ -179,7 +179,7 @@ struct ProfileScreen: View {
                 VStack(alignment: .leading, spacing: 12) {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Tema").font(.system(size: 14, weight: .medium)).foregroundStyle(tema.texto)
-                        Text("El fondo de la app. Se guarda en este teléfono.")
+                        Text("La apariencia de la app. Se guarda en este teléfono.")
                             .font(.system(size: 11)).foregroundStyle(tema.texto2)
                     }
 
@@ -225,6 +225,11 @@ struct ProfileScreen: View {
             LinearGradient(stops: opcion.fondo, startPoint: opcion.fondoInicio, endPoint: opcion.fondoFin)
             if let obra = opcion.obra {
                 Image(obra).resizable().aspectRatio(contentMode: .fill)
+            }
+            if opcion.plano {
+                Circle()
+                    .fill(opcion.solido)
+                    .frame(width: 16, height: 16)
             }
         }
         .frame(width: 46, height: 46)

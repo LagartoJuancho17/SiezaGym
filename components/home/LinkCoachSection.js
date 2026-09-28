@@ -15,8 +15,10 @@ export default function LinkCoachSection() {
   async function handleSubmit(e) {
     e.preventDefault();
     const trimmed = code.trim();
+    const clean = trimmed.toUpperCase().replace(/[^A-Z0-9]/g, "");
+    const formatted = clean.length === 6 ? `${clean.slice(0, 3)}-${clean.slice(3)}` : trimmed.toUpperCase();
 
-    if (!CODE_REGEX.test(trimmed)) {
+    if (!CODE_REGEX.test(formatted)) {
       setToast({
         message: "Ingresá un código válido (ej: ABC-123).",
         type: "error",
@@ -26,7 +28,7 @@ export default function LinkCoachSection() {
 
     setLoading(true);
     try {
-      const result = await redeemInvitationCode(trimmed);
+      const result = await redeemInvitationCode(formatted);
       setLinkedCoach(result.coachName);
       setToast({
         message: `¡Vinculado con ${result.coachName}!`,

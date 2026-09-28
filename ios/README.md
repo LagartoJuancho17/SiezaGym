@@ -12,6 +12,56 @@ Login con email/contraseña **con segundo factor por mail**, o con Google. Entra
 con Google cae en la **misma cuenta de Firebase** que la web: mismo uid, mismas
 rutinas.
 
+## Bienvenida de tres pantallas
+
+En el primer arranque, antes del login, se muestran tres escenas fotográficas
+en blanco y negro con controles opacos de la paleta SIEZA. Explican tres pasos
+reales de la app: armar rutinas, registrar series y consultar progreso; la
+tercera menciona Apple Salud solo como conexión opcional. Se puede avanzar,
+volver u omitir. El último botón y «Omitir» abren el login si no hay sesión, o
+la app directamente si ya la hay. No se crea ninguna cuenta ni se piden
+permisos de Salud desde estas pantallas.
+
+La elección se guarda **una vez por instalación** en
+`sieza.onboarding.completed.v1` (UserDefaults). Cerrar la app a mitad del
+recorrido vuelve a mostrarlo desde el principio; al completarlo no reaparece
+en cada apertura. Para revisar el primer arranque, desinstalá la app del
+simulador y volvé a instalarla. Las fotos son recursos locales del catálogo y
+están versionadas con Git LFS, para que también funcionen sin internet.
+
+Pruebas: `ios/SiezaGymTests/OnboardingFlowTests.swift` verifica orden, límites y
+navegación. `tests/ios-onboarding.eval.test.js` comprueba que las tres fotos
+existan, sean verticales y distintas, y que el recorrido siga conectado al
+inicio de sesión. Para revisión visual en iPhone chico/grande, comprobar que
+los títulos y botones no se corten, que la foto no tape el texto, y que
+VoiceOver lea «Omitir», «Volver» y «Continuar/Empezar» en ese orden.
+
+## Tema SIEZA
+
+En instalaciones nuevas, la app abre con **SIEZA**: una interfaz oscura y
+plana, sin Liquid Glass, desenfoque, manchas, grano ni sombras. Las tarjetas,
+el login, la barra inferior y los widgets usan superficies opacas. Brasa se
+reserva para la acción principal y el estado activo; el texto del botón es
+Negro para mantener contraste. La tipografía de interfaz es la del sistema,
+con títulos en negrita y números tabulares donde los datos lo requieren.
+
+| Uso | Color |
+| --- | --- |
+| Fondo / Negro | `#0B0C0E` |
+| Tarjetas / Grafito | `#1A1D22` |
+| Texto principal / Blanco | `#F4F5F7` |
+| Texto secundario / Plata | `#858A91` |
+| Bordes y estado inactivo / Plata oscura | `#63666E` |
+| Acción / Brasa | `#FF5733` |
+
+Las elecciones previas de tema se conservan. El usuario puede cambiarlo en
+Perfil → Configuración → Tema. Los tokens se generan desde el bloque SIEZA de
+`app/design2.css` con `node ios/scripts/sync-theme.mjs --css app/design2.css`;
+`--check` verifica que `ThemeTokens.swift` esté actualizado sin modificarlo.
+Las pruebas de contraste y sincronización están en
+`tests/ios-sieza-theme*.test.js`, y las del tema nativo en
+`ios/SiezaGymTests/WidgetTests.swift`.
+
 ## Poner a andar el proyecto
 
 ```bash
@@ -308,16 +358,17 @@ xcodebuild test -project SiezaGym.xcodeproj -scheme SiezaGym \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 ```
 
-191 tests: la matemática de `Domain/`, lo que muestran los widgets, los links de
-YouTube, el formato de las métricas de Salud, las reglas del formulario de login
-y el código del segundo factor. Son funciones puras, no tocan Firestore ni la
-red.
+197 tests: la matemática de `Domain/`, lo que muestran los widgets, los links de
+YouTube, el formato de las métricas de Salud, las reglas del formulario de login,
+el código del segundo factor y la bienvenida de tres pantallas. Son funciones
+puras, no tocan Firestore ni la red.
 
 Lo que corre del lado del servidor (generar el código, hashearlo, vencimiento,
-intentos, límite de pedidos) se prueba en el repo de la web:
+intentos, límite de pedidos, las rutas y la comprobación de contraseña) se
+prueba en el repo de la web:
 
 ```bash
-npm test -- tests/mfa-challenge.test.js   # 44 tests
+npm test -- tests/mfa-*.test.js   # 61 tests
 ```
 
 ## El proyecto de Xcode

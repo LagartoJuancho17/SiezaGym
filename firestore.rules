@@ -123,5 +123,24 @@ service cloud.firestore {
       allow read: if isSignedIn();
       allow write: if false;
     }
+
+    // ---- segundo factor por mail ----
+    // Cerradas del todo: aca vive el hash del codigo y el contador de intentos.
+    // Si el cliente pudiera leerlos, sacaria el codigo del hash; si pudiera
+    // escribirlos, se pondria los intentos en cero y probaria el millon de
+    // combinaciones.
+    //
+    // Solo el Admin SDK entra, desde /api/mfa/start y /api/mfa/verify, porque
+    // saltea las reglas por definicion. El login directo con password (sin
+    // pasar por el codigo) sigue sin estar bloqueado en las reglas de
+    // `users/{uid}`: lo que impide entrar sin el codigo es que ningun cliente
+    // llama a `signIn(withEmail:password:)`, ni en la app ni en la web.
+    match /mfaChallenges/{challengeId} {
+      allow read, write: if false;
+    }
+
+    match /mfaThrottle/{emailKey} {
+      allow read, write: if false;
+    }
   }
 }
