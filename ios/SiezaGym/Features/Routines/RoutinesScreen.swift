@@ -19,6 +19,16 @@ struct RoutinesScreen: View {
         }
     }
 
+    /// Los meses son un rótulo y no un acordeón, igual que en la web: llegar a
+    /// una rutina no puede costar dos clics en dos niveles desplegables. Con
+    /// una búsqueda en curso se esconden: cortar tres resultados en secciones
+    /// por semana los desordena en vez de ayudarlos a encontrar.
+    private var agrupar: Bool { busqueda.trimmingCharacters(in: .whitespaces).isEmpty }
+
+    private var secciones: [TrainingCalendar.SeccionSemana<Routine>] {
+        TrainingCalendar.seccionesPorSemana(visibles, fechaDe: \.referenceDate)
+    }
+
     var body: some View {
         NavigationStack {
             Pantalla(titulo: "Rutinas") {
@@ -40,27 +50,16 @@ struct RoutinesScreen: View {
                 } else if visibles.isEmpty {
                     Vacio(texto: "Ninguna rutina coincide.")
                         .padding(.top, 24)
-                } else {
-                    PanelLista {
-                        ForEach(Array(visibles.enumerated()), id: \.element.id) { indice, rutina in
-                            if indice > 0 {
-                                Rectangle().fill(tema.borde).frame(height: 1)
-                            }
-                            NavigationLink {
-                                RoutineDetailScreen(routine: rutina, store: store) { elegida in
-                                    workout = WorkoutTarget(routine: elegida)
-                                }
-                            } label: {
-                                FilaLista(
-                                    nombre: rutina.name,
-                                    detalle: detalle(rutina),
-                                    etiqueta: rutina.isAssigned ? "Del coach" : nil
-                                )
-                            }
-                            .buttonStyle(.plain)
-                        }
+                } else if agrupar {
+                    ForEach(secciones) { seccion in
+                        SectionLabel(seccion.texto)
+                            .padding(.top, 24)
+                            .padding(.bottom, 10)
+                        panel(seccion.items)
                     }
-                    .padding(.top, 24)
+                } else {
+                    panel(visibles)
+                        .padding(.top, 24)
                 }
             }
             .bottomNavInset()
@@ -73,6 +72,28 @@ struct RoutinesScreen: View {
             }
             .fullScreenCover(isPresented: $creando) {
                 RoutineComposerScreen(store: store)
+            }
+        }
+    }
+
+    private func panel(_ rutinas: [Routine]) -> some View {
+        PanelLista {
+            ForEach(Array(rutinas.enumerated()), id: \.element.id) { indice, rutina in
+                if indice > 0 {
+                    Rectangle().fill(tema.borde).frame(height: 1)
+                }
+                NavigationLink {
+                    RoutineDetailScreen(routine: rutina, store: store) { elegida in
+                        workout = WorkoutTarget(routine: elegida)
+                    }
+                } label: {
+                    FilaLista(
+                        nombre: rutina.name,
+                        detalle: detalle(rutina),
+                        etiqueta: rutina.isAssigned ? "Del coach" : nil
+                    )
+                }
+                .buttonStyle(.plain)
             }
         }
     }

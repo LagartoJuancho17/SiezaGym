@@ -270,6 +270,25 @@ septiembre no se confunda con la de octubre ni con la del año que viene.
 lo escribe o lo borra con `FieldValue.delete()`. Sólo para rutinas propias: las
 del coach se organizan solas por cuándo te las asignaron.
 
+## Rutinas agrupadas por mes y semana
+
+La lista de Rutinas no es plana: cada rutina cae sola en "Septiembre · Semana 4"
+según su propia fecha, sin que nadie la asigne a mano. Es el mismo dato que
+`weekKey` de arriba pero al revés — acá no hay campo que guardar, es puro
+cálculo sobre `createdAt`/`assignedAt`. Puerto directo de `groupByMonthAndWeek`
++ `weekSections` de `lib/routines/schedule.js` y `lib/routines/filter.js` en la
+web.
+
+`TrainingCalendar.seccionesPorSemana(_:fechaDe:)` arma una `SeccionSemana` por
+cada combinación mes+semana que tenga al menos una rutina — nunca semanas
+vacías. Los meses van del más nuevo al más viejo; adentro de un mes, semana 1
+antes que semana 2. Las rutinas sin fecha (no debería pasar, pero por las
+dudas) quedan en una tanda "Sin fecha" al final en vez de desaparecer.
+
+Con una búsqueda en curso (`RoutinesScreen.agrupar == false`) se desarma todo y
+se muestra la lista plana: cortar tres resultados de búsqueda en secciones por
+semana los desordena en vez de ayudar a encontrar algo.
+
 ## Ejercicios propios
 
 Lo que no está en el catálogo de 94 se carga desde el `+` del selector y vive en
@@ -394,11 +413,11 @@ xcodebuild test -project SiezaGym.xcodeproj -scheme SiezaGym \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 ```
 
-224 tests: la matemática de `Domain/`, lo que muestran los widgets, los links de
+230 tests: la matemática de `Domain/`, lo que muestran los widgets, los links de
 YouTube, el formato de las métricas de Salud, las reglas del formulario de login,
 el código del segundo factor, la bienvenida de tres pantallas, los bloques de
-ejercicios y la semana asignada. Son funciones puras, no tocan Firestore ni la
-red.
+ejercicios, la semana asignada y el agrupamiento de Rutinas por mes y semana.
+Son funciones puras, no tocan Firestore ni la red.
 
 Lo que corre del lado del servidor (generar el código, hashearlo, vencimiento,
 intentos, límite de pedidos, las rutas y la comprobación de contraseña) se

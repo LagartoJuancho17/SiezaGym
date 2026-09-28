@@ -95,4 +95,43 @@ nonisolated enum TrainingCalendar {
     static func delaSemana<Item>(_ items: [Item], clave objetivo: String, claveDe: (Item) -> String?) -> [Item] {
         items.filter { claveDe($0) == objetivo }
     }
+
+    /// Una tanda de items que caen en la misma semana, para la pantalla de
+    /// Rutinas. Puerto de `groupByMonthAndWeek` + `weekSections` en
+    /// `lib/routines/schedule.js` y `lib/routines/filter.js`.
+    nonisolated struct SeccionSemana<Item>: Identifiable {
+        let id: String
+        /// "Septiembre · Semana 4", o "Sin fecha" para los que no tienen.
+        let texto: String
+        let items: [Item]
+    }
+
+    /// Agrupa por semana del mes usando la fecha de cada item. Los meses van
+    /// del más nuevo al más viejo; dentro de un mes, las semanas de la 1 en
+    /// adelante -- mismo orden que la web. Los que no tienen fecha quedan en
+    /// una sola tanda al final, en vez de desaparecer.
+    static func seccionesPorSemana<Item>(_ items: [Item], fechaDe: (Item) -> Date?) -> [SeccionSemana<Item>] {
+        var porClave: [String: (semana: Semana, items: [Item])] = [:]
+        var sinFecha: [Item] = []
+
+        for item in items {
+            guard let fecha = fechaDe(item) else {
+                sinFecha.append(item)
+                continue
+            }
+            let sem = semana(de: fecha)
+            porClave[sem.clave, default: (sem, [])].items.append(item)
+        }
+
+        let conFecha = porClave.values
+            .sorted { izquierda, derecha in
+                if izquierda.semana.anio != derecha.semana.anio { return izquierda.semana.anio > derecha.semana.anio }
+                if izquierda.semana.mes != derecha.semana.mes { return izquierda.semana.mes > derecha.semana.mes }
+                return izquierda.semana.numero < derecha.semana.numero
+            }
+            .map { SeccionSemana(id: $0.semana.clave, texto: $0.semana.texto, items: $0.items) }
+
+        guard !sinFecha.isEmpty else { return conFecha }
+        return conFecha + [SeccionSemana(id: "sin-fecha", texto: "Sin fecha", items: sinFecha)]
+    }
 }

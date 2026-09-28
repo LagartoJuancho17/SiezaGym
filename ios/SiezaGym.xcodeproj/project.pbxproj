@@ -199,7 +199,7 @@
 		F9F497722DB4661FFF746FD1 /* TrainingCalendar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainingCalendar.swift; sourceTree = "<group>"; };
 		F9F6A2EBFC13CEDC7984B640 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		FD8ADFF2CAA687963AB3D3AA /* Piezas.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Piezas.swift; sourceTree = "<group>"; };
-		"TEMP_BE6E4EE3-9C34-469E-B24D-EFA33006F4EF" /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
+		"TEMP_AFC1B85E-28D6-4EFF-BBEB-9490356157D8" /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -460,10 +460,10 @@
 			path = Progress;
 			sourceTree = "<group>";
 		};
-		"TEMP_FDF0379F-3FBC-4ECC-AFE0-FF814CA7DA66" /* ios */ = {
+		"TEMP_EC21385E-D870-4EEC-9C24-C4F262B6E5AC" /* ios */ = {
 			isa = PBXGroup;
 			children = (
-				"TEMP_BE6E4EE3-9C34-469E-B24D-EFA33006F4EF" /* Signing.xcconfig */,
+				"TEMP_AFC1B85E-28D6-4EFF-BBEB-9490356157D8" /* Signing.xcconfig */,
 			);
 			path = ios;
 			sourceTree = "<group>";
@@ -725,7 +725,7 @@
 		};
 		04764DE4336904985F4049C2 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_BE6E4EE3-9C34-469E-B24D-EFA33006F4EF" /* Signing.xcconfig */;
+			baseConfigurationReference = "TEMP_AFC1B85E-28D6-4EFF-BBEB-9490356157D8" /* Signing.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -884,7 +884,7 @@
 		};
 		FC6682134BF5D75535C2BAE4 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_BE6E4EE3-9C34-469E-B24D-EFA33006F4EF" /* Signing.xcconfig */;
+			baseConfigurationReference = "TEMP_AFC1B85E-28D6-4EFF-BBEB-9490356157D8" /* Signing.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;

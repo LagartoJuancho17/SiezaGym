@@ -111,6 +111,78 @@ struct TrainingCalendarTests {
     }
 }
 
+@Suite("Secciones de Rutinas por semana")
+struct SeccionesPorSemanaTests {
+    private struct Item: Equatable {
+        let nombre: String
+        var fecha: Date?
+    }
+
+    private func date(_ iso: String) -> Date {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd HH:mm"
+        formatter.timeZone = TrainingCalendar.timeZone
+        return formatter.date(from: "\(iso) 12:00")!
+    }
+
+    private func seccionar(_ items: [Item]) -> [TrainingCalendar.SeccionSemana<Item>] {
+        TrainingCalendar.seccionesPorSemana(items, fechaDe: \.fecha)
+    }
+
+    /// El caso del pedido: una rutina del 24/9 cae en "Septiembre · Semana 4".
+    @Test("una rutina entra en la sección de su semana")
+    func unaRutina() {
+        let secciones = seccionar([Item(nombre: "Full body", fecha: date("2026-09-24"))])
+        #expect(secciones.map(\.texto) == ["Septiembre · Semana 4"])
+        #expect(secciones[0].items.map(\.nombre) == ["Full body"])
+    }
+
+    @Test("los meses van del más nuevo al más viejo")
+    func mesesDescendente() {
+        let secciones = seccionar([
+            Item(nombre: "Vieja", fecha: date("2026-08-05")),
+            Item(nombre: "Nueva", fecha: date("2026-09-05")),
+        ])
+        #expect(secciones.map(\.texto) == ["Septiembre · Semana 1", "Agosto · Semana 1"])
+    }
+
+    @Test("dentro de un mes las semanas van de la 1 en adelante")
+    func semanasAscendente() {
+        let secciones = seccionar([
+            Item(nombre: "Tardía", fecha: date("2026-09-24")),
+            Item(nombre: "Temprana", fecha: date("2026-09-02")),
+        ])
+        #expect(secciones.map(\.texto) == ["Septiembre · Semana 1", "Septiembre · Semana 4"])
+    }
+
+    @Test("dos rutinas de la misma semana quedan juntas")
+    func mismaSemanaJuntas() {
+        let secciones = seccionar([
+            Item(nombre: "A", fecha: date("2026-09-02")),
+            Item(nombre: "B", fecha: date("2026-09-05")),
+        ])
+        #expect(secciones.count == 1)
+        #expect(secciones[0].items.map(\.nombre) == ["A", "B"])
+    }
+
+    /// Sin fecha no puede desaparecer de la pantalla sin aviso: mismo criterio
+    /// que `itemsWithoutDate` en la web.
+    @Test("sin fecha va en una sección aparte al final")
+    func sinFechaAlFinal() {
+        let secciones = seccionar([
+            Item(nombre: "Con fecha", fecha: date("2026-09-24")),
+            Item(nombre: "Sin fecha", fecha: nil),
+        ])
+        #expect(secciones.last?.texto == "Sin fecha")
+        #expect(secciones.last?.items.map(\.nombre) == ["Sin fecha"])
+    }
+
+    @Test("una lista vacía no produce secciones")
+    func listaVacia() {
+        #expect(seccionar([]).isEmpty)
+    }
+}
+
 @Suite("Rutinas de la semana")
 struct DelaSemanaTests {
     private struct Item: Equatable {
