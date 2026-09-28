@@ -5,7 +5,6 @@ import { useId, useState } from "react";
 import { isTimeBasedRegistration } from "@/lib/exercises/constants";
 import { primaryMuscleLabel } from "@/lib/exercises/browse";
 import {
-  MAX_SETS,
   buildSets,
   isDetailed,
   prescriptionSummary,
@@ -57,7 +56,12 @@ export default function ExerciseItem({ item, exercise, onChange, onRemove, onOpe
   const groupClass = item.groupColor ? `d2-grp-${item.groupColor}` : "";
 
   function setSeries(next) {
-    const total = Math.min(MAX_SETS, Math.max(1, Number(next) || 1));
+    // Igual que Reps/Peso/RIR: el vacío (`next === null`, lo que manda Field
+    // al borrar el campo) se guarda como null, no como un número ya resuelto.
+    // Convertirlo acá a 0 o 1 hacía que la caja saltara sola apenas se
+    // borraba, antes de terminar de escribir el número nuevo. El piso real
+    // lo pone sanitizeExercises al guardar, y no hay tope de arriba.
+    const total = next == null ? null : Math.max(0, Number(next) || 0);
     onChange(
       detailed
         ? { ...item, targetSets: total, sets: resizeSets(item.sets, total) }
@@ -150,7 +154,7 @@ export default function ExerciseItem({ item, exercise, onChange, onRemove, onOpe
       {open && (
         <div id={detailId} className="d2-ex-detail">
           <div className={detailed ? "d2-fields d2-fields-single" : "d2-fields"}>
-            <Field label="Series" value={count} onChange={setSeries} min={1} max={MAX_SETS} />
+            <Field label="Series" value={count} onChange={setSeries} min={1} />
             {!detailed && (
               <>
                 <Field

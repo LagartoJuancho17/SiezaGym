@@ -6,7 +6,6 @@ import {
   toUniform,
   setCount,
   prescriptionSummary,
-  MAX_SETS,
 } from "@/lib/routines/prescription";
 
 const uniform = { targetSets: 4, targetReps: 10, targetWeight: 60, targetRIR: 2, sets: null };
@@ -60,9 +59,9 @@ describe("resizeSets", () => {
     expect(resizeSets(ramp, 4).map((s) => s.setNumber)).toEqual([1, 2, 3, 4]);
   });
 
-  it("nunca baja de una serie ni pasa del máximo", () => {
-    expect(resizeSets(ramp, 0)).toHaveLength(1);
-    expect(resizeSets(ramp, 999)).toHaveLength(MAX_SETS);
+  it("puede vaciarse del todo (campo recién borrado) y no tiene tope de arriba", () => {
+    expect(resizeSets(ramp, 0)).toHaveLength(0);
+    expect(resizeSets(ramp, 999)).toHaveLength(999);
   });
 
   it("sin series previas arma desde cero", () => {
@@ -99,6 +98,19 @@ describe("setCount", () => {
     expect(setCount(uniform)).toBe(4);
     expect(setCount({ sets: [{ reps: 10 }, { reps: 12 }, { reps: 14 }] })).toBe(3);
   });
+
+  // Regresión: el campo de Series pasaba por un `Math.max(1, ...)` que
+  // convertía el borrado del campo en un "1" al instante, sin que el
+  // usuario haya tipeado nada. Ahora, igual que Reps/Peso/RIR, un
+  // `targetSets` en null se queda en null: es el campo recién borrado,
+  // todavía escribiendo el número nuevo.
+  it("con targetSets en null (campo recién borrado) no inventa ni 0 ni 1", () => {
+    expect(setCount({ targetSets: null })).toBe(null);
+  });
+
+  it("sin tope de arriba: se puede cargar cualquier cantidad de series", () => {
+    expect(setCount({ targetSets: 40 })).toBe(40);
+  });
 });
 
 describe("prescriptionSummary", () => {
@@ -127,5 +139,9 @@ describe("prescriptionSummary", () => {
   it("en los ejercicios de tiempo la unidad son segundos", () => {
     expect(prescriptionSummary({ targetSets: 3, targetReps: 30 }, { timeBased: true })).toBe("3 × 30s");
     expect(prescriptionSummary({ sets: [{ reps: 20 }, { reps: 30 }] }, { timeBased: true })).toBe("20 · 30s");
+  });
+
+  it("con el campo de series recién borrado (null) muestra 0, no \"null\"", () => {
+    expect(prescriptionSummary({ targetSets: null, targetReps: 10 })).toBe("0 × 10");
   });
 });
