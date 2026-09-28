@@ -59,4 +59,40 @@ nonisolated enum TrainingCalendar {
         guard (1...12).contains(month) else { return "\(year)" }
         return "\(names[month - 1]) \(year)"
     }
+
+    private static func soloMes(_ month: Int) -> String {
+        let names = [
+            "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+            "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
+        ]
+        return (1...12).contains(month) ? names[month - 1] : ""
+    }
+
+    /// La semana a la que pertenece una fecha, para asignarle rutinas: "en qué
+    /// semana de qué mes de qué año". Año y mes en el resultado son los de
+    /// Argentina, iguales a los de `dayKey`, no los del huso del teléfono.
+    struct Semana: Equatable, Sendable {
+        let anio: Int
+        let mes: Int
+        let numero: Int
+
+        /// Para guardar y comparar: "2026-09-4". No es para mostrar.
+        var clave: String { String(format: "%04d-%02d-%d", anio, mes, numero) }
+
+        /// Para mostrar: "Septiembre · Semana 4".
+        var texto: String { "\(soloMes(mes)) · Semana \(numero)" }
+    }
+
+    static func semana(de fecha: Date) -> Semana {
+        let partes = calendar.dateComponents([.year, .month, .day], from: fecha)
+        let dia = partes.day ?? 1
+        return Semana(anio: partes.year ?? 0, mes: partes.month ?? 1, numero: weekOfMonth(day: dia))
+    }
+
+    /// Las rutinas propias asignadas a esa semana. Función aparte y no un
+    /// filtro escrito en el `GymStore` para que se pueda probar sin Firebase,
+    /// igual que el resto de `Domain/`.
+    static func delaSemana<Item>(_ items: [Item], clave objetivo: String, claveDe: (Item) -> String?) -> [Item] {
+        items.filter { claveDe($0) == objetivo }
+    }
 }

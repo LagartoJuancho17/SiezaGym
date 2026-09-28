@@ -208,6 +208,16 @@ nonisolated struct GymRepository: Sendable {
         log.info("rutina editada \(routineID, privacy: .public), \(exercises.count) ejercicios")
     }
 
+    /// A qué semana asignaste la rutina vos, para el bloque "Esta semana" de la
+    /// Home. `weekKey` en `nil` la saca de la semana en vez de guardar null:
+    /// así el documento no arrastra un campo vacío para siempre.
+    func setWeekAssignment(routineID: String, weekKey: String?) async throws {
+        var campos: [String: Any] = ["updatedAt": FieldValue.serverTimestamp()]
+        campos["weekKey"] = weekKey ?? FieldValue.delete()
+        try await db.collection("routines").document(routineID).updateData(campos)
+        log.info("semana de \(routineID, privacy: .public): \(weekKey ?? "ninguna", privacy: .public)")
+    }
+
     // MARK: - Sesiones
 
     func sessions(uid: String, limit: Int = 50) async throws -> [WorkoutSession] {

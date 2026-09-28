@@ -48,14 +48,16 @@ private func routine(_ ejercicios: [(String, Int)]) -> Routine {
                 targetRIR: nil,
                 targetWeight: nil,
                 techniqueNote: "",
-                sets: nil
+                sets: nil,
+                group: "",
+                groupColor: ""
             )
         },
         showOnHome: true,
         lastUsedAt: nil,
         createdAt: nil,
         updatedAt: nil,
-        isAssigned: false
+        isAssigned: false, weekKey: nil
     )
 }
 

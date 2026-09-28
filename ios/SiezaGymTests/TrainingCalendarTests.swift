@@ -72,6 +72,94 @@ struct TrainingCalendarTests {
     func noStreak() {
         #expect(TrainingCalendar.streak(trainedDayKeys: [], now: date("2026-09-06")) == 0)
     }
+
+    /// El caso del pedido: 24 de septiembre es semana 4.
+    @Test("la semana de una fecha junta año, mes y semana del mes")
+    func semanaDeUnaFecha() {
+        let semana = TrainingCalendar.semana(de: date("2026-09-24"))
+
+        #expect(semana.anio == 2026)
+        #expect(semana.mes == 9)
+        #expect(semana.numero == 4)
+        #expect(semana.texto == "Septiembre · Semana 4")
+        #expect(semana.clave == "2026-09-4")
+    }
+
+    @Test("el primer día del mes es semana 1")
+    func primerDiaEsSemanaUno() {
+        #expect(TrainingCalendar.semana(de: date("2026-09-01")).numero == 1)
+    }
+
+    /// Dos fechas de meses o años distintos no pueden compartir clave, aunque
+    /// caigan en la misma semana del mes: si no, asignar en septiembre de 2026
+    /// mostraría también lo asignado en septiembre de 2025.
+    @Test("la clave distingue mes y año, no sólo el número de semana")
+    func claveDistingueMesYAnio() {
+        let sept2026 = TrainingCalendar.semana(de: date("2026-09-06"))
+        let oct2026 = TrainingCalendar.semana(de: date("2026-10-06"))
+        #expect(sept2026.numero == oct2026.numero)
+        #expect(sept2026.clave != oct2026.clave)
+    }
+
+    /// La semana es por bloques de 7 días del mes, igual que `weekOfMonth`:
+    /// el 2 y el 5 caen en el bloque 1-7, aunque no sean el mismo lunes-a-domingo.
+    @Test("dos fechas del mismo bloque de siete días dan la misma clave")
+    func mismoBloqueMismaClave() {
+        let dia2 = TrainingCalendar.semana(de: date("2026-09-02"))
+        let dia5 = TrainingCalendar.semana(de: date("2026-09-05"))
+        #expect(dia2.clave == dia5.clave)
+    }
+}
+
+@Suite("Rutinas de la semana")
+struct DelaSemanaTests {
+    private struct Item: Equatable {
+        let nombre: String
+        var clave: String?
+    }
+
+    @Test("sólo pasan las que tienen exactamente esa clave")
+    func filtraPorClave() {
+        let items = [
+            Item(nombre: "A", clave: "2026-09-4"),
+            Item(nombre: "B", clave: "2026-09-3"),
+            Item(nombre: "C", clave: "2026-09-4"),
+        ]
+        let resultado = TrainingCalendar.delaSemana(items, clave: "2026-09-4", claveDe: \.clave)
+        #expect(resultado.map(\.nombre) == ["A", "C"])
+    }
+
+    @Test("sin clave asignada no entra en ninguna semana")
+    func sinClaveNoEntra() {
+        let items = [Item(nombre: "A", clave: nil)]
+        #expect(TrainingCalendar.delaSemana(items, clave: "2026-09-4", claveDe: \.clave).isEmpty)
+    }
+
+    @Test("una lista vacía no rompe nada")
+    func listaVacia() {
+        #expect(TrainingCalendar.delaSemana([Item](), clave: "2026-09-4", claveDe: \.clave).isEmpty)
+    }
+}
+
+@Suite("Decodificar la semana de una rutina")
+struct RoutineWeekKeyDecodeTests {
+    @Test("con weekKey en el documento, se decodifica")
+    func conWeekKey() {
+        let rutina = Routine(id: "r1", data: ["ownerId": "u1", "weekKey": "2026-09-4"])
+        #expect(rutina.weekKey == "2026-09-4")
+    }
+
+    @Test("sin weekKey en el documento, es nil y no explota")
+    func sinWeekKey() {
+        let rutina = Routine(id: "r1", data: ["ownerId": "u1"])
+        #expect(rutina.weekKey == nil)
+    }
+
+    @Test("una rutina asignada por el coach también puede decodificar weekKey")
+    func rutinaAsignada() {
+        let rutina = Routine(id: "r1", data: ["studentId": "u1", "weekKey": "2026-09-1"], isAssigned: true)
+        #expect(rutina.weekKey == "2026-09-1")
+    }
 }
 
 @Suite("Resumen de rutina")
@@ -80,7 +168,7 @@ struct RoutineSummaryTests {
         Routine(
             id: "r1", ownerID: "u1", name: "Test", note: "",
             exercises: exercises, showOnHome: true,
-            lastUsedAt: nil, createdAt: nil, updatedAt: nil, isAssigned: false
+            lastUsedAt: nil, createdAt: nil, updatedAt: nil, isAssigned: false, weekKey: nil
         )
     }
 
@@ -88,7 +176,7 @@ struct RoutineSummaryTests {
         RoutineExercise(
             exerciseID: id, source: .catalog, order: 0,
             targetSets: sets, targetReps: reps, targetRIR: nil,
-            targetWeight: nil, techniqueNote: "", sets: nil
+            targetWeight: nil, techniqueNote: "", sets: nil, group: "", groupColor: ""
         )
     }
 

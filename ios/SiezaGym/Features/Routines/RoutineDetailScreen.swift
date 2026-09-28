@@ -11,6 +11,7 @@ struct RoutineDetailScreen: View {
 
     @State private var abierto: String?
     @State private var editando = false
+    @State private var cambiandoSemana = false
 
     /// La versión viva de la rutina. La que llegó por navegación es una copia
     /// del momento en que se tocó la fila: después de editar quedó vieja.
@@ -27,6 +28,15 @@ struct RoutineDetailScreen: View {
     }
     private var hayGifs: Bool {
         actual.exercises.contains { store.exercise($0.exerciseID)?.mediaURL != nil }
+    }
+
+    private var semanaActual: TrainingCalendar.Semana { store.semanaActual }
+    private var estaEnLaSemana: Bool { actual.weekKey == semanaActual.clave }
+
+    /// Los ejercicios consecutivos con el mismo grupo, juntos. Igual que
+    /// `sections` en `RoutineScreen.js`.
+    private var secciones: [RoutineSection<RoutineExercise>] {
+        RoutineGrouping.seccionar(actual.exercises, grupo: \.group, colorID: \.groupColor)
     }
 
     var body: some View {
@@ -61,7 +71,11 @@ struct RoutineDetailScreen: View {
                         .fill(tema.solido)
                         .frame(height: 4)
                         .padding(.horizontal, 28)
-                        .padding(.top, 21)
+                }
+
+                if sePuedeEditar {
+                    botonSemana
+                        .padding(.top, 14)
                 }
 
                 SectionLabel("Ejercicios · \(actual.exercises.count)")
@@ -75,19 +89,27 @@ struct RoutineDetailScreen: View {
                     )
                 } else {
                     PanelLista {
-                        ForEach(Array(actual.exercises.enumerated()), id: \.offset) { indice, item in
-                            if indice > 0 {
-                                Rectangle().fill(tema.borde).frame(height: 1)
+                        ForEach(secciones) { seccion in
+                            if seccion.agrupada {
+                                EncabezadoDeGrupoLectura(seccion: seccion)
                             }
-                            FilaEjercicio(
-                                item: item,
-                                ejercicio: store.exercise(item.exerciseID),
-                                nombre: store.name(of: item.exerciseID),
-                                abierto: abierto == clave(indice, item),
-                                alTocar: {
-                                    abierto = abierto == clave(indice, item) ? nil : clave(indice, item)
+
+                            ForEach(Array(actual.exercises.enumerated()), id: \.offset) { indice, item in
+                                if seccion.items.contains(where: { $0.id == item.id }) {
+                                    if item.id != seccion.items.first?.id {
+                                        Rectangle().fill(tema.borde).frame(height: 1)
+                                    }
+                                    FilaEjercicio(
+                                        item: item,
+                                        ejercicio: store.exercise(item.exerciseID),
+                                        nombre: store.name(of: item.exerciseID),
+                                        abierto: abierto == clave(indice, item),
+                                        alTocar: {
+                                            abierto = abierto == clave(indice, item) ? nil : clave(indice, item)
+                                        }
+                                    )
                                 }
-                            )
+                            }
                         }
                     }
                 }
@@ -135,6 +157,35 @@ struct RoutineDetailScreen: View {
         "\(indice)-\(item.exerciseID)"
     }
 
+    /// Sumarla o sacarla de "Septiembre · Semana 4" en la Home. Sólo para las
+    /// propias: las del coach se organizan solas por cuándo te las asignaron.
+    private var botonSemana: some View {
+        Button {
+            Task {
+                cambiandoSemana = true
+                defer { cambiandoSemana = false }
+                try? await store.setWeekAssignment(actual, to: estaEnLaSemana ? nil : semanaActual.clave)
+            }
+        } label: {
+            Label(
+                estaEnLaSemana ? "En \(semanaActual.texto)" : "Agregar a \(semanaActual.texto)",
+                systemImage: estaEnLaSemana ? "checkmark.circle.fill" : "calendar.badge.plus"
+            )
+            .font(.system(size: 13, weight: .medium))
+            .foregroundStyle(estaEnLaSemana ? tema.sobreSolido : tema.texto)
+            .frame(maxWidth: .infinity, minHeight: 42)
+            .background(estaEnLaSemana ? AnyShapeStyle(tema.solido) : AnyShapeStyle(tema.vidrio(1)), in: .capsule)
+            .overlay {
+                Capsule().strokeBorder(estaEnLaSemana ? .clear : tema.borde, lineWidth: 1)
+            }
+            .opacity(cambiandoSemana ? 0.6 : 1)
+        }
+        .buttonStyle(.plain)
+        .disabled(cambiandoSemana)
+        .padding(.horizontal, 28)
+        .accessibilityHint(estaEnLaSemana ? "Sacar de esta semana" : "Agregar a esta semana")
+    }
+
     private var boton: some View {
         Button { onStart(actual) } label: {
             Label("Comenzar entrenamiento", systemImage: "play.fill")
@@ -143,6 +194,35 @@ struct RoutineDetailScreen: View {
         .disabled(actual.exercises.isEmpty)
         .padding(.horizontal, 18)
         .padding(.bottom, 12)
+    }
+}
+
+/// La franja de color con el nombre del bloque, de sólo lectura: acá no se
+/// edita, se edita desde el armador.
+private struct EncabezadoDeGrupoLectura: View {
+    @Environment(\.tema) private var tema
+    let seccion: RoutineSection<RoutineExercise>
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Circle().fill(seccion.color?.color ?? tema.texto3).frame(width: 7, height: 7)
+            Text(seccion.nombreGrupo)
+                .font(.system(size: 12, weight: .bold))
+                .tracking(0.4)
+                .textCase(.uppercase)
+            Spacer()
+            Text("\(seccion.items.count) \(seccion.items.count == 1 ? "ejercicio" : "ejercicios")")
+                .font(.system(size: 11))
+        }
+        .foregroundStyle(seccion.color?.color ?? tema.texto)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 8)
+        .frame(maxWidth: .infinity)
+        .background((seccion.color?.color ?? tema.texto3).opacity(0.12))
+        .overlay(alignment: .leading) {
+            Rectangle().fill(seccion.color?.color ?? tema.texto3).frame(width: 3)
+        }
+        .accessibilityElement(children: .combine)
     }
 }
 

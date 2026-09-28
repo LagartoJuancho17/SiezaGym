@@ -92,6 +92,14 @@ final class GymStore {
 
     var weeklyVolumeKg: Double { weekSessions.reduce(0) { $0 + $1.totalVolumeKg } }
 
+    /// "Septiembre · Semana 4", la semana en la que estás hoy.
+    var semanaActual: TrainingCalendar.Semana { TrainingCalendar.semana(de: .now) }
+
+    /// Las rutinas propias que asignaste a la semana en la que estás hoy.
+    var rutinasDeEstaSemana: [Routine] {
+        TrainingCalendar.delaSemana(routines, clave: semanaActual.clave, claveDe: \.weekKey)
+    }
+
     var muscleVolume: HomeMetrics.MuscleVolume {
         HomeMetrics.volumeByMuscleGroup(sessions, catalog: catalog)
     }
@@ -152,6 +160,14 @@ final class GymStore {
             note: note,
             exercises: exercises
         )
+        await load()
+    }
+
+    /// Asigna o saca una rutina propia de una semana. Las del coach no se
+    /// tocan desde acá: se organizan solas por cuándo te las asignaron.
+    func setWeekAssignment(_ routine: Routine, to weekKey: String?) async throws {
+        guard !routine.isAssigned else { throw RoutineEditError.esDelCoach }
+        try await repository.setWeekAssignment(routineID: routine.id, weekKey: weekKey)
         await load()
     }
 

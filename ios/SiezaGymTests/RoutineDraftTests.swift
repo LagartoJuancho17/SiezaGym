@@ -181,6 +181,7 @@ struct RoutineDraftExerciseTests {
         #expect(Set(valor.keys) == [
             "exerciseId", "exerciseSource", "order", "targetSets",
             "targetReps", "targetRIR", "targetWeight", "techniqueNote", "sets",
+            "group", "groupColor",
         ])
         #expect(valor["exerciseId"] as? String == "press-banca")
         #expect(valor["exerciseSource"] as? String == "catalog")
@@ -463,7 +464,9 @@ struct RoutineEditTests {
         rir: Int? = 2,
         nota: String = "Espalda neutra",
         series: [PlannedSet]? = nil,
-        origen: RoutineExercise.Source = .catalog
+        origen: RoutineExercise.Source = .catalog,
+        grupo: String = "",
+        colorDeGrupo: String = ""
     ) -> RoutineExercise {
         RoutineExercise(
             exerciseID: id,
@@ -474,7 +477,9 @@ struct RoutineEditTests {
             targetRIR: rir,
             targetWeight: peso,
             techniqueNote: nota,
-            sets: series
+            sets: series,
+            group: grupo,
+            groupColor: colorDeGrupo
         )
     }
 
@@ -517,6 +522,29 @@ struct RoutineEditTests {
 
         #expect(borrador.source == .custom)
         #expect(borrador.firestoreValue(order: 0)["exerciseSource"] as? String == "custom")
+    }
+
+    /// Si abrir el editor perdiera el grupo, guardar sin tocar nada
+    /// desarmaría en silencio los bloques que ya tenías hechos.
+    @Test("abrir el editor no pierde el grupo del ejercicio")
+    func grupoSeConserva() {
+        let borrador = RoutineDraftExercise(guardado(grupo: "Potencia", colorDeGrupo: "rose"))
+
+        #expect(borrador.group == "Potencia")
+        #expect(borrador.groupColor == "rose")
+
+        let valor = borrador.firestoreValue(order: 0)
+        #expect(valor["group"] as? String == "Potencia")
+        #expect(valor["groupColor"] as? String == "rose")
+    }
+
+    @Test("un ejercicio sin grupo guarda los campos vacíos, no ausentes")
+    func sinGrupoGuardaVacio() {
+        let borrador = RoutineDraftExercise(guardado())
+        let valor = borrador.firestoreValue(order: 0)
+
+        #expect(valor["group"] as? String == "")
+        #expect(valor["groupColor"] as? String == "")
     }
 
     /// `sets: []` es lo que deja un documento viejo; tiene que leerse como

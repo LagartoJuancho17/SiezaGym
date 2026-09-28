@@ -14,6 +14,10 @@ nonisolated struct RoutineDraftExercise: Identifiable, Sendable, Hashable {
     var targetRIR: Int?
     var techniqueNote: String
     var sets: [PlannedSet]?
+    /// Bloque al que pertenece ("Entrada en calor", "Fuerza"...). Vacío es sin
+    /// grupo, igual que en la web.
+    var group = ""
+    var groupColor = ""
 
     var id: String { exerciseID }
 
@@ -47,6 +51,8 @@ nonisolated struct RoutineDraftExercise: Identifiable, Sendable, Hashable {
         targetRIR = item.targetRIR
         techniqueNote = item.techniqueNote
         sets = (item.sets?.isEmpty == true) ? nil : item.sets
+        group = item.group
+        groupColor = item.groupColor
     }
 
     var esDetallada: Bool { !(sets ?? []).isEmpty }
@@ -120,6 +126,8 @@ nonisolated struct RoutineDraftExercise: Identifiable, Sendable, Hashable {
             "targetRIR": targetRIR as Any? ?? NSNull(),
             "targetWeight": targetWeight as Any? ?? NSNull(),
             "techniqueNote": techniqueNote.trimmingCharacters(in: .whitespacesAndNewlines),
+            "group": group.trimmingCharacters(in: .whitespaces),
+            "groupColor": groupColor,
         ]
         valor["sets"] = esDetallada
             ? sets!.enumerated().map { indice, serie in

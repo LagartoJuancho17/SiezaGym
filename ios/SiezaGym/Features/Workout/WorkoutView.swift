@@ -46,19 +46,29 @@ struct WorkoutView: View {
                             .transition(.move(edge: .top).combined(with: .opacity))
                     }
 
-                    ForEach($draft.exercises) { $exercise in
-                        ExerciseCard(
-                            exercise: $exercise,
-                            draft: draft,
-                            abierto: abierto == exercise.id,
-                            alTocar: {
-                                withAnimation(.snappy(duration: 0.22)) {
-                                    abierto = abierto == exercise.id ? nil : exercise.id
+                    ForEach(secciones) { seccion in
+                        VStack(spacing: 10) {
+                            if seccion.agrupada {
+                                EncabezadoDeGrupoEntrenamiento(seccion: seccion)
+                            }
+
+                            ForEach($draft.exercises) { $exercise in
+                                if seccion.items.contains(where: { $0.id == exercise.id }) {
+                                    ExerciseCard(
+                                        exercise: $exercise,
+                                        draft: draft,
+                                        abierto: abierto == exercise.id,
+                                        alTocar: {
+                                            withAnimation(.snappy(duration: 0.22)) {
+                                                abierto = abierto == exercise.id ? nil : exercise.id
+                                            }
+                                        },
+                                        onSetCompleted: { handleSetCompleted(en: exercise.id) },
+                                        onShowMedia: { previewExercise = exercise }
+                                    )
                                 }
-                            },
-                            onSetCompleted: { handleSetCompleted(en: exercise.id) },
-                            onShowMedia: { previewExercise = exercise }
-                        )
+                            }
+                        }
                     }
 
                     if let saveError {
@@ -179,6 +189,12 @@ struct WorkoutView: View {
     private func requestExit() {
         store.activeWorkout = draft
         dismiss()
+    }
+
+    /// Los ejercicios consecutivos con el mismo grupo, juntos. Igual que
+    /// `sections` en `RoutineScreen.js`.
+    private var secciones: [RoutineSection<WorkoutDraft.ExerciseDraft>] {
+        RoutineGrouping.seccionar(draft.exercises, grupo: \.group, colorID: \.groupColor)
     }
 
     /// Una serie marcada: sonido, vibración y descanso.
@@ -342,6 +358,33 @@ struct WorkoutView: View {
                 saveError = error.localizedDescription
             }
         }
+    }
+}
+
+/// La franja de color con el nombre del bloque durante el entrenamiento
+/// ("Entrada en calor", "Fuerza", "Potencia"). De sólo lectura: el grupo se
+/// arma en el editor, no acá.
+private struct EncabezadoDeGrupoEntrenamiento: View {
+    @Environment(\.tema) private var tema
+    let seccion: RoutineSection<WorkoutDraft.ExerciseDraft>
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Circle().fill(seccion.color?.color ?? tema.texto3).frame(width: 7, height: 7)
+            Text(seccion.nombreGrupo)
+                .font(.system(size: 12, weight: .bold))
+                .tracking(0.4)
+                .textCase(.uppercase)
+            Spacer()
+            Text("\(seccion.items.count) \(seccion.items.count == 1 ? "ejercicio" : "ejercicios")")
+                .font(.system(size: 11))
+        }
+        .foregroundStyle(seccion.color?.color ?? tema.texto)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 8)
+        .frame(maxWidth: .infinity)
+        .background((seccion.color?.color ?? tema.texto3).opacity(0.14), in: .rect(cornerRadius: 12))
+        .accessibilityElement(children: .combine)
     }
 }
 

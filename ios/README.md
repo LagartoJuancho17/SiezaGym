@@ -234,6 +234,42 @@ creó hoy.
 El detalle lee la rutina del store por id y no la que recibió al navegar: esa es
 una copia del momento en que se tocó la fila y queda vieja apenas se guarda.
 
+## Bloques de ejercicios
+
+Ejercicios consecutivos se agrupan en bloques con nombre y color ("Entrada en
+calor", "Fuerza", "Potencia"): puerto exacto de `RoutineComposer.js` y
+`RoutineScreen.js`. `Domain/RoutineGroups.swift` tiene el algoritmo —
+`RoutineGrouping.seccionar` junta ejercicios consecutivos con el mismo par
+(nombre, color) en una `RoutineSection` — y `GroupColor`/`GroupPreset` los
+siete colores y seis atajos de la web.
+
+Se ve en tres lugares:
+
+- **Armador** (`RoutineComposerScreen`): un botón de etiqueta por ejercicio
+  abre `GroupAssignmentSheet` (presets, nombre libre, color, "aplicar a los
+  siguientes N sin grupo"); tocar el encabezado de un bloque ya armado lo
+  edita entero.
+- **Detalle** (`RoutineDetailScreen`): de sólo lectura.
+- **Entrenamiento** (`WorkoutView`): igual, envolviendo las `ExerciseCard`.
+
+`group`/`groupColor` se guardan siempre como string (vacío sin grupo, nunca
+ausentes): mismas claves y default que `sanitizeExercises` en
+`lib/routines/routines.js`.
+
+## Semana asignada
+
+Una rutina propia se puede marcar "de esta semana", y la Home la muestra bajo
+un rótulo como "Septiembre · Semana 4". **No existe en la web** — es sólo del
+teléfono.
+
+`TrainingCalendar.semana(de:)` (en `SiezaGymCompartido`, reutiliza
+`weekOfMonth`/la zona horaria de Argentina que ya existían para la racha)
+arma la clave `"2026-09-4"` — año y mes incluidos, para que la semana 4 de
+septiembre no se confunda con la de octubre ni con la del año que viene.
+`weekKey` vive en el documento de la rutina; `GymRepository.setWeekAssignment`
+lo escribe o lo borra con `FieldValue.delete()`. Sólo para rutinas propias: las
+del coach se organizan solas por cuándo te las asignaron.
+
 ## Ejercicios propios
 
 Lo que no está en el catálogo de 94 se carga desde el `+` del selector y vive en
@@ -358,10 +394,11 @@ xcodebuild test -project SiezaGym.xcodeproj -scheme SiezaGym \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 ```
 
-197 tests: la matemática de `Domain/`, lo que muestran los widgets, los links de
+224 tests: la matemática de `Domain/`, lo que muestran los widgets, los links de
 YouTube, el formato de las métricas de Salud, las reglas del formulario de login,
-el código del segundo factor y la bienvenida de tres pantallas. Son funciones
-puras, no tocan Firestore ni la red.
+el código del segundo factor, la bienvenida de tres pantallas, los bloques de
+ejercicios y la semana asignada. Son funciones puras, no tocan Firestore ni la
+red.
 
 Lo que corre del lado del servidor (generar el código, hashearlo, vencimiento,
 intentos, límite de pedidos, las rutas y la comprobación de contraseña) se
