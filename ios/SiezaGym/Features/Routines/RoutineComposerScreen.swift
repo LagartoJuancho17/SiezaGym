@@ -609,10 +609,10 @@ private struct FilaPrescripcion: View {
 /// Caja de número de la prescripción.
 ///
 /// Tiene texto propio y no lee el binding directo porque un `TextField` se
-/// queda con lo que tipeaste aunque el modelo lo haya recortado: escribís 43
-/// series, el tope son 12, y la caja seguía diciendo 43 mientras la rutina ya
-/// tenía 12. Igual que un input controlado de React, acá la caja vuelve a
-/// escribirse siempre con el valor que el modelo aceptó.
+/// queda con lo que tipeaste aunque el modelo lo haya recortado o rechazado
+/// (por ejemplo, letras pegadas por dictado). Igual que un input controlado
+/// de React, acá la caja vuelve a escribirse siempre con el valor que el
+/// modelo aceptó — nunca con lo que quedó tipeado si no coincide.
 private struct CampoNumero: View {
     @Environment(\.tema) private var tema
     @Binding var valor: Int

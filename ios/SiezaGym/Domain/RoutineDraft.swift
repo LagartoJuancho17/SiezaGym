@@ -21,9 +21,6 @@ nonisolated struct RoutineDraftExercise: Identifiable, Sendable, Hashable {
 
     var id: String { exerciseID }
 
-    /// Tope de series. Más que esto no es una prescripción, es un error de dedo.
-    static let maxSets = 12
-
     init(exercise: Exercise) {
         exerciseID = exercise.id
         // Un ejercicio propio se guarda con `exerciseSource: "custom"`: la web
@@ -57,18 +54,23 @@ nonisolated struct RoutineDraftExercise: Identifiable, Sendable, Hashable {
 
     var esDetallada: Bool { !(sets ?? []).isEmpty }
 
-    /// Cuántas series prescribe, sea cual sea la forma.
+    /// Cuántas series prescribe, sea cual sea la forma. Sin tope: 0 es un
+    /// estado transitorio válido (el campo recién borrado, todavía
+    /// escribiendo el número nuevo), no se fuerza a 1 acá — eso pasa recién
+    /// al guardar, en `firestoreValue`.
     var cantidadSeries: Int {
-        esDetallada ? sets!.count : min(Self.maxSets, max(1, targetSets))
+        esDetallada ? sets!.count : max(0, targetSets)
     }
 
     /// Las repeticiones que vale una serie nueva. Vacío cuenta como 10, igual
     /// que `Number(item?.targetReps) || 10` en lib/routines/prescription.js.
     private var repsOEsperado: Int { targetReps > 0 ? targetReps : 10 }
 
-    /// Pasa de pareja a detallada: arranca con todas las series iguales.
+    /// Pasa de pareja a detallada: arranca con todas las series iguales. Es
+    /// una acción a propósito y no tipeo en curso, así que acá sí se garantiza
+    /// al menos una fila aunque el campo haya quedado en blanco.
     mutating func detallar() {
-        sets = (0..<cantidadSeries).map {
+        sets = (0..<max(1, cantidadSeries)).map {
             PlannedSet(setNumber: $0 + 1, weight: targetWeight, reps: repsOEsperado, rir: targetRIR)
         }
     }
@@ -87,8 +89,13 @@ nonisolated struct RoutineDraftExercise: Identifiable, Sendable, Hashable {
     /// Ajusta la cantidad de series. Las nuevas copian a la última cargada: en
     /// el gimnasio una serie nueva repite o sube desde la anterior, nunca
     /// arranca vacía.
+    ///
+    /// Sin tope de arriba (no hay motivo para no poder cargar 20 series) y sin
+    /// piso de 1 acá: borrar el campo para escribir un número nuevo tiene que
+    /// poder dejarlo en blanco un instante sin que salte a "1" solo. El piso
+    /// real está en `firestoreValue`, al guardar.
     mutating func cambiarCantidad(_ nueva: Int) {
-        let total = min(Self.maxSets, max(1, nueva))
+        let total = max(0, nueva)
         targetSets = total
         guard esDetallada else { return }
 
@@ -116,12 +123,15 @@ nonisolated struct RoutineDraftExercise: Identifiable, Sendable, Hashable {
     }
 
     /// El documento que espera Firestore, igual al que escribe la web.
+    ///
+    /// Acá sí se pisa en 1: guardar con el campo de Series en blanco no puede
+    /// mandar una rutina con 0 series.
     func firestoreValue(order: Int) -> [String: Any] {
         var valor: [String: Any] = [
             "exerciseId": exerciseID,
             "exerciseSource": source.rawValue,
             "order": order,
-            "targetSets": cantidadSeries,
+            "targetSets": max(1, cantidadSeries),
             "targetReps": repsOEsperado,
             "targetRIR": targetRIR as Any? ?? NSNull(),
             "targetWeight": targetWeight as Any? ?? NSNull(),
