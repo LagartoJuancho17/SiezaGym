@@ -8,8 +8,9 @@ al revés. No hay una segunda base de datos ni sincronización que mantener.
 - Firebase iOS SDK 12 (Auth + Firestore) + GoogleSignIn 9, por Swift Package Manager
 - Bundle id `com.siezagym.app`
 
-Login con email/contraseña o con Google. Entrar con Google cae en la **misma
-cuenta de Firebase** que la web: mismo uid, mismas rutinas.
+Login con email/contraseña **con segundo factor por mail**, o con Google. Entrar
+con Google cae en la **misma cuenta de Firebase** que la web: mismo uid, mismas
+rutinas.
 
 ## Poner a andar el proyecto
 
@@ -60,6 +61,8 @@ SiezaGymTests/       Swift Testing
 | `RoutineCompose`           | `lib/routines/compose.js` + `muscleDistribution` de `lib/routines/summary.js` |
 | `WidgetSnapshotBuilder`    | no tiene equivalente: la web no tiene widgets |
 | `CustomExerciseDraft`      | `lib/customExercises/customExercises.js` |
+| `AuthForm`                 | `components/LoginForm.js` (las mismas reglas del formulario) |
+| `CodigoMFA`                | `limpiarCodigo` de `lib/mfa/challenge.js` |
 
 `RoutineDraftExercise` guarda las dos formas de prescribir que acepta el modelo,
 igual que la web: pareja (todas las series iguales) y detallada (una fila por
@@ -204,6 +207,53 @@ propios). La miniatura no se guarda: sale del id del video
 pegado se guarda solo el id en una URL limpia, porque los links de compartir
 vienen con seguimiento.
 
+## Segundo factor por mail
+
+Entrar con email y contraseña pide además un código de seis números que llega al
+mail. El orden de las llamadas es lo que lo hace un segundo factor de verdad y no
+un cartel que se saltea tocando el cliente:
+
+1. `POST /api/mfa/start` con email y contraseña. El servidor las comprueba y
+   manda el código. **No devuelve ningún token.**
+2. `POST /api/mfa/verify` con el código. Recién ahí emite un custom token, y la
+   app lo cambia por una sesión con `signIn(withCustomToken:)`.
+
+La app **nunca llama a `signIn(withEmail:password:)`**. Con la contraseña sola no
+tiene con qué entrar, así que no hay pantalla que saltear: el permiso lo emite el
+servidor y sólo con el código en la mano.
+
+Los dos endpoints viven en la web (`app/api/mfa/`), porque el Admin SDK necesita
+la clave privada del proyecto y eso no puede vivir en un binario que se
+distribuye. El hash del código y el contador de intentos están en
+`mfaChallenges`, cerrada a `read, write: if false` en `firestore.rules`.
+
+| | |
+|---|---|
+| largo del código | 6 dígitos |
+| vence | 10 minutos |
+| intentos | 5, después hay que pedir otro |
+| pedidos por email | 8 cada 15 minutos |
+
+**Google no pide código**, a propósito: la cuenta de Google ya tiene su propio
+segundo factor, y es la puerta que sigue funcionando si el mail se cae.
+
+### Lo que hay que configurar
+
+`RESEND_API_KEY` en las variables de entorno del deploy. Sin eso, en producción
+`/api/mfa/start` devuelve 503 y manda a entrar con Google, en vez de fingir que
+el código salió. Para ver si un deploy está listo:
+
+```bash
+curl https://sieza-gym.vercel.app/api/mfa/start   # {"correo":"resend","listo":true}
+```
+
+En desarrollo sin clave, el código sale por el log del servidor y la pantalla lo
+avisa. Para apuntar el simulador a `npm run dev` en vez de a producción:
+
+```bash
+xcrun simctl spawn booted defaults write com.siezagym.app mfa-base -string http://localhost:3000
+```
+
 ## Login con Google
 
 El `CLIENT_ID` sale del `GoogleService-Info.plist`, así que no hay nada que
@@ -213,9 +263,14 @@ app. Lo que sí está en `project.yml`, porque tiene que estar en el bundle:
 - `CFBundleURLTypes` con el `REVERSED_CLIENT_ID`, para que iOS sepa a quién
   devolverle el callback. Ese valor **no** es secreto como la API key: un client
   id de OAuth para iOS viaja en el binario y no tiene client secret.
-- `CFBundleDevelopmentRegion: es` y `CFBundleLocalizations: [es]`. Sin eso el
-  botón del SDK sale en inglés, porque iOS resuelve los bundles embebidos contra
-  el idioma de desarrollo de la app.
+- `CFBundleDevelopmentRegion: es` y `CFBundleLocalizations: [es]`, para que los
+  bundles embebidos del SDK resuelvan al castellano.
+
+El botón de Google lo dibuja la app y no el SDK: `GoogleSignInButton` se planta
+en su ancho y trae su propio fondo blanco, que sobre los temas oscuros parece
+pegoteado de otra app. La G es el logo oficial sin recolorear
+(`Assets.xcassets/GoogleG.imageset`, un SVG), que es lo que piden las guías de
+marca; lo que no exigen es usar su botón.
 
 La app crea el perfil en `users/` con los mismos campos que hace el servidor de
 la web en `app/api/session/login/route.js`: `createdAt` y `provider` solo se
@@ -253,10 +308,17 @@ xcodebuild test -project SiezaGym.xcodeproj -scheme SiezaGym \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 ```
 
-161 tests: la matemática de `Domain/`, lo que muestran los widgets, los links
-de YouTube, el formato de las métricas de Salud y la traducción de errores de
-login. Son funciones puras, no tocan Firestore ni la
+191 tests: la matemática de `Domain/`, lo que muestran los widgets, los links de
+YouTube, el formato de las métricas de Salud, las reglas del formulario de login
+y el código del segundo factor. Son funciones puras, no tocan Firestore ni la
 red.
+
+Lo que corre del lado del servidor (generar el código, hashearlo, vencimiento,
+intentos, límite de pedidos) se prueba en el repo de la web:
+
+```bash
+npm test -- tests/mfa-challenge.test.js   # 44 tests
+```
 
 ## El proyecto de Xcode
 
@@ -306,3 +368,7 @@ asignadas por el coach, pero no permite administrarlas.
 - **Borrar o editar un ejercicio propio.** Se pueden crear, pero no sacar:
   `deleteCustomExercise` existe en la web y no está conectada a ninguna
   pantalla, ni ahí ni acá.
+- **El segundo factor, en la web.** El login del navegador sigue entrando con la
+  contraseña sola. Los endpoints están del lado de la web, así que agregarlo es
+  cambiar `components/LoginForm.js` para que use el mismo circuito de dos pasos,
+  pero hoy no lo hace: el segundo factor protege el celular, no el navegador.

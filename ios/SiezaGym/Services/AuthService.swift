@@ -47,26 +47,34 @@ final class AuthService {
         if let listener { Auth.auth().removeStateDidChangeListener(listener) }
     }
 
-    func signIn(email: String, password: String) async {
-        await run { try await Auth.auth().signIn(withEmail: email, password: password) }
+    // MARK: - Email y contraseña, con el código del mail
+
+    /// El proveedor del segundo factor. Se puede cambiar en los tests.
+    var mfa = MFAService()
+
+    /// Paso 1: comprueba la contraseña contra el servidor y hace que salga el
+    /// mail con el código.
+    ///
+    /// No crea ninguna sesión, y eso es el punto: `Auth.auth()` no se toca acá.
+    /// Con la contraseña correcta y sin el código, la app sigue afuera.
+    ///
+    /// Devuelve `nil` si algo falló; el motivo queda en `errorMessage`.
+    func pedirCodigo(_ form: AuthForm) async -> MFAService.Desafio? {
+        await run { try await mfa.iniciar(form) }
     }
 
-    func signUp(email: String, password: String, displayName: String) async {
-        await run {
-            let result = try await Auth.auth().createUser(withEmail: email, password: password)
-            let name = displayName.trimmingCharacters(in: .whitespacesAndNewlines)
-            if !name.isEmpty {
-                let request = result.user.createProfileChangeRequest()
-                request.displayName = name
-                try await request.commitChanges()
-            }
-            try await GymRepository().ensureProfile(
-                uid: result.user.uid,
-                email: result.user.email,
-                displayName: name.isEmpty ? nil : name,
-                provider: "password"
-            )
+    /// Paso 2: canjea el código por la sesión.
+    ///
+    /// El servidor devuelve un custom token y recién con eso Firebase abre la
+    /// sesión. El listener de `init` se encarga del resto.
+    @discardableResult
+    func entrarConCodigo(desafio: String, codigo: CodigoMFA) async -> Bool {
+        let entro = await run { () -> Bool in
+            let token = try await mfa.verificar(desafio: desafio, codigo: codigo)
+            try await Auth.auth().signIn(withCustomToken: token)
+            return true
         }
+        return entro ?? false
     }
 
     /// Login con Google. Termina en la misma cuenta de Firebase que usa la web:
@@ -153,20 +161,24 @@ final class AuthService {
 
     func clearError() { errorMessage = nil }
 
-    private func run(_ operation: () async throws -> Void) async {
+    /// Envuelve una operación de login: prende la ruedita, limpia el error de
+    /// antes y traduce lo que falle. Devuelve `nil` si hubo error.
+    @discardableResult
+    private func run<T>(_ operation: () async throws -> T) async -> T? {
         isWorking = true
         errorMessage = nil
         defer { isWorking = false }
         do {
-            try await operation()
+            return try await operation()
         } catch let error as NSError
             where error.domain == kGIDSignInErrorDomain
             && error.code == GIDSignInError.canceled.rawValue {
             // El usuario cerro la ventana de Google a proposito.
-            return
+            return nil
         } catch {
             log.error("auth fallo: \(error.localizedDescription, privacy: .public)")
             errorMessage = Self.readableMessage(for: error)
+            return nil
         }
     }
 
@@ -174,6 +186,11 @@ final class AuthService {
     static func readableMessage(for error: Error) -> String {
         if let signInError = error as? SignInError {
             return signInError.localizedDescription
+        }
+        // El servidor del segundo factor ya redacta el mensaje: sabe si el
+        // codigo vencio, si esta mal o cuantos intentos quedan.
+        if let mfaError = error as? MFAError {
+            return mfaError.mensaje
         }
         guard (error as NSError).domain == AuthErrorDomain,
               let code = AuthErrorCode(rawValue: (error as NSError).code) else {
