@@ -3,6 +3,7 @@ import {
   referenceDateOf,
   weekOfMonth,
   monthLabel,
+  monthName,
   groupByMonthAndWeek,
   itemsWithoutDate,
 } from "@/lib/routines/schedule";
@@ -43,6 +44,17 @@ describe("monthLabel", () => {
   });
 });
 
+describe("monthName", () => {
+  it("es el mes solo, sin el año, para \"Septiembre · Semana 4\"", () => {
+    expect(monthName(8)).toBe("Septiembre");
+  });
+
+  it("un índice fuera de rango no rompe", () => {
+    expect(monthName(12)).toBe("");
+    expect(monthName(-1)).toBe("");
+  });
+});
+
 describe("groupByMonthAndWeek", () => {
   const items = [
     { id: "a", createdAt: "2026-09-02" },
@@ -56,6 +68,7 @@ describe("groupByMonthAndWeek", () => {
 
     expect(groups).toHaveLength(2);
     expect(groups[0].label).toBe("Septiembre 2026");
+    expect(groups[0].monthName).toBe("Septiembre");
     expect(groups[0].total).toBe(3);
     expect(groups[0].weeks.map((w) => w.label)).toEqual(["Semana 1", "Semana 2"]);
     expect(groups[0].weeks[0].items.map((i) => i.id)).toEqual(["a", "b"]);

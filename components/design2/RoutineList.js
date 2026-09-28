@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { monthSections, shouldGroupByMonth, visibleRoutines } from "@/lib/routines/filter";
+import { weekSections, shouldGroupByMonth, visibleRoutines } from "@/lib/routines/filter";
 import { hasMenu } from "@/lib/routines/menu";
 import { ChevronRightIcon, PlusIcon, SearchIcon } from "./Icons";
 import RoutineHoldSheet from "./RoutineHoldSheet";
@@ -53,7 +53,7 @@ export default function RoutineList({ items, months, undated }) {
   const [query, setQuery] = useState("");
   const [held, setHeld] = useState(null);
 
-  const sections = useMemo(() => monthSections(months, undated), [months, undated]);
+  const sections = useMemo(() => weekSections(months, undated), [months, undated]);
   const results = useMemo(() => visibleRoutines(items, query), [items, query]);
   const grouped = shouldGroupByMonth(query);
 
@@ -81,7 +81,7 @@ export default function RoutineList({ items, months, undated }) {
         </p>
       ) : grouped ? (
         sections.map((section) => (
-          <section key={section.monthKey} className="d2-routine-section">
+          <section key={section.key} className="d2-routine-section">
             <h2 className="d2-routine-month">{section.label}</h2>
             <div className="d2-routine-list">
               {section.items.map((routine) => (

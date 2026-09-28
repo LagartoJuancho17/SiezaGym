@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { visibleRoutines, monthSections, shouldGroupByMonth } from "@/lib/routines/filter";
+import { visibleRoutines, monthSections, weekSections, shouldGroupByMonth } from "@/lib/routines/filter";
 
 const items = [
   { id: "a", name: "Fullbody A" },
@@ -68,6 +68,51 @@ describe("monthSections", () => {
     // groupByMonthAndWeek las descarta; si no se agregan acá desaparecen de la
     // pantalla sin ningún aviso.
     const sections = monthSections(months, [{ id: "z", name: "Sin fecha" }]);
+    expect(sections.at(-1).label).toBe("Sin fecha");
+    expect(sections.at(-1).items.map((i) => i.id)).toEqual(["z"]);
+  });
+});
+
+describe("weekSections", () => {
+  const months = [
+    {
+      monthKey: "2026-09",
+      label: "Septiembre 2026",
+      monthName: "Septiembre",
+      weeks: [
+        { week: 1, items: [items[1]] },
+        { week: 4, items: [items[0], items[2]] },
+      ],
+    },
+    { monthKey: "2026-08", label: "Agosto 2026", monthName: "Agosto", weeks: [{ week: 3, items: [] }] },
+  ];
+
+  it("una sección por cada semana con rutinas, no por mes", () => {
+    const sections = weekSections(months);
+    expect(sections).toHaveLength(2);
+    expect(sections.map((s) => s.label)).toEqual(["Septiembre · Semana 1", "Septiembre · Semana 4"]);
+  });
+
+  /// El caso del pedido: hoy semana 4 de septiembre, aparece "Septiembre · Semana 4".
+  it("el rótulo es \"Mes · Semana N\", sin el año", () => {
+    expect(weekSections(months)[1].label).toBe("Septiembre · Semana 4");
+  });
+
+  it("cada sección lleva sólo las rutinas de esa semana", () => {
+    expect(weekSections(months)[1].items.map((i) => i.id)).toEqual(["a", "c"]);
+  });
+
+  it("descarta las semanas que quedan vacías", () => {
+    expect(weekSections(months).map((s) => s.key)).not.toContain("2026-08-3");
+  });
+
+  it("sin meses no rompe", () => {
+    expect(weekSections(undefined)).toEqual([]);
+    expect(weekSections([])).toEqual([]);
+  });
+
+  it("las rutinas sin fecha van al final y no se pierden", () => {
+    const sections = weekSections(months, [{ id: "z", name: "Sin fecha" }]);
     expect(sections.at(-1).label).toBe("Sin fecha");
     expect(sections.at(-1).items.map((i) => i.id)).toEqual(["z"]);
   });
