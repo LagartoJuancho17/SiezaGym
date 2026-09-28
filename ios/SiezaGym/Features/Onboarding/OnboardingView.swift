@@ -68,9 +68,16 @@ struct OnboardingView: View {
 
     private var header: some View {
         HStack(spacing: 16) {
-            Text("SIEZA")
-                .font(.system(size: 17, weight: .black))
-                .tracking(-0.6)
+            // El logo real, no el texto: mismo lugar donde antes decía "SIEZA".
+            // Template + foregroundStyle para que tome el color del tema como
+            // lo hacía el texto -- sin esto quedaría negro fijo, invisible
+            // sobre el degradado oscuro de la foto.
+            Image("SiezaWordmark")
+                .renderingMode(.template)
+                .resizable()
+                .scaledToFit()
+                .frame(height: 15)
+                .foregroundStyle(brand.texto)
                 .accessibilityLabel("SiezaGym")
 
             HStack(spacing: 6) {
