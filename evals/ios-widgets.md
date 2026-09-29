@@ -10,10 +10,19 @@ muestra la portada de la app.
 ## Widgets de la pantalla de inicio
 
 - Mantener presionada la pantalla de inicio → Editar → Agregar widget → buscar
-  `SiezaGym`: aparecen **Racha** (chico) y **Hoy** (mediano).
-- En la galería se ve el ejemplo (12 días, Empuje A), no ceros.
+  `SiezaGym`: aparecen **Racha** (chico), **Hoy** (mediano), **Calorías**,
+  **Series** y **Músculos** (chicos).
+- En la galería se ve el ejemplo (12 días, Empuje A, 92% de calorías, 94% de
+  series, pecho/dorsal/cuádriceps), no ceros.
 - Agregado, muestra los datos reales: la misma racha, la misma semana y el mismo
   volumen que la portada.
+- **Calorías, Series y Músculos son las mismas cuentas que "Tus objetivos" en
+  la Home y "Músculos que trabaja" en Progreso** (`HomeMetrics.weeklyCalories`,
+  `setCompletionRate`, `volumeByMuscleGroup`), nunca una versión propia. Como
+  `HomeMetrics` vive en el target de la app y no en `SiezaGymCompartido`, el
+  snapshot no lo puede usar directo: lleva espejos livianos
+  (`ResumenCalorias`/`ResumenSeries`/`ResumenMusculos`) que arma
+  `WidgetSnapshotBuilder`.
 - **El widget usa el tema elegido en la app.** Cambiar de tema en Perfil →
   Configuración lo repinta sin volver a cargar datos.
 - Cerrar sesión deja el widget vacío: no puede seguir mostrando la racha del
@@ -53,6 +62,20 @@ El grupo de llavero compartido necesita el entitlement firmado, que el simulador
 no tiene (firma ad-hoc). Ahí `SnapshotStore` cae en el llavero local, que en el
 simulador comparten todas las apps. En un iPhone de verdad el grupo es
 `RW8N3MB9WH.com.siezagym.compartido`.
+
+**Bug real, solo en iPhone: la racha quedaba siempre en 0 en el widget aunque
+la app mostrara la correcta.** `SnapshotStore.escribir` hacía `SecItemUpdate`
+filtrado por grupo y, si no encontraba nada, `SecItemAdd`. En un teléfono con
+un ítem viejo del mismo service+account pero sin el grupo (de antes de tener
+el grupo compartido bien armado, o de una build anterior de esta misma app),
+el update no lo encontraba (grupo distinto) y el add chocaba contra él con
+`errSecDuplicateItem` — silencioso, sin ningún error visible para quien usa la
+app. `leer()` nunca encontraba nada bajo el grupo y caía siempre en
+`.vacio`. Se confirmó comparando las entitlements firmadas de los dos targets
+(`codesign -d --entitlements :- <app o .appex>`): coincidían exactas
+(`RW8N3MB9WH.com.siezagym.compartido` en ambas), así que no era un problema de
+configuración — era el ítem fantasma. Ahora `escribir`/`borrar` borran primero
+sin filtrar por grupo antes de crear.
 
 ## Gate
 

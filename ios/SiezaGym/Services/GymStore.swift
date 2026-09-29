@@ -66,7 +66,8 @@ final class GymStore {
                 themeID: ThemeStore.temaGuardado,
                 sessions: sessions,
                 routine: featuredRoutine,
-                catalog: catalog
+                catalog: catalog,
+                profile: profile
             )
         )
     }

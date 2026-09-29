@@ -179,6 +179,26 @@ esto se reemplaza por `UserDefaults(suiteName:)` y el resto no cambia.
 El snapshot lleva también el id del tema: el widget no puede leer el
 `@AppStorage` de la app (son dos contenedores distintos).
 
+**Cinco widgets: Racha, Hoy, Calorías, Series y Músculos** — las mismas cuentas
+que las tarjetas de "Tus objetivos" en la Home y "Músculos que trabaja" en
+Progreso. `WidgetSnapshot` vive en `SiezaGymCompartido`, que se compila **tanto
+en la app como en la extensión de widgets**; `HomeMetrics` vive solo en el
+target de la app. Por eso el snapshot no lleva `HomeMetrics.CalorieGoal` ni los
+demás tipos directamente — la extensión no los vería y no compila. Lleva
+espejos livianos (`ResumenCalorias`, `ResumenSeries`, `ResumenMusculos`) con los
+mismos campos ya resueltos a texto/número; `WidgetSnapshotBuilder` (que sí ve
+`HomeMetrics`, porque vive en el target de la app) hace la traducción.
+
+**Un ítem viejo del llavero puede bloquear todas las escrituras nuevas.**
+`SnapshotStore.escribir` hacía `SecItemUpdate` filtrado por grupo y, si no
+encontraba nada, `SecItemAdd`. Si en el teléfono ya había un ítem con el mismo
+service+account pero sin el grupo (de antes de tener el grupo compartido bien
+armado, o de una build anterior), el update no lo encontraba y el add chocaba
+contra él con `errSecDuplicateItem`: el widget quedaba leyendo vacío para
+siempre y no había ningún error visible para el usuario. Ahora `escribir` borra
+primero sin filtrar por grupo (alcanza cualquier ítem viejo) y siempre crea de
+cero.
+
 **La isla expandida se dibuja siempre sobre negro**, así que va en blanco y no
 con los colores del tema: el sólido del tema Plata es casi negro y desaparecía.
 La pantalla bloqueada sí usa el tema, porque ahí el fondo lo pone
@@ -413,7 +433,7 @@ xcodebuild test -project SiezaGym.xcodeproj -scheme SiezaGym \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 ```
 
-230 tests: la matemática de `Domain/`, lo que muestran los widgets, los links de
+236 tests: la matemática de `Domain/`, lo que muestran los widgets, los links de
 YouTube, el formato de las métricas de Salud, las reglas del formulario de login,
 el código del segundo factor, la bienvenida de tres pantallas, los bloques de
 ejercicios, la semana asignada y el agrupamiento de Rutinas por mes y semana.
