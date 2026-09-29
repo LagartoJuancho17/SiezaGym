@@ -18,6 +18,10 @@ muestra la portada de la app.
   Configuración lo repinta sin volver a cargar datos.
 - Cerrar sesión deja el widget vacío: no puede seguir mostrando la racha del
   usuario anterior.
+- **Borrar un entrenamiento del historial también actualiza el widget.**
+  `deleteSession` mutaba `sessions` en memoria pero no llamaba a
+  `publicarWidget()`: la racha y el volumen de la semana quedaban contando una
+  sesión que ya no existía hasta la próxima carga completa (relanzar la app).
 - Sin haber abierto nunca la app, muestra el estado vacío y no ceros inventados.
 - En la pantalla bloqueada (`accessoryCircular` / `accessoryRectangular` /
   `accessoryInline`) se lee en monocromo: ahí el sistema pinta todo de un color

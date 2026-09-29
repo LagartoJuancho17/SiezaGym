@@ -140,6 +140,9 @@ final class GymStore {
         guard session.userID == uid else { return }
         try await repository.deleteSession(uid: uid, sessionID: session.id)
         sessions.removeAll { $0.id == session.id }
+        // Sin esto la racha y el volumen del widget quedaban con la sesión
+        // borrada adentro hasta la próxima carga completa (relanzar la app).
+        publicarWidget()
     }
 
     /// Crea una rutina y recarga, para que aparezca en la lista sin salir y
