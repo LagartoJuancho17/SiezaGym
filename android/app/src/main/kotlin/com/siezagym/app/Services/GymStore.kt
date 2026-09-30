@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.siezagym.app.Domain.*
 import com.siezagym.app.Models.*
 import java.time.Instant
+import java.time.ZonedDateTime
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -58,6 +59,14 @@ data class GymData(
     /** Volumen de la semana en curso, el número que abre la grilla de progreso. */
     val weeklyVolumeKg
         get() = sessions.sumOf { it.totalVolumeKg }
+
+    /** La semana en curso, en el calendario de Argentina, no en el del teléfono. */
+    val currentWeek
+        get() = TrainingCalendar.semana(ZonedDateTime.now(TrainingCalendar.zone))
+
+    /** Las rutinas que el usuario asignó a esta semana, como pide la portada. */
+    val routinesThisWeek
+        get() = TrainingCalendar.delaSemana(routines, currentWeek.clave) { it.weekKey }
 
     val calories
         get() =

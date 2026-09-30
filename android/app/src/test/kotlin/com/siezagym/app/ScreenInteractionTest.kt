@@ -34,7 +34,7 @@ class ScreenInteractionTest {
     @get:Rule val compose = createAndroidComposeRule<ComponentActivity>()
 
     @Test
-    fun homeStartsFeaturedRoutineAndRendersAllMetricWidgets() {
+    fun homeShowsWeekAndGoalsThenStartsTheFeaturedRoutine() {
         val routine = Routine.fromFirestore("routine", mapOf("name" to "Tren superior"))
         var started: Routine? = null
         compose.setContent {
@@ -51,11 +51,34 @@ class ScreenInteractionTest {
                 }
             }
         }
-        compose.onNodeWithText("Tren superior").assertIsDisplayed()
-        compose.onNodeWithText("▶  Empezar").performClick()
+        // "Hoy toca" nombra la rutina y el play arranca lo que toca. El mismo
+        // nombre vuelve abajo, en la lista de rutinas.
+        compose.onAllNodesWithText("Tren superior").assertCountEquals(2)
+        compose.onNodeWithContentDescription("Empezar entrenamiento").performClick()
         assertEquals(routine, started)
         capture("home")
-        compose.onNodeWithText("Zonas de intensidad").performScrollTo().assertIsDisplayed()
+        // La semana, los objetivos y las rutinas van más abajo en la misma pantalla.
+        compose.onNodeWithText("Tus objetivos").performScrollTo().assertIsDisplayed()
+        // "Esta semana" dice dos veces: el rótulo de la semana y la tarjeta de volumen.
+        compose.onAllNodesWithText("Esta semana").assertCountEquals(2)
+        compose.onNodeWithText("Las rutinas").performScrollTo().assertIsDisplayed()
+    }
+
+    /** Sin rutina destacada el botón igual sirve: entra entrenamiento libre. */
+    @Test
+    fun homeWithoutRoutinesStartsAFreeWorkout() {
+        var libres = 0
+        compose.setContent {
+            SiezaTheme(Theme.porDefecto) {
+                Backdrop {
+                    HomeScreen(GymData(hasLoaded = true)) { if (it == null) libres++ }
+                }
+            }
+        }
+        compose.onNodeWithText("entrenar libre").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Empezar entrenamiento").performClick()
+        assertEquals(1, libres)
+        compose.onNodeWithText("Todavía no tenés rutinas.").assertIsDisplayed()
     }
 
     @Test

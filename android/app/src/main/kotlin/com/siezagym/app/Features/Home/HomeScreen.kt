@@ -1,304 +1,289 @@
 package com.siezagym.app.Features.Home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.siezagym.app.DesignSystem.*
-import com.siezagym.app.Domain.*
+import com.siezagym.app.Domain.ProgressMetrics
 import com.siezagym.app.Models.Routine
 import com.siezagym.app.Services.GymData
-import java.time.LocalDate
 
+/**
+ * La portada: saludo con la meta semanal, la semana de entrenamiento, los
+ * objetivos, las rutinas y un acceso al historial.
+ */
 @Composable
-fun HomeScreen(data: GymData, onStart: (Routine?) -> Unit) {
+fun HomeScreen(data: GymData, onOpenHistory: () -> Unit = {}, onStart: (Routine?) -> Unit) {
     Column(
-        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(bottom = 112.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 18.dp)
+            .padding(top = 8.dp)
+            .padding(bottom = bottomNavInset),
+        verticalArrangement = Arrangement.spacedBy(15.dp),
     ) {
-        Hero(300.dp) {
-            Text(
-                "GO TIME!",
-                color = Theme.accent,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 1.8.sp,
-            )
-            Text(
-                data.featuredRoutine?.name ?: "Entrenamiento libre",
-                color = Color.White,
-                fontSize = 38.sp,
-                lineHeight = 42.sp,
-                fontWeight = FontWeight.Bold,
-                maxLines = 2,
-            )
-            AccentButton("▶  Empezar") { onStart(data.featuredRoutine) }
+        Saludo(data)
+
+        HoyToca(data) { onStart(it) }
+
+        Column {
+            EncabezadoSeccion(data.currentWeek.texto)
+            Spacer(Modifier.height(14.dp))
+            SemanaCard(data.trainedDayKeys, data.streak)
         }
-        Column(
-            Modifier.padding(horizontal = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+
+        Column {
+            EncabezadoSeccion("Tus objetivos")
+            Spacer(Modifier.height(16.dp))
+            Objetivos(data)
+        }
+
+        Column {
+            EncabezadoSeccion("Las rutinas")
+            Spacer(Modifier.height(14.dp))
+            if (data.routines.isEmpty()) {
+                GlassCard(padding = 24.dp) {
+                    Text("Todavía no tenés rutinas.", color = tema.texto2, fontSize = 14.sp)
+                }
+            } else {
+                PanelLista {
+                    data.routines.take(3).forEachIndexed { indice, rutina ->
+                        if (indice > 0) Separador()
+                        FilaRutina(rutina, data) { onStart(rutina) }
+                    }
+                }
+            }
+        }
+
+        Column {
+            SectionLabel("Tu espacio")
+            Spacer(Modifier.height(10.dp))
+            GlassCard(padding = 0.dp) {
+                FilaLista("Historial", "Todo lo que entrenaste", onClick = onOpenHistory)
+            }
+        }
+
+        data.loadError?.let { error ->
+            Text(error, color = tema.texto2, fontSize = 13.sp)
+        }
+    }
+}
+
+/** "Hola, nombre" con la meta semanal al lado. */
+@Composable
+private fun Saludo(data: GymData) {
+    Row(
+        Modifier.padding(top = 20.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        Box(
+            Modifier
+                .size(46.dp)
+                .clip(CircleShape)
+                .background(tema.vidrio(2))
+                .border(1.dp, tema.borde, CircleShape),
+            contentAlignment = Alignment.Center,
         ) {
-            WeekStrip(data.trainedDayKeys, data.streak)
-            SurfaceCard {
-                WidgetHeader("Volumen por músculo")
-                val volume = data.muscleVolume
-                if (!volume.hasData) EmptyWidget("Registrá un entrenamiento para ver el reparto.")
-                else {
-                    WidgetValue(number(volume.totalKg), "kg totales")
-                    volume.rows.forEach { row ->
-                        Row(
-                            Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                        ) {
-                            Text(
-                                row.label,
-                                color = Theme.cardText,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.SemiBold,
-                            )
-                            Text(
-                                "${(row.pct*100).toInt()}%",
-                                color = Theme.cardMuted,
-                                fontSize = 12.sp,
-                            )
-                        }
-                        WidgetMeter(row.pct)
-                    }
-                }
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                SurfaceCard(Modifier.weight(1f)) {
-                    val goal = data.calories
-                    WidgetHeader("Calorías semana")
-                    WidgetValue(number(goal.kcal), "kcal")
-                    WidgetMeter(goal.pct / 100.0)
-                    Text(
-                        "${goal.label} · meta ${goal.goal}",
-                        color = Theme.cardMuted,
-                        fontSize = 10.sp,
-                    )
-                    if (goal.usesDefaultWeight)
-                        Text(
-                            "Estimado con 75 kg. Cargá tu peso en Perfil.",
-                            color = Theme.cardMuted,
-                            fontSize = 9.sp,
-                        )
-                }
-                SurfaceCard(Modifier.weight(1f)) {
-                    val intensity = data.intensity
-                    WidgetHeader("Intensidad")
-                    WidgetValue("${intensity.pct}", "% 1RM")
-                    WidgetMeter(intensity.pct / 100.0)
-                    Text(
-                        intensity.label,
-                        color = if (intensity.hasData) Theme.accent else Theme.cardMuted,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                    )
-                }
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                SurfaceCard(Modifier.weight(1f)) {
-                    val balance = data.pushPull
-                    WidgetHeader("Empuje / tracción")
-                    WidgetValue("${balance.pct}", "%")
-                    WidgetMeter(balance.pct / 100.0)
-                    Text(
-                        balance.label,
-                        color = if (balance.hasData) Theme.accent else Theme.cardMuted,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    Text(
-                        "${balance.pushKg} / ${balance.pullKg} kg",
-                        color = Theme.cardMuted,
-                        fontSize = 10.sp,
-                    )
-                }
-                SurfaceCard(Modifier.weight(1f)) {
-                    val completion = data.completion
-                    WidgetHeader("Series completadas")
-                    WidgetValue("${completion.pct}", "%")
-                    WidgetMeter(completion.pct / 100.0)
-                    Text(
-                        if (completion.hasData) "${completion.completed} de ${completion.total}"
-                        else "Sin datos",
-                        color = Theme.cardMuted,
-                        fontSize = 10.sp,
-                    )
-                }
-            }
-            SurfaceCard {
-                WidgetHeader("Volumen por día")
-                val days = data.weekdayVolume
-                if (days.none { it.kg > 0 }) EmptyWidget("Todavía no hay sesiones esta semana.")
-                else
-                    Row(
-                        Modifier.fillMaxWidth().height(92.dp),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalAlignment = Alignment.Bottom,
-                    ) {
-                        days.forEach { day ->
-                            Column(
-                                Modifier.weight(1f),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(6.dp),
-                            ) {
-                                Box(
-                                    Modifier.fillMaxWidth()
-                                        .height(maxOf(4f, 70 * day.pct.toFloat()).dp)
-                                        .background(
-                                            if (day.pct >= 1) Theme.accent else Theme.chartDark,
-                                            RoundedCornerShape(3.dp),
-                                        )
-                                )
-                                Text(
-                                    day.label,
-                                    color = Theme.cardMuted,
-                                    fontSize = 9.sp,
-                                    fontWeight = FontWeight.Bold,
-                                )
-                            }
-                        }
-                    }
-            }
-            SurfaceCard {
-                WidgetHeader("Volumen por sesión")
-                val trend = data.volumeTrend
-                if (!trend.hasData) EmptyWidget("Necesitás al menos una sesión registrada.")
-                else {
-                    WidgetValue(number(trend.averageKg), "kg promedio")
-                    val peak = (trend.points.maxOrNull() ?: 1).coerceAtLeast(1)
-                    Row(
-                        Modifier.fillMaxWidth().height(64.dp),
-                        horizontalArrangement = Arrangement.spacedBy(5.dp),
-                        verticalAlignment = Alignment.Bottom,
-                    ) {
-                        trend.points.forEachIndexed { index, kg ->
-                            Box(
-                                Modifier.weight(1f)
-                                    .height(maxOf(4f, 60f * kg / peak).dp)
-                                    .background(
-                                        if (index == trend.points.lastIndex) Theme.accent
-                                        else Theme.chartDark,
-                                        RoundedCornerShape(3.dp),
-                                    )
-                            )
-                        }
-                    }
-                }
-            }
-            SurfaceCard {
-                WidgetHeader("Zonas de intensidad")
-                val zones = data.zones
-                @Composable
-                fun color(zone: HomeMetrics.Zone) =
-                    when (zone) {
-                        HomeMetrics.Zone.PEAK -> Theme.accent
-                        HomeMetrics.Zone.HIGH -> Theme.accentLight
-                        HomeMetrics.Zone.MED -> Theme.chartDark
-                        HomeMetrics.Zone.LIGHT -> Theme.chartLight
-                    }
-                if (!zones.hasData) EmptyWidget("Cargá pesos para medir la intensidad.")
-                else {
-                    Row(
-                        Modifier.fillMaxWidth().height(20.dp).clip(RoundedCornerShape(4.dp)),
-                        horizontalArrangement = Arrangement.spacedBy(2.dp),
-                    ) {
-                        HomeMetrics.Zone.entries
-                            .reversed()
-                            .filter { zones.count(it) > 0 }
-                            .forEach { zone ->
-                                Box(
-                                    Modifier.weight(zones.count(zone).toFloat())
-                                        .fillMaxHeight()
-                                        .background(color(zone))
-                                )
-                            }
-                    }
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        HomeMetrics.Zone.entries
-                            .reversed()
-                            .filter { zones.count(it) > 0 }
-                            .forEach { zone ->
-                                Text(
-                                    "● ${zone.label} ${zones.count(zone)}",
-                                    color = Theme.cardMuted,
-                                    fontSize = 9.sp,
-                                )
-                            }
-                    }
-                }
+            Text(
+                data.profile?.initial ?: "T",
+                color = tema.texto,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Medium,
+            )
+        }
+        Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+            Text(
+                "Hola, ${data.profile?.displayName ?: "atleta"}",
+                color = tema.texto,
+                fontSize = 21.sp,
+                fontWeight = FontWeight.Medium,
+                letterSpacing = tracking(-0.5f, 21f).sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(7.dp),
+            ) {
+                Icon(Icons.Filled.Bolt, null, tint = tema.texto, modifier = Modifier.size(12.dp))
+                Text(
+                    "Meta semanal: ${data.calories.pct}%",
+                    color = tema.texto2,
+                    fontSize = 14.sp,
+                )
             }
         }
     }
 }
 
+/**
+ * "Hoy toca" con el nombre de la rutina en itálica y el botón de play. Si no
+ * hay rutina destacada, arrancá un entrenamiento libre.
+ */
 @Composable
-private fun WeekStrip(trained: Set<String>, streak: Int) {
-    val today = LocalDate.now(TrainingCalendar.zone)
-    val monday = today.minusDays((today.dayOfWeek.value - 1).toLong())
-    SurfaceCard(padding = 12.dp) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.weight(1f)) { WidgetHeader("Tu semana") }
-            if (streak > 0)
-                Text(
-                    "$streak ${if(streak==1) "día" else "días"}",
-                    color = Theme.accent,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold,
-                )
+private fun HoyToca(data: GymData, onStart: (Routine?) -> Unit) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(top = 34.dp),
+        verticalAlignment = Alignment.Bottom,
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text("Hoy toca", color = tema.texto, fontSize = 29.sp, fontWeight = FontWeight.Medium)
+            Text(
+                data.featuredRoutine?.name ?: "entrenar libre",
+                color = tema.texto,
+                fontSize = 29.sp,
+                lineHeight = 33.sp,
+                fontWeight = FontWeight.Black,
+                fontStyle = FontStyle.Italic,
+                letterSpacing = tracking(-0.6f, 29f).sp,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            repeat(7) { offset ->
-                val day = monday.plusDays(offset.toLong())
-                Column(
-                    Modifier.weight(1f),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(5.dp),
-                ) {
-                    Text(
-                        TrainingCalendar.dayLabels[offset],
-                        color = Theme.cardMuted,
-                        fontSize = 9.sp,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    Box(
-                        Modifier.size(30.dp)
-                            .background(
-                                if (day == today) Theme.accent else Color.Transparent,
-                                CircleShape,
-                            ),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(
-                            "${day.dayOfMonth}",
-                            color = if (day == today) Color.White else Theme.cardText,
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                    }
-                    Box(
-                        Modifier.size(5.dp)
-                            .background(
-                                if (TrainingCalendar.dayKey(day) in trained) Theme.accent
-                                else Color.Transparent,
-                                CircleShape,
-                            )
-                    )
-                }
-            }
+        IconButton(
+            onClick = { onStart(data.featuredRoutine) },
+            modifier = Modifier
+                .size(56.dp)
+                .clip(CircleShape)
+                .background(tema.solido),
+        ) {
+            Icon(
+                Icons.Filled.PlayArrow,
+                "Empezar entrenamiento",
+                tint = tema.sobreSolido,
+                modifier = Modifier.size(26.dp),
+            )
         }
     }
+}
+
+/** El título de cada bloque: un poco más chico y apagado que el de pantalla. */@Composable
+private fun EncabezadoSeccion(texto: String) {
+    Text(
+        texto,
+        Modifier.fillMaxWidth(),
+        color = tema.texto2,
+        fontSize = 20.sp,
+        fontWeight = FontWeight.Medium,
+        letterSpacing = tracking(-0.4f, 20f).sp,
+    )
+}
+
+/** Las tres tarjetas que se corren en horizontal: volumen, calorías, series. */
+@Composable
+private fun Objetivos(data: GymData) {
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+        item {
+            ObjetivoCard(
+                titulo = "Esta semana",
+                valor = ProgressMetrics.formatKg(data.weeklyVolumeKg),
+                insignia = "volumen",
+                progreso = (data.weeklyVolumeKg / 10000.0).coerceIn(0.0, 1.0),
+                icono = Icons.Filled.Bolt,
+            )
+        }
+        item {
+            ObjetivoCard(
+                titulo = "Calorías",
+                valor = "${data.calories.kcal} kcal",
+                insignia = if (data.calories.usesDefaultWeight) "Estimado" else "Medido",
+                progreso = data.calories.pct / 100.0,
+                icono = Icons.Filled.Schedule,
+            )
+        }
+        item {
+            ObjetivoCard(
+                titulo = "Series",
+                valor = "${data.completion.pct} %",
+                insignia = "${data.completion.completed} de ${data.completion.total}",
+                progreso = data.completion.pct / 100.0,
+                icono = Icons.Filled.Check,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ObjetivoCard(
+    titulo: String,
+    valor: String,
+    insignia: String,
+    progreso: Double,
+    icono: ImageVector,
+) {
+    GlassCard(radius = 30f, padding = 14.dp) {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    titulo,
+                    Modifier.weight(1f),
+                    color = tema.texto2,
+                    fontSize = 11.sp,
+                    maxLines = 1,
+                )
+                Icon(icono, null, tint = tema.solido, modifier = Modifier.size(13.dp))
+            }
+            Text(
+                valor,
+                color = tema.texto,
+                fontSize = 22.sp,
+                lineHeight = 26.sp,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+            )
+            WidgetMeter(progreso)
+            Text(insignia, color = tema.texto3, fontSize = 10.sp, maxLines = 1)
+        }
+    }
+}
+
+/** Una rutina en la lista, con su detalle según si es asignada o propia. */
+@Composable
+private fun FilaRutina(rutina: Routine, data: GymData, onClick: () -> Unit) {
+    val ejercicio =
+        rutina.exercises.firstNotNullOfOrNull { data.catalog[it.exerciseID] }
+    FilaLista(
+        nombre = rutina.name,
+        detalle = detalleRutina(rutina, data),
+        miniatura = ejercicio?.mediaUrl,
+        valor = "${rutina.totalSets}",
+        unidad = "series",
+        onClick = onClick,
+    )
+}
+
+private fun detalleRutina(rutina: Routine, data: GymData): String {
+    if (rutina.isAssigned) return "Asignada por tu entrenador"
+    val grupos = rutina.exercises.map { it.group }.filter { it.isNotBlank() }.distinct()
+    return if (grupos.isEmpty()) "${rutina.exercises.size} ejercicios" else grupos.joinToString(" · ")
 }

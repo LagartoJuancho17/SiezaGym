@@ -237,14 +237,18 @@ class GymRepository {
             .await()
     }
 
-    /** A qué semana queda asignada la rutina. `null` la saca del calendario. */
+    /**
+     * A qué semana queda asignada la rutina. Sacarla borra el campo en vez de
+     * guardar null: un `weekKey` en null no existe para las consultas, y la
+     * rutina quedaría asignada a una semana que no está.
+     */
     suspend fun setRoutineWeek(uid: String, routineId: String, weekKey: String?) {
         val documento = db.collection("routines").document(routineId)
         requireOwned(documento, uid)
         documento
             .update(
                 mapOf(
-                    "weekKey" to weekKey,
+                    "weekKey" to (weekKey ?: FieldValue.delete()),
                     "updatedAt" to FieldValue.serverTimestamp(),
                 )
             )

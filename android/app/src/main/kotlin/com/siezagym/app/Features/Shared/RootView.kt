@@ -88,7 +88,13 @@ private fun MainTabs(auth: AuthService, store: GymStore) {
             NavHost(nav, startDestination = AppTab.HOME.name, modifier = Modifier.weight(1f)) {
                 navigation(startDestination = "home", route = AppTab.HOME.name) {
                     composable("home") {
-                        PullToRefreshBox(data.isLoading, { store.load() }) { HomeScreen(data, ::start) }
+                        PullToRefreshBox(data.isLoading, { store.load() }) {
+                            HomeScreen(
+                                data = data,
+                                onOpenHistory = { nav.navigate(AppTab.HISTORY.name) },
+                                onStart = ::start,
+                            )
+                        }
                     }
                 }
 
