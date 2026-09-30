@@ -19,6 +19,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.dp
@@ -36,6 +37,8 @@ import com.siezagym.app.DesignSystem.*
 import com.siezagym.app.Features.Auth.LoginScreen
 import com.siezagym.app.Features.History.*
 import com.siezagym.app.Features.Home.HomeScreen
+import com.siezagym.app.Features.Onboarding.OnboardingScreen
+import com.siezagym.app.Features.Onboarding.OnboardingStore
 import com.siezagym.app.Features.Profile.*
 import com.siezagym.app.Features.Routines.*
 import com.siezagym.app.Features.Workout.WorkoutScreen
@@ -46,9 +49,23 @@ import kotlinx.coroutines.launch
 @Composable
 fun RootView(auth: AuthService) {
     val state by auth.state.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    // El recorrido va antes del login y sólo la primera vez en cada teléfono.
+    val recorrido = remember { OnboardingStore(context) }
+    var mostrarRecorrido by remember { mutableStateOf(recorrido.pendiente) }
     when (val current = state) {
         AuthService.State.Loading -> Cargando("Abriendo la cuenta…")
-        AuthService.State.SignedOut -> LoginScreen(auth)
+        AuthService.State.SignedOut ->
+            if (mostrarRecorrido) {
+                OnboardingScreen(
+                    onComplete = {
+                        recorrido.marcarCompletado()
+                        mostrarRecorrido = false
+                    }
+                )
+            } else {
+                LoginScreen(auth)
+            }
         is AuthService.State.SignedIn ->
             key(current.uid) {
                 // The account owns all ViewModels. Sign-out cancels loads and removes private
