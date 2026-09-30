@@ -1,6 +1,7 @@
 package com.siezagym.app.Domain
 
 import java.util.Locale
+import kotlin.math.roundToInt
 
 /**
  * Resumen diario que llega desde Health Connect, el equivalente de Apple Salud en Android. Los
@@ -22,5 +23,21 @@ data class HealthMetrics(
 
     companion object {
         val empty = HealthMetrics(0, 0, 0.0, hasData = false)
+
+        /**
+         * Traduce los agregados del día que devuelve Health Connect a lo que muestra la portada.
+         * Puro, para poder testearlo sin un teléfono con Health Connect.
+         */
+        fun fromDailyTotals(
+            steps: Long,
+            distanceMeters: Double,
+            activeCaloriesKcal: Double,
+        ): HealthMetrics =
+            HealthMetrics(
+                activeEnergyKcal = activeCaloriesKcal.roundToInt(),
+                steps = steps.toInt(),
+                distanceKm = distanceMeters / 1000.0,
+                hasData = steps > 0 || distanceMeters > 0 || activeCaloriesKcal > 0,
+            )
     }
 }

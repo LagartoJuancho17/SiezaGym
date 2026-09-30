@@ -11,6 +11,7 @@ googleServices = "4.4.4"
 playServicesAuth = "21.4.0"
 coroutines = "1.10.2"
 coil = "3.3.0"
+healthConnect = "1.1.0"
 junit = "4.13.2"
 
 [libraries]
@@ -33,6 +34,7 @@ play-services-auth = { group = "com.google.android.gms", name = "play-services-a
 kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "coroutines" }
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
 coil-gif = { group = "io.coil-kt.coil3", name = "coil-gif", version.ref = "coil" }
+androidx-health-connect = { group = "androidx.health.connect", name = "connect-client", version.ref = "healthConnect" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 
 [plugins]

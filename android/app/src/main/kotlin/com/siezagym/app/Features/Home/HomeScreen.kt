@@ -10,8 +10,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.DirectionsRun
+import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.HeartBroken
+import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Icon
@@ -29,16 +34,25 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.siezagym.app.DesignSystem.*
+import com.siezagym.app.Domain.HealthMetrics
 import com.siezagym.app.Domain.ProgressMetrics
 import com.siezagym.app.Models.Routine
 import com.siezagym.app.Services.GymData
+import com.siezagym.app.Services.HealthUiState
 
 /**
  * La portada: saludo con la meta semanal, la semana de entrenamiento, los
  * objetivos, las rutinas y un acceso al historial.
  */
 @Composable
-fun HomeScreen(data: GymData, onOpenHistory: () -> Unit = {}, onStart: (Routine?) -> Unit) {
+fun HomeScreen(
+    data: GymData,
+    health: HealthUiState = HealthUiState(),
+    healthAvailable: Boolean = true,
+    onConnectHealth: () -> Unit = {},
+    onOpenHistory: () -> Unit = {},
+    onStart: (Routine?) -> Unit,
+) {
     Column(
         Modifier
             .fillMaxSize()
@@ -63,6 +77,8 @@ fun HomeScreen(data: GymData, onOpenHistory: () -> Unit = {}, onStart: (Routine?
             Spacer(Modifier.height(16.dp))
             Objetivos(data)
         }
+
+        ActividadDeHoy(health, healthAvailable, onConnectHealth)
 
         Column {
             EncabezadoSeccion("Las rutinas")
@@ -265,6 +281,153 @@ private fun ObjetivoCard(
             Text(insignia, color = tema.texto3, fontSize = 10.sp, maxLines = 1)
         }
     }
+}
+
+/**
+ * La actividad de hoy leída de Health Connect (Apple Salud en iOS): no disponible, por conectar, o
+ * los tres números del día. Son datos de salud, no de entrenamiento, y viven separados de las
+ * métricas de la app.
+ */
+@Composable
+private fun ActividadDeHoy(health: HealthUiState, disponible: Boolean, onConectar: () -> Unit) {
+    Column {
+        EncabezadoSeccion("Actividad de hoy")
+        Spacer(Modifier.height(14.dp))
+
+        when {
+            !disponible ->
+                GlassCard(padding = 18.dp) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        Icon(
+                            Icons.Filled.HeartBroken,
+                            null,
+                            tint = tema.texto2,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Text(
+                            "Health Connect no está disponible en este dispositivo.",
+                            color = tema.texto2,
+                            fontSize = 13.sp,
+                        )
+                    }
+                }
+            health.isConnected -> TarjetaActividad(health.summary)
+            else ->
+                GlassCard(padding = 18.dp) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(14.dp),
+                    ) {
+                        Icon(
+                            Icons.Filled.Favorite,
+                            null,
+                            tint = tema.solido,
+                            modifier = Modifier.size(25.dp),
+                        )
+                        Column(
+                            Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(5.dp),
+                        ) {
+                            Text(
+                                "Conectá Health Connect",
+                                color = tema.texto,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Medium,
+                            )
+                            Text(
+                                "Traé tus calorías, pasos y distancia de hoy.",
+                                color = tema.texto2,
+                                fontSize = 11.sp,
+                            )
+                        }
+                        SolidButton(
+                            if (health.isRequesting) "Conectando…" else "Conectar",
+                            Modifier.heightIn(min = 34.dp),
+                            expands = false,
+                            enabled = !health.isRequesting,
+                            onClick = onConectar,
+                        )
+                    }
+                }
+        }
+
+        health.errorMessage?.let { error ->
+            Spacer(Modifier.height(8.dp))
+            Text(error, color = tema.texto2, fontSize = 11.sp)
+        }
+    }
+}
+
+@Composable
+private fun TarjetaActividad(summary: HealthMetrics) {
+    GlassCard(padding = 16.dp) {
+        Column {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                DatoActividad(
+                    Icons.Filled.LocalFireDepartment,
+                    summary.caloriesLabel,
+                    "calorías",
+                    Modifier.weight(1f),
+                )
+                SeparadorActividad()
+                DatoActividad(
+                    Icons.AutoMirrored.Filled.DirectionsWalk,
+                    summary.stepsLabel,
+                    "pasos",
+                    Modifier.weight(1f),
+                )
+                SeparadorActividad()
+                DatoActividad(
+                    Icons.AutoMirrored.Filled.DirectionsRun,
+                    summary.distanceLabel,
+                    "distancia",
+                    Modifier.weight(1f),
+                )
+            }
+            if (!summary.hasData) {
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    "Todavía no hay actividad de hoy o el permiso está desactivado en Health Connect.",
+                    color = tema.texto3,
+                    fontSize = 10.sp,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DatoActividad(
+    icono: ImageVector,
+    valor: String,
+    nombre: String,
+    modifier: Modifier,
+) {
+    Column(
+        modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(5.dp),
+    ) {
+        Icon(icono, null, tint = tema.solido, modifier = Modifier.size(18.dp))
+        Text(
+            valor,
+            color = tema.texto,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        Text(nombre, color = tema.texto3, fontSize = 10.sp)
+    }
+}
+
+@Composable
+private fun SeparadorActividad() {
+    Box(Modifier.width(1.dp).height(34.dp).background(tema.borde))
 }
 
 /** Una rutina en la lista, con su detalle según si es asignada o propia. */

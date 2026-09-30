@@ -79,6 +79,9 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.coil.gif)
 
+    // Lee pasos, distancia y calorías del día desde Health Connect (el Apple Salud de Android).
+    implementation(libs.androidx.health.connect)
+
     testImplementation(libs.junit)
     testImplementation("org.robolectric:robolectric:4.16.1")
     testImplementation("androidx.compose.ui:ui-test-junit4")

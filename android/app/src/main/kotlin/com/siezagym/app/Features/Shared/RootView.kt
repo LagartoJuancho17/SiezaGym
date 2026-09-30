@@ -23,10 +23,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.dp
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.health.connect.client.PermissionController
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -96,6 +100,18 @@ private fun MainTabs(auth: AuthService, store: GymStore) {
     val data by store.data.collectAsStateWithLifecycle()
     val nav = rememberNavController()
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    // Health Connect no concede el permiso con una llamada: hay que lanzar el contrato del sistema
+    // desde la activity y recibir el resultado acá.
+    val health = remember(context) { HealthConnectService(context.applicationContext) }
+    val healthState by health.state.collectAsStateWithLifecycle()
+    val pedirSalud =
+        rememberLauncherForActivityResult(
+            PermissionController.createRequestPermissionResultContract()
+        ) { concedidos -> health.onPermissionResult(concedidos) }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        scope.launch { health.refreshIfConnected() }
+    }
     val entry by nav.currentBackStackEntryAsState()
     val route = entry?.destination?.route.orEmpty()
     val active =
@@ -123,6 +139,9 @@ private fun MainTabs(auth: AuthService, store: GymStore) {
                         PullToRefreshBox(data.isLoading, { store.load() }) {
                             HomeScreen(
                                 data = data,
+                                health = healthState,
+                                healthAvailable = health.isAvailable,
+                                onConnectHealth = { pedirSalud.launch(health.permissions) },
                                 onOpenHistory = { nav.navigate(AppTab.HISTORY.name) },
                                 onStart = ::start,
                             )
