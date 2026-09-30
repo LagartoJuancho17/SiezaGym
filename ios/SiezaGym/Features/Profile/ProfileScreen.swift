@@ -15,6 +15,7 @@ struct ProfileScreen: View {
     @State private var meta = ""
     @State private var sexo: Sex?
     @State private var nivel: ExperienceLevel?
+    @State private var guardando = false
     @State private var guardadoEn: Date?
     @State private var cargado = false
 
@@ -144,27 +145,33 @@ struct ProfileScreen: View {
                 opciones("Sexo", Sex.allCases, seleccion: sexo) { sexo = sexo == $0 ? nil : $0 }
                 opciones("Experiencia", ExperienceLevel.allCases, seleccion: nivel) { nivel = nivel == $0 ? nil : $0 }
 
-                HStack(spacing: 12) {
-                    campo("Peso (kg)", texto: $peso)
-                    campo("Altura (cm)", texto: $altura)
+                Rectangle().fill(tema.borde).frame(height: 1)
+
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 12) {
+                        campo("Peso (kg)", texto: $peso)
+                        campo("Altura (cm)", texto: $altura)
+                    }
+                    // El peso no es decorativo: la portada lo usa para
+                    // estimar las calorías de cada sesión. Va pegado al campo
+                    // que explica, no suelto al final de la tarjeta.
+                    Text("El peso se usa para estimar las calorías de cada sesión.")
+                        .font(.system(size: 11))
+                        .foregroundStyle(tema.texto3)
                 }
+
                 campo("Meta semanal (kcal)", texto: $meta)
 
                 HStack(spacing: 12) {
-                    Button("Guardar") { Task { await guardar() } }
+                    Button(guardando ? "Guardando…" : "Guardar") { Task { await guardar() } }
                         .buttonStyle(SolidButtonStyle(expands: false))
+                        .disabled(guardando)
                     if guardadoEn != nil {
                         Text("Listo, guardado.")
                             .font(.system(size: 12))
                             .foregroundStyle(tema.texto2)
                     }
                 }
-
-                // El peso no es decorativo: la portada lo usa para estimar las
-                // calorías de la semana.
-                Text("El peso se usa para estimar las calorías de cada sesión.")
-                    .font(.system(size: 11))
-                    .foregroundStyle(tema.texto3)
             }
         }
     }
@@ -216,47 +223,56 @@ struct ProfileScreen: View {
     // MARK: - Configuración
 
     private var configuracion: some View {
-        VStack(spacing: 14) {
-            GlassCard(padding: 16) {
-                VStack(alignment: .leading, spacing: 12) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Tema").font(.system(size: 14, weight: .medium)).foregroundStyle(tema.texto)
-                        Text("La apariencia de la app. Se guarda en este teléfono.")
-                            .font(.system(size: 11)).foregroundStyle(tema.texto2)
-                    }
+        GlassCard(padding: 16) {
+            VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Tema").font(.system(size: 14, weight: .medium)).foregroundStyle(tema.texto)
+                    Text("La apariencia de la app. Se guarda en este teléfono.")
+                        .font(.system(size: 11)).foregroundStyle(tema.texto2)
+                }
 
-                    LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 3), spacing: 12) {
-                        ForEach(Theme.todos) { opcion in
-                            Button { temas.actual = opcion } label: {
-                                VStack(spacing: 8) {
-                                    muestra(opcion)
-                                    Text(opcion.nombre)
-                                        .font(.system(size: 12)).lineLimit(1).minimumScaleFactor(0.8)
-                                }
-                                .foregroundStyle(opcion.id == tema.id ? tema.texto : tema.texto2)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 10)
-                                .background(opcion.id == tema.id ? tema.vidrio(1) : .clear, in: .rect(cornerRadius: 18))
-                                .overlay {
-                                    RoundedRectangle(cornerRadius: 18)
-                                        .strokeBorder(opcion.id == tema.id ? tema.bordeFuerte : .clear, lineWidth: 1)
-                                }
-                                .contentShape(.rect)
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 3), spacing: 12) {
+                    ForEach(Theme.todos) { opcion in
+                        Button { temas.actual = opcion } label: {
+                            VStack(spacing: 8) {
+                                muestra(opcion)
+                                Text(opcion.nombre)
+                                    .font(.system(size: 12)).lineLimit(1).minimumScaleFactor(0.8)
                             }
-                            .buttonStyle(.plain)
-                            .accessibilityLabel(opcion.nombre)
-                            .accessibilityAddTraits(opcion.id == tema.id ? [.isSelected] : [])
+                            .foregroundStyle(opcion.id == tema.id ? tema.texto : tema.texto2)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 10)
+                            .background(opcion.id == tema.id ? tema.vidrio(1) : .clear, in: .rect(cornerRadius: 18))
+                            .overlay {
+                                RoundedRectangle(cornerRadius: 18)
+                                    .strokeBorder(opcion.id == tema.id ? tema.bordeFuerte : .clear, lineWidth: 1)
+                            }
+                            .contentShape(.rect)
                         }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(opcion.nombre)
+                        .accessibilityAddTraits(opcion.id == tema.id ? [.isSelected] : [])
                     }
                 }
-            }
-            .animation(.smooth(duration: 0.25), value: tema.id)
+                .animation(.smooth(duration: 0.25), value: tema.id)
 
-            PanelLista {
-                FilaLista(nombre: "Entrenador",
-                          detalle: "Quien te asigna rutinas",
-                          valor: store.profile?.isCoach == true ? "Sos entrenador" : "Sin vincular",
-                          chevron: false)
+                Rectangle().fill(tema.borde).frame(height: 1)
+
+                // Misma información que la `FilaLista` de antes, pero armada a
+                // mano: `FilaLista` trae su propio padding horizontal (pensado
+                // para ir dentro de un `PanelLista` sin relleno) y duplicado
+                // encima del de esta tarjeta quedaba corrido respecto al
+                // texto de "Tema" de arriba.
+                HStack {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("Entrenador").font(.system(size: 14, weight: .medium)).foregroundStyle(tema.texto)
+                        Text("Quien te asigna rutinas").font(.system(size: 11)).foregroundStyle(tema.texto2)
+                    }
+                    Spacer(minLength: 12)
+                    Text(store.profile?.isCoach == true ? "Sos entrenador" : "Sin vincular")
+                        .font(.system(size: 12))
+                        .foregroundStyle(tema.texto2)
+                }
             }
         }
     }
@@ -292,6 +308,8 @@ struct ProfileScreen: View {
     }
 
     private func guardar() async {
+        guardando = true
+        defer { guardando = false }
         var campos: [String: Any] = [:]
         // Vacío se guarda como null y no como cero: son cosas distintas.
         campos["bodyWeightKg"] = Double(peso.replacingOccurrences(of: ",", with: ".")) ?? NSNull()
