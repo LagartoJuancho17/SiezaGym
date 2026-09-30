@@ -1,221 +1,249 @@
 package com.siezagym.app.Features.Routines
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.siezagym.app.DesignSystem.*
-import com.siezagym.app.Domain.*
+import com.siezagym.app.Domain.RoutineSearch
+import com.siezagym.app.Domain.RoutineSummary
+import com.siezagym.app.Domain.TrainingCalendar
 import com.siezagym.app.Models.Routine
 import com.siezagym.app.Services.GymData
-import java.time.YearMonth
+
+/**
+ * Las rutinas, agrupadas por semana de calendario. Buscando deja de agrupar:
+ * el orden por fecha estorba cuando lo que se busca es un nombre.
+ */
+@Composable
+fun RoutinesScreen(
+    data: GymData,
+    onOpen: (Routine) -> Unit,
+    onStart: (Routine) -> Unit = {},
+    onCreate: (() -> Unit)? = null,
+    onEdit: ((Routine) -> Unit)? = null,
+    onDelete: (Routine) -> Unit = {},
+    onDuplicate: (Routine) -> Unit = {},
+    onToggleHome: (Routine) -> Unit = {},
+) {
+    var busqueda by rememberSaveable { mutableStateOf("") }
+    var porBorrar by remember { mutableStateOf<Routine?>(null) }
+    var menuDe by remember { mutableStateOf<Routine?>(null) }
+
+    val visibles = data.routines.filter { routine ->
+        RoutineSearch.coincide(routine.name, busqueda)
+    }
+    val agrupar = busqueda.isBlank()
+    val secciones = TrainingCalendar.seccionesPorSemana(visibles) { it.referenceDate }
+
+    Pantalla(
+        titulo = "Rutinas",
+        accion = { onCreate?.let { BotonNuevaRutina(it) } },
+    ) {
+        Spacer(Modifier.height(20.dp))
+        Buscador(busqueda, { busqueda = it })
+
+        when {
+            data.routines.isEmpty() -> {
+                Spacer(Modifier.height(24.dp))
+                Vacio(
+                    texto = "Todavía no tenés rutinas.",
+                    accionTitulo = "Crear la primera",
+                    onAccion = onCreate,
+                )
+            }
+
+            visibles.isEmpty() -> {
+                Spacer(Modifier.height(24.dp))
+                Vacio(texto = "Ninguna rutina coincide.")
+            }
+
+            agrupar ->
+                secciones.forEach { seccion ->
+                    SectionLabel(seccion.texto, Modifier.padding(top = 24.dp, bottom = 10.dp))
+                    PanelRutinas(seccion.items, data, onOpen, onEdit, onToggleHome, onDuplicate,
+                    menuDe, { menuDe = it }, { menuDe = null }, { porBorrar = it })
+                }
+
+            else -> {
+                Spacer(Modifier.height(24.dp))
+                PanelRutinas(visibles, data, onOpen, onEdit, onToggleHome, onDuplicate,
+                    menuDe, { menuDe = it }, { menuDe = null }, { porBorrar = it })
+            }
+        }
+    }
+
+    // Las acciones llegan desde RootView, que es quien tiene el store y el workout.
+    menuDe?.let { rutina ->
+        AccionesRutina(
+            rutina = rutina,
+            onEdit = onEdit?.let { accion -> { menuDe = null; accion(rutina) } },
+            onToggleHome = { menuDe = null; onToggleHome(rutina) },
+            onDuplicate = { menuDe = null; onDuplicate(rutina) },
+            onDelete = { menuDe = null; porBorrar = rutina },
+        )
+    }
+
+    porBorrar?.let { rutina ->
+        AlertDialog(
+            onDismissRequest = { porBorrar = null },
+            title = { Text("¿Eliminar ${rutina.name}?", color = tema.texto) },
+            text = {
+                Text(
+                    "No se puede deshacer. Los entrenamientos que ya hiciste con ella quedan en el historial.",
+                    color = tema.texto2,
+                    fontSize = 14.sp,
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { porBorrar = null; onDelete(rutina) }) {
+                    Text("Eliminar", color = tema.solido)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { porBorrar = null }) {
+                    Text("Cancelar", color = tema.texto2)
+                }
+            },
+            containerColor = tema.vidrio(3),
+        )
+    }
+}
 
 @Composable
-fun RoutinesScreen(data: GymData, onOpen: (Routine) -> Unit) {
-    Column(
-        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(bottom = 112.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Hero(190.dp) {
-            Text("Rutinas", color = Color.White, fontSize = 40.sp, fontWeight = FontWeight.Bold)
-        }
-        Column(
-            Modifier.padding(horizontal = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            if (data.routines.isEmpty() && data.hasLoaded)
-                SurfaceCard(padding = 24.dp) {
-                    Text(
-                        "Todavía no tenés rutinas.",
-                        color = Theme.cardText,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                    Text(
-                        "Creá una desde la web y aparece acá.",
-                        color = Theme.cardMuted,
-                        fontSize = 12.sp,
-                    )
-                }
-            RoutineSchedule.group(data.routines).forEach { month ->
-                key(month.id) {
-                    var open by rememberSaveable {
-                        mutableStateOf(month.id == YearMonth.now(TrainingCalendar.zone).toString())
-                    }
-                    SurfaceCard(Modifier.clickable { open = !open }) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                "▦  ${month.label}",
-                                Modifier.weight(1f),
-                                color = Theme.cardText,
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.SemiBold,
-                            )
-                            Text(
-                                "${month.total} ${if(month.total==1) "rutina" else "rutinas"}  ${if(open) "⌃" else "⌄"}",
-                                color = Theme.cardMuted,
-                                fontSize = 12.sp,
-                            )
-                        }
-                    }
-                    if (open)
-                        month.weeks.forEach { (week, routines) ->
-                            key(week) {
-                                var expanded by rememberSaveable { mutableStateOf(true) }
-                                SurfaceCard(
-                                    Modifier.padding(start = 10.dp).clickable {
-                                        expanded = !expanded
-                                    },
-                                    padding = 10.dp,
-                                ) {
-                                    Row {
-                                        Text(
-                                            "Semana $week",
-                                            Modifier.weight(1f),
-                                            color = Theme.cardText,
-                                            fontSize = 13.sp,
-                                            fontWeight = FontWeight.SemiBold,
-                                        )
-                                        Text(
-                                            "${routines.size}  ${if(expanded) "⌃" else "⌄"}",
-                                            color = Theme.cardMuted,
-                                            fontSize = 12.sp,
-                                        )
-                                    }
-                                }
-                                if (expanded)
-                                    routines.forEach { routine ->
-                                        SurfaceCard(
-                                            Modifier.padding(start = 10.dp).clickable {
-                                                onOpen(routine)
-                                            },
-                                            padding = 0.dp,
-                                        ) {
-                                            Row(
-                                                Modifier.heightIn(min = 72.dp),
-                                                verticalAlignment = Alignment.CenterVertically,
-                                            ) {
-                                                routine.exercises
-                                                    .firstNotNullOfOrNull { data.catalog[it.exerciseID] }
-                                                    ?.let { Miniatura(it.mediaUrl, lado = 40.dp) }
-                                                Column(
-                                                    Modifier.weight(1f).padding(horizontal = 12.dp),
-                                                    verticalArrangement = Arrangement.spacedBy(6.dp),
-                                                ) {
-                                                    Text(
-                                                        routine.name,
-                                                        color = Theme.cardText,
-                                                        fontSize = 15.sp,
-                                                        fontWeight = FontWeight.Bold,
-                                                        maxLines = 1,
-                                                    )
-                                                    if (routine.isAssigned)
-                                                        Text(
-                                                            "ASIGNADA",
-                                                            color = Theme.accent,
-                                                            fontSize = 9.sp,
-                                                            fontWeight = FontWeight.Bold,
-                                                        )
-                                                    Text(
-                                                        "${routine.exercises.size} ejercicios · ${routine.totalSets} series · ${RoutineSummary.estimatedMinutes(routine,data.catalog)} min",
-                                                        color = Theme.cardMuted,
-                                                        fontSize = 11.sp,
-                                                    )
-                                                }
-                                                Text(
-                                                    "›",
-                                                    Modifier.padding(end = 12.dp),
-                                                    color = Theme.cardMuted,
-                                                )
-                                            }
-                                        }
-                                    }
-                            }
-                        }
-                }
-            }
+private fun PanelRutinas(
+    rutinas: List<Routine>,
+    data: GymData,
+    onOpen: (Routine) -> Unit,
+    onEdit: ((Routine) -> Unit)?,
+    onToggleHome: (Routine) -> Unit,
+    onDuplicate: (Routine) -> Unit,
+    abierto: Routine?,
+    onAbrir: (Routine?) -> Unit,
+    onCerrar: () -> Unit,
+    onPedirBorrado: (Routine) -> Unit,
+) {
+    PanelLista {
+        rutinas.forEachIndexed { indice, rutina ->
+            if (indice > 0) Separador()
+            FilaRutina(
+                rutina = rutina,
+                data = data,
+                onOpen = { onOpen(rutina) },
+                onEdit = onEdit?.let { accion -> { accion(rutina) } },
+                onToggleHome = { onToggleHome(rutina) },
+                onDuplicate = { onDuplicate(rutina) },
+                onDelete = { onPedirBorrado(rutina) },
+                onLongPress = { onAbrir(rutina) },
+            )
         }
     }
 }
 
 @Composable
-fun RoutineDetailScreen(routine: Routine, data: GymData, onStart: () -> Unit) {
-    Column(
-        Modifier.fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 100.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        SurfaceCard {
-            WidgetHeader(if (routine.isAssigned) "Rutina asignada" else "Rutina")
-            Text(
-                routine.name,
-                color = Theme.cardText,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                Stat("${routine.exercises.size}", "ejercicios")
-                Stat("${routine.totalSets}", "series")
-                Stat("${RoutineSummary.estimatedMinutes(routine,data.catalog)}", "min")
-            }
-            if (routine.note.isNotEmpty())
-                Text(routine.note, color = Theme.cardMuted, fontSize = 13.sp)
-        }
-        val distribution = RoutineSummary.muscleDistribution(routine, data.catalog)
-        if (distribution.isNotEmpty())
-            SurfaceCard {
-                WidgetHeader("Reparto muscular")
-                distribution.take(5).forEach { share ->
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text(share.muscle.label, color = Theme.cardText, fontSize = 12.sp)
-                        Text(
-                            "${(share.pct*100).toInt()}%",
-                            color = Theme.cardMuted,
-                            fontSize = 12.sp,
-                        )
-                    }
-                    WidgetMeter(share.pct)
-                }
-            }
-        routine.exercises.forEach { item ->
-            SurfaceCard(padding = 12.dp) {
-                Text(
-                    data.name(item.exerciseID),
-                    color = Theme.cardText,
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold,
-                )
-                val unit =
-                    if (data.catalog[item.exerciseID]?.registrationType?.isTimeBased == true) "s"
-                    else " reps"
-                Text(
-                    buildString {
-                        append("${item.targetSets} × ${item.targetReps}$unit")
-                        item.targetWeight?.let { append(" · ${number(it)} kg") }
-                        item.targetRIR?.let { append(" · RIR $it") }
-                    },
-                    color = Theme.cardMuted,
-                    fontSize = 12.sp,
-                )
-                if (item.techniqueNote.isNotEmpty())
-                    Text(
-                        item.techniqueNote,
-                        color = Theme.cardMuted,
-                        fontSize = 12.sp,
-                        fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                    )
-            }
-        }
-        AccentButton("Empezar entrenamiento", Modifier.fillMaxWidth(), onClick = onStart)
+private fun FilaRutina(
+    rutina: Routine,
+    data: GymData,
+    onOpen: () -> Unit,
+    onEdit: (() -> Unit)?,
+    onToggleHome: () -> Unit,
+    onDuplicate: () -> Unit,
+    onDelete: () -> Unit,
+    onLongPress: () -> Unit,
+) {
+    // Una rutina del coach se abre pero no se toca: el menú es de las propias.
+    val propia = !rutina.isAssigned
+    Box {
+        FilaLista(
+            nombre = rutina.name,
+            detalle = detalleRutina(rutina, data),
+            etiqueta = if (rutina.isAssigned) "Del coach" else null,
+            modifier =
+                if (propia) Modifier.combinedClickable(onClick = onOpen, onLongClick = onLongPress)
+                else Modifier.clickable(onClick = onOpen),
+        )
     }
+}
+
+@Composable
+private fun BotonNuevaRutina(onCreate: () -> Unit) {
+    IconButton(
+        onClick = onCreate,
+        modifier = Modifier.size(56.dp).clip(CircleShape).background(tema.solido),
+    ) {
+        Icon(
+            Icons.Filled.Add,
+            "Nueva rutina",
+            tint = tema.sobreSolido,
+            modifier = Modifier.size(24.dp),
+        )
+    }
+}
+
+/**
+ * El menú de una rutina propia. Va en un diálogo porque no hay menú contextual
+ * de sistema en Compose, pero mantiene los cuatro comandos de iOS.
+ */
+@Composable
+private fun AccionesRutina(
+    rutina: Routine,
+    onEdit: (() -> Unit)?,
+    onToggleHome: () -> Unit,
+    onDuplicate: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = {},
+        title = { Text(rutina.name, color = tema.texto) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                if (onEdit != null) AccionMenu("Editar") { onEdit() }
+                AccionMenu(if (rutina.showOnHome) "Quitar de la portada" else "Mostrar en la portada") {
+                    onToggleHome()
+                }
+                AccionMenu("Duplicar") { onDuplicate() }
+                AccionMenu("Eliminar", destructivo = true) { onDelete() }
+            }
+        },
+        confirmButton = {},
+        containerColor = tema.vidrio(3),
+    )
+}
+
+@Composable
+private fun AccionMenu(texto: String, destructivo: Boolean = false, onClick: () -> Unit) {
+    Text(
+        texto,
+        Modifier
+            .fillMaxWidth()
+            .clip(androidx.compose.foundation.shape.RoundedCornerShape(12.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 12.dp),
+        color = if (destructivo) tema.solido else tema.texto,
+        fontSize = 15.sp,
+    )
+}
+
+/** "3 ejercicios · 12 series · 45 min" */
+private fun detalleRutina(rutina: Routine, data: GymData): String {
+    val ejercicios = rutina.exercises.size
+    val series = rutina.totalSets
+    return "$ejercicios ${if (ejercicios == 1) "ejercicio" else "ejercicios"} · " +
+        "$series ${if (series == 1) "serie" else "series"} · " +
+        "${RoutineSummary.estimatedMinutes(rutina, data.catalog)} min"
 }

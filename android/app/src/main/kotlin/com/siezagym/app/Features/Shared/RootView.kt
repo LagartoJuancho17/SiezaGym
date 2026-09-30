@@ -6,6 +6,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -28,6 +29,7 @@ import com.siezagym.app.Features.Routines.*
 import com.siezagym.app.Features.Workout.WorkoutScreen
 import com.siezagym.app.Models.Routine
 import com.siezagym.app.Services.*
+import kotlinx.coroutines.launch
 
 @Composable
 fun RootView(auth: AuthService) {
@@ -64,6 +66,7 @@ fun RootView(auth: AuthService) {
 private fun MainTabs(auth: AuthService, store: GymStore) {
     val data by store.data.collectAsStateWithLifecycle()
     val nav = rememberNavController()
+    val scope = rememberCoroutineScope()
     val entry by nav.currentBackStackEntryAsState()
     val route = entry?.destination?.route.orEmpty()
     val active =
@@ -101,7 +104,20 @@ private fun MainTabs(auth: AuthService, store: GymStore) {
                 navigation(startDestination = "routines", route = AppTab.ROUTINES.name) {
                     composable("routines") {
                         PullToRefreshBox(data.isLoading, { store.load() }) {
-                            RoutinesScreen(data) { nav.navigate("routine/${Uri.encode(it.id)}/${it.isAssigned}") }
+                            RoutinesScreen(
+                                data = data,
+                                onOpen = {
+                                    nav.navigate("routine/${Uri.encode(it.id)}/${it.isAssigned}")
+                                },
+                                onStart = ::start,
+                                onDelete = { scope.launch { store.deleteRoutine(it.id) } },
+                                onDuplicate = { scope.launch { store.duplicateRoutine(it.id) } },
+                                onToggleHome = {
+                                    scope.launch {
+                                        store.setRoutineShowOnHome(it.id, !it.showOnHome)
+                                    }
+                                },
+                            )
                         }
                     }
                     composable("routine/{id}/{assigned}") { detail ->
@@ -110,13 +126,30 @@ private fun MainTabs(auth: AuthService, store: GymStore) {
                                 it.id == detail.arguments?.getString("id") &&
                                     it.isAssigned == (detail.arguments?.getString("assigned") == "true")
                             }
-                        Pantalla(
-                            titulo = routine?.name ?: "Rutina",
-                            volver = true,
-                            onVolver = { nav.popBackStack() },
-                        ) {
-                            if (routine != null) RoutineDetailScreen(routine, data) { start(routine) }
-                            else NoEncontrado(data)
+                        val week = data.currentWeek
+                        if (routine != null) {
+                            RoutineDetailScreen(
+                                routine = routine,
+                                data = data,
+                                onStart = { start(routine) },
+                                onVolver = { nav.popBackStack() },
+                                onToggleWeek = {
+                                    scope.launch {
+                                        store.setRoutineWeek(
+                                            routine.id,
+                                            if (routine.weekKey == week.clave) null else week.clave,
+                                        )
+                                    }
+                                },
+                            )
+                        } else {
+                            Pantalla(
+                                titulo = "Rutina",
+                                volver = true,
+                                onVolver = { nav.popBackStack() },
+                            ) {
+                                NoEncontrado(data)
+                            }
                         }
                     }
                 }

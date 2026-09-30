@@ -11,8 +11,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -26,9 +26,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Icon
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -97,6 +105,7 @@ fun SolidButton(
     modifier: Modifier = Modifier,
     expands: Boolean = true,
     enabled: Boolean = true,
+    icon: ImageVector? = null,
     onClick: () -> Unit,
 ) {
     val theme = LocalTheme.current
@@ -117,14 +126,25 @@ fun SolidButton(
             .padding(horizontal = 22.dp),
         contentAlignment = Alignment.Center,
     ) {
-        Text(
-            texto,
-            color = theme.sobreSolido,
-            fontSize = 15.sp,
-            lineHeight = 20.sp,
-            fontWeight = FontWeight.Medium,
-            textAlign = TextAlign.Center,
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (icon != null) {
+                Icon(
+                    icon,
+                    null,
+                    tint = theme.sobreSolido,
+                    modifier = Modifier.size(18.dp).padding(end = 0.dp),
+                )
+                Spacer(Modifier.size(8.dp))
+            }
+            Text(
+                texto,
+                color = theme.sobreSolido,
+                fontSize = 15.sp,
+                lineHeight = 20.sp,
+                fontWeight = FontWeight.Medium,
+                textAlign = TextAlign.Center,
+            )
+        }
     }
 }
 
@@ -257,3 +277,44 @@ fun number(value: Number): String =
     NumberFormat.getNumberInstance(Locale.forLanguageTag("es-AR"))
         .apply { maximumFractionDigits = 1 }
         .format(value)
+
+/**
+ * El buscador de los listados: una cápsula con la lupa y el texto. Lo usan la
+ * lista de rutinas y el selector de ejercicios.
+ */
+@Composable
+fun Buscador(
+    valor: String,
+    onChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    placeholder: String = "Buscar",
+) {
+    Row(
+        modifier
+            .fillMaxWidth()
+            .height(54.dp)
+            .clip(CircleShape)
+            .background(tema.vidrio(1))
+            .border(1.dp, tema.borde, CircleShape)
+            .padding(horizontal = 20.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(9.dp),
+    ) {
+        Icon(Icons.Filled.Search, null, tint = tema.texto, modifier = Modifier.size(17.dp))
+        BasicTextField(
+            valor,
+            onChange,
+            Modifier.weight(1f),
+            singleLine = true,
+            textStyle = TextStyle(color = tema.texto, fontSize = 15.sp),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+            cursorBrush = SolidColor(tema.solido),
+            decorationBox = { inner ->
+                Box {
+                    if (valor.isEmpty()) Text(placeholder, color = tema.texto2, fontSize = 15.sp)
+                    inner()
+                }
+            },
+        )
+    }
+}

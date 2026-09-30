@@ -16,6 +16,7 @@ import com.siezagym.app.DesignSystem.*
 import com.siezagym.app.Features.Home.HomeScreen
 import com.siezagym.app.Features.Routines.*
 import com.siezagym.app.Features.Shared.*
+import com.siezagym.app.Domain.RoutineSearch
 import com.siezagym.app.Models.Routine
 import com.siezagym.app.Services.GymData
 import java.io.File
@@ -104,7 +105,7 @@ class ScreenInteractionTest {
     }
 
     @Test
-    fun routineDetailStartsTheSelectedPlan() {
+    fun routineDetailShowsTheSeriesAndStartsTheSelectedPlan() {
         val routine =
             Routine.fromFirestore(
                 "routine",
@@ -117,6 +118,7 @@ class ScreenInteractionTest {
                                 "targetSets" to 3,
                                 "targetReps" to 8,
                                 "targetWeight" to 40,
+                                "group" to "Fuerza",
                             )
                         ),
                 ),
@@ -129,10 +131,29 @@ class ScreenInteractionTest {
                 }
             }
         }
-        compose.onNodeWithText("3 × 8 reps · 40 kg").assertIsDisplayed()
-        compose.onNodeWithText("Empezar entrenamiento").performScrollTo().performClick()
+        // El grupo y el resumen colapsado están a la vista; la grilla no.
+        compose.onNodeWithText("FUERZA").assertIsDisplayed()
+        compose.onNodeWithText("3 × 8").assertIsDisplayed()
+        compose.onNodeWithText("40 kg").assertDoesNotExist()
+
+        // Tocado el ejercicio, aparecen las series una por una.
+        compose.onNodeWithText("3 × 8").performClick()
+        compose.onNodeWithText("Reps").assertIsDisplayed()
+        // Tres series, las tres con 40 kg.
+        compose.onAllNodesWithText("40 kg").assertCountEquals(3)
+
+        compose.onNodeWithText("Comenzar entrenamiento").performClick()
         assertTrue(started)
         capture("routine-detail")
+    }
+
+    /** Buscando deja de agrupar por semana: manda el nombre. */
+    @Test
+    fun routinesSearchIgnoresAccentsAndCase() {
+        assertTrue(RoutineSearch.coincide("Pectoral", "pecto"))
+        assertTrue(RoutineSearch.coincide("Pectoral", "PECTORAL"))
+        assertFalse(RoutineSearch.coincide("Pectoral", "espalda"))
+        assertTrue(RoutineSearch.coincide("Pectoral", "  "))
     }
 
     private fun capture(name: String) {

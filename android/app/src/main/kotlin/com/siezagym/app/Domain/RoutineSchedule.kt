@@ -34,3 +34,23 @@ object RoutineSchedule {
                 )
             }
 }
+
+/**
+ * La búsqueda por nombre de la lista de rutinas. Sin acentos y sin mayúsculas,
+ * como el `folding` de iOS: buscar "ptero" tiene que encontrar "Pectoral".
+ */
+object RoutineSearch {
+    fun coincide(nombre: String, termino: String): Boolean {
+        val buscado = SearchText.normalize(termino)
+        if (buscado.isEmpty()) return true
+        return SearchText.normalize(nombre).contains(buscado)
+    }
+}
+
+private object SearchText {
+    fun normalize(texto: String): String =
+        java.text.Normalizer.normalize(texto.trim(), java.text.Normalizer.Form.NFD)
+            .replace(Regex("\\p{InCombiningDiacriticalMarks}+"), "")
+            .replace("ñ", "n")
+            .lowercase()
+}
