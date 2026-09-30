@@ -104,7 +104,9 @@ fun RoutinesScreen(data: GymData, onOpen: (Routine) -> Unit) {
                                                 Modifier.heightIn(min = 72.dp),
                                                 verticalAlignment = Alignment.CenterVertically,
                                             ) {
-                                                HeroImage(Modifier.size(72.dp))
+                                                routine.exercises
+                                                    .firstNotNullOfOrNull { data.catalog[it.exerciseID] }
+                                                    ?.let { Miniatura(it.mediaUrl, lado = 40.dp) }
                                                 Column(
                                                     Modifier.weight(1f).padding(horizontal = 12.dp),
                                                     verticalArrangement = Arrangement.spacedBy(6.dp),

@@ -202,6 +202,7 @@ fun HomeScreen(data: GymData, onStart: (Routine?) -> Unit) {
             SurfaceCard {
                 WidgetHeader("Zonas de intensidad")
                 val zones = data.zones
+                @Composable
                 fun color(zone: HomeMetrics.Zone) =
                     when (zone) {
                         HomeMetrics.Zone.PEAK -> Theme.accent

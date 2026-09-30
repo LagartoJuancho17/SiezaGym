@@ -75,6 +75,9 @@ dependencies {
     implementation(libs.play.services.auth)
 
     implementation(libs.kotlinx.coroutines.play.services)
+    // Las miniaturas de ejercicio son GIF remotos: coil-gif los anima.
+    implementation(libs.coil.compose)
+    implementation(libs.coil.gif)
 
     testImplementation(libs.junit)
     testImplementation("org.robolectric:robolectric:4.16.1")

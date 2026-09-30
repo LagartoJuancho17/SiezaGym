@@ -66,7 +66,9 @@ fun ProgressScreen(data: GymData) {
                     Stat(number(maxWeight), "máximo real")
                     Stat("${points.size}", "sesiones")
                 }
-                if (points.size > 1)
+                if (points.size > 1) {
+                    // El color se lee acá: dentro del DrawScope no hay recomposición.
+                    val acento = Theme.accent
                     Canvas(Modifier.fillMaxWidth().height(44.dp)) {
                         val low = points.min()
                         val span = points.max() - low
@@ -80,11 +82,12 @@ fun ProgressScreen(data: GymData) {
                         }
                         drawPath(
                             path,
-                            Theme.accent,
+                            acento,
                             style =
                                 Stroke(2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round),
                         )
                     }
+                }
                 Text(
                     "1RM estimado con Epley: peso × (1 + reps/30).",
                     color = Theme.cardMuted,

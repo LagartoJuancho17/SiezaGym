@@ -27,6 +27,12 @@ data class RoutineExercise(
     val techniqueNote: String,
     /** Series individuales cuando el coach las prescribió una por una. */
     val sets: List<PlannedSet>?,
+    /**
+     * Bloque al que pertenece ("Entrada en calor", "Fuerza"...). Vacío es sin grupo. Igual que
+     * `group`/`groupColor` en lib/routines/routines.js.
+     */
+    val group: String = "",
+    val groupColor: String = "",
 ) {
     val id: String
         get() = "$order-$exerciseID"
@@ -62,6 +68,8 @@ data class RoutineExercise(
                 targetWeight = FirestoreValue.double(data["targetWeight"]),
                 techniqueNote = data["techniqueNote"] as? String ?: "",
                 sets = sets,
+                group = data["group"] as? String ?: "",
+                groupColor = data["groupColor"] as? String ?: "",
             )
         }
     }
@@ -79,6 +87,11 @@ data class Routine(
     val updatedAt: ZonedDateTime?,
     /** Las rutinas asignadas por un coach no se editan desde la app del alumno. */
     val isAssigned: Boolean,
+    /**
+     * A qué semana la asignaste vos ("2026-09-4"). `null` es "ninguna". No tiene equivalente en la
+     * web todavía: es sólo del teléfono.
+     */
+    val weekKey: String? = null,
 ) {
     val totalSets: Int
         get() = exercises.sumOf { it.targetSets }
@@ -104,6 +117,7 @@ data class Routine(
                 lastUsedAt = FirestoreValue.date(data["lastUsedAt"]),
                 createdAt = createdAt,
                 updatedAt = FirestoreValue.date(data["updatedAt"]),
+                weekKey = data["weekKey"] as? String,
                 exercises =
                     (data["exercises"] as? List<*>)
                         .orEmpty()

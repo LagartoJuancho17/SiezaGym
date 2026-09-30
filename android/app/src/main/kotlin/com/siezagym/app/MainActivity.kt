@@ -5,7 +5,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
@@ -21,26 +20,24 @@ class MainActivity : ComponentActivity() {
             navigationBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
         )
         setContent {
-            SiezaTheme {
-                Box(
-                    Modifier.fillMaxSize()
-                        .background(Theme.background)
-                        .safeDrawingPadding()
-                        .imePadding()
-                ) {
-                    val auth = (application as SiezaGymApplication).authService
-                    if (auth != null) RootView(auth)
-                    else
-                        Column(
-                            Modifier.padding(24.dp),
-                            verticalArrangement = Arrangement.spacedBy(16.dp),
-                        ) {
-                            Text("Falta configurar Firebase", color = Theme.onDark)
-                            Text(
-                                "Agregá google-services.json en android/app y volvé a compilar.",
-                                color = Theme.onDarkMuted,
-                            )
-                        }
+            val themes = rememberThemeStore()
+            SiezaTheme(themes.actual) {
+                Backdrop {
+                    Box(Modifier.fillMaxSize().safeDrawingPadding().imePadding()) {
+                        val auth = (application as SiezaGymApplication).authService
+                        if (auth != null) RootView(auth)
+                        else
+                            Column(
+                                Modifier.padding(24.dp),
+                                verticalArrangement = Arrangement.spacedBy(16.dp),
+                            ) {
+                                Text("Falta configurar Firebase", color = tema.texto)
+                                Text(
+                                    "Agregá google-services.json en android/app y volvé a compilar.",
+                                    color = tema.texto2,
+                                )
+                            }
+                    }
                 }
             }
         }

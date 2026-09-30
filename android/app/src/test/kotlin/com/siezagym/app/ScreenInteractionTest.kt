@@ -38,8 +38,8 @@ class ScreenInteractionTest {
         val routine = Routine.fromFirestore("routine", mapOf("name" to "Tren superior"))
         var started: Routine? = null
         compose.setContent {
-            SiezaTheme {
-                Box(Modifier.fillMaxSize().background(Theme.background)) {
+            SiezaTheme(Theme.porDefecto) {
+                Backdrop {
                     HomeScreen(GymData(routines = listOf(routine), hasLoaded = true)) {
                         started = it
                     }
@@ -55,13 +55,13 @@ class ScreenInteractionTest {
         compose.onNodeWithText("▶  Empezar").performClick()
         assertEquals(routine, started)
         capture("home")
-        compose.onNodeWithText("ZONAS DE INTENSIDAD").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Zonas de intensidad").performScrollTo().assertIsDisplayed()
     }
 
     @Test
     fun bottomNavigationSelectsTheRequestedTab() {
         compose.setContent {
-            SiezaTheme {
+            SiezaTheme(Theme.porDefecto) {
                 var selected by remember { mutableStateOf(AppTab.HOME) }
                 BottomNav(selected, { selected = it })
             }
@@ -91,8 +91,8 @@ class ScreenInteractionTest {
             )
         var started = false
         compose.setContent {
-            SiezaTheme {
-                Box(Modifier.fillMaxSize().background(Theme.background)) {
+            SiezaTheme(Theme.porDefecto) {
+                Backdrop {
                     RoutineDetailScreen(routine, GymData()) { started = true }
                 }
             }
