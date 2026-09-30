@@ -1,7 +1,16 @@
 package com.siezagym.app.Features.Shared
 
 import android.net.Uri
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -9,6 +18,9 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -261,6 +273,9 @@ private fun MainTabs(auth: AuthService, store: GymStore) {
                             it.id == id &&
                                 it.isAssigned == (detail.arguments?.getString("assigned") == "true")
                         }
+                        // La rutina pudo borrarse mientras el entrenamiento estaba en standby. Las
+                        // series ya cargadas están en el borrador, así que se sigue con ésas.
+                        ?: store.activeWorkout?.routine?.takeIf { it.id == id }
                     if (data.hasLoaded && (id == "free" || routine != null))
                         WorkoutScreen(routine, data, store) { nav.popBackStack() }
                     else Pantalla(titulo = "Entrenamiento", volver = true, onVolver = { nav.popBackStack() }) {
@@ -271,19 +286,98 @@ private fun MainTabs(auth: AuthService, store: GymStore) {
         }
 
         if (!workout)
-            BottomNav(
-                active,
-                { tab ->
-                    if (tab != active)
-                        nav.navigate(tab.name) {
-                            popUpTo(nav.graph.findStartDestination().id) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                },
+            Column(
                 Modifier.align(Alignment.BottomCenter).padding(bottom = bottomNavGap),
-            )
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                // Volver de un entrenamiento no lo tira: la barra de acá ofrece seguir con el
+                // tiempo y las series que faltan.
+                store.activeWorkout?.let { pendiente ->
+                    MiniBarraEntrenamiento(
+                        draft = pendiente,
+                        onSeguir = { start(pendiente.routine) },
+                        onDescartar = { store.activeWorkout = null },
+                    )
+                }
+                BottomNav(
+                    active,
+                    { tab ->
+                        if (tab != active)
+                            nav.navigate(tab.name) {
+                                popUpTo(nav.graph.findStartDestination().id) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                    },
+                )
+            }
     }
+}
+
+/**
+ * El entrenamiento a medias, arriba de la barra de pestañas. Muestra el reloj y cuántas series
+ * faltan, que es lo que uno necesita decidir si sigue o si lo deja para mañana.
+ */
+@Composable
+private fun MiniBarraEntrenamiento(
+    draft: com.siezagym.app.Features.Workout.WorkoutDraft,
+    onSeguir: () -> Unit,
+    onDescartar: () -> Unit,
+) {
+    val esquina = RoundedCornerShape(tema.esquina(Theme.radius))
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clip(esquina)
+            .background(tema.vidrio(3))
+            .border(BorderStroke(1.dp, tema.solido.copy(alpha = 0.35f)), esquina)
+            .padding(horizontal = 14.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Box(Modifier.size(8.dp).clip(CircleShape).background(tema.solido))
+        Column(Modifier.weight(1f)) {
+            Text(
+                draft.routine?.name ?: "Entrenamiento en curso",
+                color = tema.texto,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+            )
+            Text(
+                "${MiniReloj(draft.startedAt)} • ${draft.completedSets}/${draft.totalSets} series",
+                color = tema.texto2,
+                fontSize = 11.sp,
+            )
+        }
+        SolidButton(
+            "Reanudar",
+            Modifier.heightIn(min = 32.dp),
+            expands = false,
+            onClick = onSeguir,
+        )
+        IconButton(onClick = onDescartar, modifier = Modifier.size(34.dp)) {
+            Icon(
+                Icons.Filled.Close,
+                "Descartar el entrenamiento",
+                tint = tema.texto2,
+                modifier = Modifier.size(11.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun MiniReloj(startedAt: java.time.Instant): String {
+    var now by remember { mutableStateOf(java.time.Instant.now()) }
+    LaunchedEffect(startedAt) {
+        while (true) {
+            kotlinx.coroutines.delay(1000)
+            now = java.time.Instant.now()
+        }
+    }
+    val segundos = (now.epochSecond - startedAt.epochSecond).coerceAtLeast(0)
+    return String.format(java.util.Locale.ROOT, "%02d:%02d", segundos / 60, segundos % 60)
 }
 
 /** El error de carga: qué pasó y cómo reintentar. */

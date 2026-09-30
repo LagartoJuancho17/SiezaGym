@@ -53,7 +53,7 @@ fun RoutineDetailScreen(
     val editable = propia && onEdit != null
     val minutos = RoutineSummary.estimatedMinutes(routine, data.catalog)
     val reparto = RoutineSummary.muscleDistribution(routine, data.catalog)
-    val hayGifs = routine.exercises.any { data.catalog[it.exerciseID]?.mediaUrl != null }
+    val hayGifs = routine.exercises.any { data.catalog[it.exerciseID]?.thumbnailUrl != null }
     val secciones = RoutineGrouping.seccionar(routine.exercises, { it.group }, { it.groupColor })
     val semana = TrainingCalendar.semana(java.time.ZonedDateTime.now(TrainingCalendar.zone))
 
@@ -276,7 +276,7 @@ private fun FilaEjercicio(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Miniatura(ejercicio?.mediaUrl, lado = 54.dp)
+            Miniatura(ejercicio?.thumbnailUrl, lado = 54.dp)
             Column(Modifier.weight(1f)) {
                 Text(nombre, color = tema.texto, fontSize = 14.sp, maxLines = 1)
                 Text(

@@ -275,7 +275,7 @@ private fun FilaRutina(rutina: Routine, data: GymData, onClick: () -> Unit) {
     FilaLista(
         nombre = rutina.name,
         detalle = detalleRutina(rutina, data),
-        miniatura = ejercicio?.mediaUrl,
+        miniatura = ejercicio?.thumbnailUrl,
         valor = "${rutina.totalSets}",
         unidad = "series",
         onClick = onClick,

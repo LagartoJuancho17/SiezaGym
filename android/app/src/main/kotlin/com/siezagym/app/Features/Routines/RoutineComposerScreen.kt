@@ -447,7 +447,7 @@ private fun FilaPrescripcion(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Miniatura(ejercicio?.mediaUrl, lado = 54.dp)
+                Miniatura(ejercicio?.thumbnailUrl, lado = 54.dp)
                 Column(Modifier.weight(1f)) {
                     Text(nombre, color = tema.texto, fontSize = 14.sp, maxLines = 1)
                     Text(

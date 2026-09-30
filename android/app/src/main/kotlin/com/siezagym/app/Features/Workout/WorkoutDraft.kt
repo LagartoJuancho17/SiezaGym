@@ -23,9 +23,22 @@ data class ExerciseDraft(
     val name: String,
     val isTimeBased: Boolean,
     var sets: List<SetDraft>,
+    val mediaUrl: String? = null,
+    val videoUrl: String? = null,
+    val description: String? = null,
+    /** Bloque de la rutina ("Fuerza", "Potencia"...). Vacío es sin grupo. */
+    val group: String = "",
+    val groupColor: String = "",
 ) {
     val completedCount: Int
         get() = sets.count { it.done }
+
+    /**
+     * Todas las series marcadas. Un ejercicio al que le sacaste todas las series tiene 0 de 0,
+     * que **no** es estar terminado: sin esta guarda se pintaría de verde sin haber hecho nada.
+     */
+    val estaCompleto: Boolean
+        get() = sets.isNotEmpty() && completedCount == sets.size
 }
 
 /**
@@ -52,6 +65,46 @@ class WorkoutDraft(
 
     val canSave: Boolean
         get() = completedSets > 0
+
+    /**
+     * El ejercicio que conviene tener abierto: el primero que todavía tiene series sin marcar. Los
+     * demás van plegados, que es lo que hace que la pantalla entre en un teléfono cuando la rutina
+     * tiene ocho ejercicios.
+     */
+    val ejercicioEnCurso: String?
+        get() = proximaSerieSinMarcar()?.let { (ejercicio, _) -> exercises[ejercicio].id }
+
+    /**
+     * Dónde está la próxima serie sin marcar, recorriendo los ejercicios en orden. Es la misma
+     * regla con la que se decide qué ejercicio está en curso al volver, así que "marcar la
+     * siguiente" y lo que muestra la pantalla no pueden apuntar a series distintas.
+     */
+    fun proximaSerieSinMarcar(): Pair<Int, Int>? {
+        exercises.forEachIndexed { indice, ejercicio ->
+            val serie = ejercicio.sets.indexOfFirst { !it.done }
+            if (serie != -1) return indice to serie
+        }
+        return null
+    }
+
+    /**
+     * Marca esa serie. Devuelve `false` si ya estaban todas: ahí no hay que arrancar un descanso.
+     */
+    fun marcarProximaSerie(): Boolean {
+        val proxima = proximaSerieSinMarcar() ?: return false
+        exercises =
+            exercises.toMutableList().apply {
+                val ejercicio = this[proxima.first]
+                this[proxima.first] =
+                    ejercicio.copy(
+                        sets =
+                            ejercicio.sets.toMutableList().apply {
+                                this[proxima.second] = this[proxima.second].copy(done = true)
+                            }
+                    )
+            }
+        return true
+    }
 
     /** Construye el borrador desde la rutina y el catálogo, como en iOS. */
     constructor(
@@ -82,6 +135,11 @@ class WorkoutDraft(
                     name = exercise?.nameEs ?: item.exerciseID,
                     isTimeBased = exercise?.registrationType?.isTimeBased ?: false,
                     sets = sets,
+                    mediaUrl = exercise?.mediaUrl,
+                    videoUrl = exercise?.videoUrl,
+                    description = exercise?.descriptionEs?.takeIf { it.isNotBlank() },
+                    group = item.group,
+                    groupColor = item.groupColor,
                 )
             },
     )

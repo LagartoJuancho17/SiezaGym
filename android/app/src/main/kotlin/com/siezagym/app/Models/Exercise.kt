@@ -1,5 +1,6 @@
 package com.siezagym.app.Models
 
+import com.siezagym.app.Domain.YouTubeLink
 import com.siezagym.app.Services.FirestoreValue
 
 /**
@@ -97,9 +98,23 @@ data class Exercise(
     val descriptionEs: String,
     val mediaUrl: String?,
     val source: ExerciseSource,
+    /** Sólo en los ejercicios propios: el link de YouTube que cargó el usuario. */
+    val videoUrl: String? = null,
 ) {
     val primaryMuscle: MuscleGroup?
         get() = muscleWeights.maxByOrNull { it.value }?.key
+
+    /**
+     * Lo que se dibuja en la miniatura. Los del catálogo traen su gif; los propios no tienen
+     * media, así que se usa la portada del video de YouTube, que sale del id y no hace falta
+     * guardar.
+     */
+    val thumbnailUrl: String?
+        get() {
+            if (mediaUrl != null) return mediaUrl
+            val id = videoUrl?.let { YouTubeLink.id(it) } ?: return null
+            return YouTubeLink.miniaturaParaId(id)
+        }
 
     companion object {
         fun fromRawValue(
@@ -127,6 +142,7 @@ data class Exercise(
                 descriptionEs = data["descriptionEs"] as? String ?: "",
                 mediaUrl = data["mediaUrl"] as? String,
                 source = source,
+                videoUrl = data["videoUrl"] as? String,
             )
         }
     }

@@ -1,8 +1,12 @@
 package com.siezagym.app.Services
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.siezagym.app.Domain.*
+import com.siezagym.app.Features.Workout.WorkoutDraft
 import com.siezagym.app.Models.*
 import java.time.Instant
 import java.time.ZonedDateTime
@@ -81,6 +85,13 @@ class GymStore(val uid: String) : ViewModel() {
     private val repository = GymRepository()
     private val mutableData = MutableStateFlow(GymData())
     val data = mutableData.asStateFlow()
+
+    /**
+     * El entrenamiento que quedó a medias. Vive acá y no en la pantalla para que volver atrás no
+     * tire lo hecho: la barra de la pantalla principal ofrece "seguir" con el tiempo y las series
+     * que faltan. Es lo mismo que el `activeWorkout` de iOS.
+     */
+    var activeWorkout by mutableStateOf<WorkoutDraft?>(null)
 
     init {
         load()

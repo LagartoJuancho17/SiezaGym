@@ -290,7 +290,7 @@ fun PushPullScreen(data: GymData) {
 fun ExerciseHistoryScreen(exerciseID: String, data: GymData) {
     val ejercicios = ProgressMetrics.byExercise(data.sessions, limit = 30)
     val ejercicio = data.catalog[exerciseID]
-    val hayGifs = ejercicios.any { data.catalog[it.exerciseID]?.mediaUrl != null }
+    val hayGifs = ejercicios.any { data.catalog[it.exerciseID]?.thumbnailUrl != null }
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         if (ejercicio != null) {
@@ -300,7 +300,7 @@ fun ExerciseHistoryScreen(exerciseID: String, data: GymData) {
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Miniatura(ejercicio.mediaUrl, lado = 48.dp)
+                    Miniatura(ejercicio.thumbnailUrl, lado = 48.dp)
                     Column(Modifier.weight(1f)) {
                         Text(ejercicio.nameEs, color = tema.texto, fontSize = 15.sp, fontWeight = FontWeight.Medium)
                         if (ejercicio.descriptionEs.isNotBlank())
@@ -340,7 +340,7 @@ private fun FilaEjercicio(fila: ProgressMetrics.ExerciseRow, data: GymData) {
             .padding(horizontal = 18.dp, vertical = 13.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Miniatura(ejercicio?.mediaUrl, lado = 40.dp, modifier = Modifier.padding(end = 2.dp))
+        Miniatura(ejercicio?.thumbnailUrl, lado = 40.dp, modifier = Modifier.padding(end = 2.dp))
         Column(Modifier.weight(1f).padding(end = 8.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
             Text(
                 ejercicio?.nameEs ?: fila.exerciseID,
