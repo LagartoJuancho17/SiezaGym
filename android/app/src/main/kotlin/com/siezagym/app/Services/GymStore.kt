@@ -55,6 +55,10 @@ data class GymData(
     val zones
         get() = HomeMetrics.intensityZones(sessions)
 
+    /** Volumen de la semana en curso, el número que abre la grilla de progreso. */
+    val weeklyVolumeKg
+        get() = sessions.sumOf { it.totalVolumeKg }
+
     val calories
         get() =
             HomeMetrics.weeklyCalories(

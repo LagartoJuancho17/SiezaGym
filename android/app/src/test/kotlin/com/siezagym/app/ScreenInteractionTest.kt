@@ -71,6 +71,15 @@ class ScreenInteractionTest {
         compose.onNodeWithContentDescription("Inicio").assertIsNotSelected()
     }
 
+    /** Progreso dejó de ser una pestaña: son cinco pantallas dentro de Perfil. */
+    @Test
+    fun bottomNavigationHasFourSectionsAndNoProgress() {
+        assertEquals(
+            listOf(AppTab.HOME, AppTab.ROUTINES, AppTab.HISTORY, AppTab.PROFILE),
+            AppTab.entries.toList(),
+        )
+    }
+
     @Test
     fun routineDetailStartsTheSelectedPlan() {
         val routine =
