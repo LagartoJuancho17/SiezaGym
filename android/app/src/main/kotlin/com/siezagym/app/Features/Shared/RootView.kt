@@ -106,6 +106,8 @@ private fun MainTabs(auth: AuthService, store: GymStore) {
                         PullToRefreshBox(data.isLoading, { store.load() }) {
                             RoutinesScreen(
                                 data = data,
+                                onCreate = { nav.navigate("composer") },
+                                onEdit = { nav.navigate("composer/${Uri.encode(it.id)}/${it.isAssigned}") },
                                 onOpen = {
                                     nav.navigate("routine/${Uri.encode(it.id)}/${it.isAssigned}")
                                 },
@@ -118,6 +120,41 @@ private fun MainTabs(auth: AuthService, store: GymStore) {
                                     }
                                 },
                             )
+                        }
+                    }
+                    composable("composer") {
+                        RoutineComposerScreen(
+                            data = data,
+                            onVolver = { nav.popBackStack() },
+                            onGuardar = { nombre, nota, ejercicios ->
+                                store.createRoutine(nombre, nota, ejercicios)
+                            },
+                            onCrearEjercicio = { draft -> store.createCustomExercise(draft) },
+                        )
+                    }
+                    composable("composer/{id}/{assigned}") { editando ->
+                        val original = data.routines.firstOrNull {
+                            it.id == editando.arguments?.getString("id") &&
+                                it.isAssigned == (editando.arguments?.getString("assigned") == "true")
+                        }
+                        if (original != null && !original.isAssigned) {
+                            RoutineComposerScreen(
+                                data = data,
+                                routine = original,
+                                onVolver = { nav.popBackStack() },
+                                onGuardar = { nombre, nota, ejercicios ->
+                                    store.updateRoutine(original.id, nombre, nota, ejercicios)
+                                },
+                                onCrearEjercicio = { draft -> store.createCustomExercise(draft) },
+                            )
+                        } else {
+                            Pantalla(
+                                titulo = "Editar rutina",
+                                volver = true,
+                                onVolver = { nav.popBackStack() },
+                            ) {
+                                NoEncontrado(data)
+                            }
                         }
                     }
                     composable("routine/{id}/{assigned}") { detail ->
@@ -133,6 +170,9 @@ private fun MainTabs(auth: AuthService, store: GymStore) {
                                 data = data,
                                 onStart = { start(routine) },
                                 onVolver = { nav.popBackStack() },
+                                onEdit = {
+                                    nav.navigate("composer/${Uri.encode(routine.id)}/${routine.isAssigned}")
+                                },
                                 onToggleWeek = {
                                     scope.launch {
                                         store.setRoutineWeek(
