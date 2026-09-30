@@ -11,6 +11,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInStatusCodes
 import com.google.android.gms.common.api.ApiException
 import com.siezagym.app.Domain.AuthForm
 import com.siezagym.app.Domain.CodigoMFA
+import com.siezagym.app.Features.Workout.WorkoutNotification
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
@@ -182,6 +183,8 @@ class AuthService(private val appContext: Context) : MFAHost {
     fun signOut() {
         // El widget no puede seguir mostrando la racha del usuario anterior.
         WidgetBridge.limpiar(appContext)
+        // La notificación del entrenamiento tampoco: si quedó en standby, se va con la sesión.
+        WorkoutNotification.cancelar(appContext)
         // Sin esto Google recuerda la cuenta y el próximo login entra solo, sin
         // dejar elegir otra. El cierre de Google corre async y no bloquea el de
         // Firebase: fallar ahí no debería impedir salir.

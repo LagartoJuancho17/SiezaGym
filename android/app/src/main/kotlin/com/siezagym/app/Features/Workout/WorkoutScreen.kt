@@ -1,6 +1,11 @@
 package com.siezagym.app.Features.Workout
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -61,12 +66,15 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import coil3.compose.SubcomposeAsyncImage
 import coil3.request.ImageRequest
 import com.siezagym.app.DesignSystem.*
 import com.siezagym.app.Domain.RestTimer
 import com.siezagym.app.Domain.RoutineGrouping
 import com.siezagym.app.Domain.RoutineSection
+import com.siezagym.app.Domain.WorkoutActivityState
+import com.siezagym.app.Domain.WorkoutProgress
 import com.siezagym.app.Features.Routines.SelectorEjercicios
 import com.siezagym.app.Models.Routine
 import com.siezagym.app.Services.*
@@ -180,6 +188,44 @@ fun WorkoutScreen(routine: Routine?, data: GymData, store: GymStore, onBack: () 
     var descanso by remember { mutableStateOf(RestTimer()) }
     val scope = rememberCoroutineScope()
     val haptic = LocalHapticFeedback.current
+
+    // El entrenamiento en curso vive en la barra de notificaciones, como la Live Activity de iOS.
+    // El contenido se recalcula con cada serie tildada y la notificación se actualiza en el lugar
+    // (sin volver a sonar); el cronómetro lo corre el sistema desde `startedAt`.
+    val context = LocalContext.current
+    val appContext = context.applicationContext
+    val nombreRutina = routine?.name ?: "Entrenamiento libre"
+    val actividad = remember(draft.exercises, draft.completedSets, draft.totalSets, draft.volumeKg) {
+        WorkoutActivityState.contenido(
+            draft.exercises.map { WorkoutProgress(it.name, it.completedCount, it.sets.size) },
+            draft.volumeKg,
+        )
+    }
+
+    val permisoNotificaciones =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { concedido ->
+            if (concedido)
+                WorkoutNotification.mostrar(appContext, nombreRutina, draft.startedAt, actividad)
+        }
+
+    LaunchedEffect(Unit) {
+        if (
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
+                    PackageManager.PERMISSION_GRANTED
+        )
+            permisoNotificaciones.launch(Manifest.permission.POST_NOTIFICATIONS)
+    }
+
+    LaunchedEffect(actividad) {
+        WorkoutNotification.mostrar(appContext, nombreRutina, draft.startedAt, actividad)
+    }
+
+    // Al terminar o descartar `activeWorkout` queda en null y la notificación se va; al volver a
+    // standby sigue viva, que es justo cuando sirve.
+    DisposableEffect(Unit) {
+        onDispose { if (store.activeWorkout == null) WorkoutNotification.cancelar(appContext) }
+    }
 
     fun avisar(descansoTerminado: Boolean, completo: Boolean = false) {
         if (descansoTerminado) {
