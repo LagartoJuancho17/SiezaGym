@@ -124,4 +124,65 @@ class GymStore(val uid: String) : ViewModel() {
         val profile = repository.profile(uid)
         mutableData.update { it.copy(profile = profile) }
     }
+
+    // MARK: - Rutinas
+    //
+    // Cada escritura devuelve apenas el store está al día: las pantallas no
+    // necesitan saber el id nuevo, sólo recargar y cerrar.
+
+    suspend fun createRoutine(
+        name: String,
+        note: String,
+        exercises: List<RoutineDraftExercise>,
+    ): String {
+        val id = repository.createRoutine(uid, name, note, exercises)
+        refresh()
+        return id
+    }
+
+    suspend fun updateRoutine(
+        routineId: String,
+        name: String,
+        note: String,
+        exercises: List<RoutineDraftExercise>,
+    ) {
+        repository.updateRoutine(uid, routineId, name, note, exercises)
+        refresh()
+    }
+
+    suspend fun deleteRoutine(routineId: String) {
+        repository.deleteRoutine(uid, routineId)
+        refresh()
+    }
+
+    suspend fun duplicateRoutine(routineId: String) {
+        repository.duplicateRoutine(uid, routineId)
+        refresh()
+    }
+
+    suspend fun setRoutineShowOnHome(routineId: String, showOnHome: Boolean) {
+        repository.setRoutineShowOnHome(uid, routineId, showOnHome)
+        refresh()
+    }
+
+    suspend fun setRoutineWeek(routineId: String, weekKey: String?) {
+        repository.setRoutineWeek(uid, routineId, weekKey)
+        refresh()
+    }
+
+    // MARK: - Ejercicios propios
+
+    suspend fun createCustomExercise(draft: CustomExerciseDraft): String {
+        val id = repository.createCustomExercise(uid, draft)
+        // Los ejercicios propios entran al mismo mapa que el catálogo, con el
+        // origen en custom: el selector y el reparto por músculo los leen los dos.
+        val propios = repository.customExercises(uid)
+        mutableData.update { it.copy(catalog = it.catalog + propios.associateBy(Exercise::id)) }
+        return id
+    }
+
+    suspend fun deleteCustomExercise(exerciseId: String) {
+        repository.deleteCustomExercise(uid, exerciseId)
+        mutableData.update { it.copy(catalog = it.catalog - exerciseId) }
+    }
 }

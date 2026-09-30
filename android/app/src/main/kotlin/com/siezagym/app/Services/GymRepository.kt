@@ -2,8 +2,13 @@ package com.siezagym.app.Services
 
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.Query
+import com.siezagym.app.Domain.CustomExerciseDraft
+import com.siezagym.app.Domain.RoutineDraftExercise
+import com.siezagym.app.Domain.RoutineDraftValidation
 import com.siezagym.app.Models.Exercise
+import com.siezagym.app.Models.ExerciseSource
 import com.siezagym.app.Models.LoggedExercise
 import com.siezagym.app.Models.Routine
 import com.siezagym.app.Models.UserProfile
@@ -142,6 +147,178 @@ class GymRepository {
         val data = document.data ?: return null
         return Routine.fromFirestore(id, data.firestoreMap(), isAssigned = isAssigned)
     }
+
+    // MARK: - Escritura de rutinas
+    //
+    // Las mismas validaciones que `lib/routines/routines.js` en la web, con los
+    // mismos textos: quien lee el error tiene que saber que el problema es el
+    // mismo en los tres clientes.
+
+    /** Devuelve el id del documento nuevo. */
+    suspend fun createRoutine(
+        uid: String,
+        name: String,
+        note: String,
+        exercises: List<RoutineDraftExercise>,
+    ): String {
+        RoutineDraftValidation.validate(name, exercises)
+        val ahora = FieldValue.serverTimestamp()
+        val referencia =
+            db.collection("routines")
+                .add(
+                    mapOf(
+                        "ownerId" to uid,
+                        "name" to name.trim(),
+                        "note" to note.trim(),
+                        "exercises" to exercises.mapIndexed { i, e -> e.firestoreValue(i) },
+                        "showOnHome" to true,
+                        "lastUsedAt" to null,
+                        "createdAt" to ahora,
+                        "updatedAt" to ahora,
+                    )
+                )
+                .await()
+        return referencia.id
+    }
+
+    suspend fun updateRoutine(
+        uid: String,
+        routineId: String,
+        name: String,
+        note: String,
+        exercises: List<RoutineDraftExercise>,
+    ) {
+        RoutineDraftValidation.validate(name, exercises)
+        val documento = db.collection("routines").document(routineId)
+        requireOwned(documento, uid)
+        documento
+            .update(
+                mapOf(
+                    "name" to name.trim(),
+                    "note" to note.trim(),
+                    "exercises" to exercises.mapIndexed { i, e -> e.firestoreValue(i) },
+                    "updatedAt" to FieldValue.serverTimestamp(),
+                )
+            )
+            .await()
+    }
+
+    suspend fun deleteRoutine(uid: String, routineId: String) {
+        val documento = db.collection("routines").document(routineId)
+        requireOwned(documento, uid)
+        documento.delete().await()
+    }
+
+    /**
+     * Copia una rutina con "(copia)" agregado al nombre, como en la web. La copia
+     * no aparece en la portada hasta que la actives.
+     */
+    suspend fun duplicateRoutine(uid: String, routineId: String): String {
+        val original = routine(routineId, isAssigned = false)
+            ?: throw IllegalStateException("Rutina no encontrada.")
+        return createRoutine(
+            uid,
+            "${original.name} (copia)",
+            original.note,
+            original.exercises.map { RoutineDraftExercise(it) },
+        )
+    }
+
+    suspend fun setRoutineShowOnHome(uid: String, routineId: String, showOnHome: Boolean) {
+        val documento = db.collection("routines").document(routineId)
+        requireOwned(documento, uid)
+        documento
+            .update(
+                mapOf(
+                    "showOnHome" to showOnHome,
+                    "updatedAt" to FieldValue.serverTimestamp(),
+                )
+            )
+            .await()
+    }
+
+    /** A qué semana queda asignada la rutina. `null` la saca del calendario. */
+    suspend fun setRoutineWeek(uid: String, routineId: String, weekKey: String?) {
+        val documento = db.collection("routines").document(routineId)
+        requireOwned(documento, uid)
+        documento
+            .update(
+                mapOf(
+                    "weekKey" to weekKey,
+                    "updatedAt" to FieldValue.serverTimestamp(),
+                )
+            )
+            .await()
+    }
+
+    /**
+     * Una rutina asignada por un coach no se edita desde la app del alumno, así
+     * que antes de tocar nada se verifica que sea suya.
+     */
+    private suspend fun requireOwned(documento: DocumentReference, uid: String) {
+        val data = documento.get().await().data
+        require(data != null && data["ownerId"] == uid) { "Rutina no encontrada." }
+    }
+
+    // MARK: - Ejercicios propios
+
+    /**
+     * Los ejercicios que el usuario crea para sí. Viven bajo su documento de
+     * usuario, no en el catálogo compartido: son de esa persona y nadie más los
+     * tiene que ver.
+     */
+    private fun coleccionPropia(uid: String) =
+        db.collection("users").document(uid).collection("customExercises")
+
+    suspend fun customExercises(uid: String): List<Exercise> {
+        val snapshot =
+            runCatching { coleccionPropia(uid).get().await() }.getOrElse { return emptyList() }
+        return snapshot.documents
+            .map {
+                Exercise.fromRawValue(
+                    it.id,
+                    it.data?.firestoreMap() ?: emptyMap(),
+                    ExerciseSource.CUSTOM,
+                )
+            }
+            .sortedBy { it.nameEs }
+    }
+
+    suspend fun createCustomExercise(uid: String, draft: CustomExerciseDraft): String {
+        val ahora = FieldValue.serverTimestamp()
+        val referencia =
+            coleccionPropia(uid)
+                .add(
+                    mapOf(
+                        "ownerId" to uid,
+                        "nameEs" to draft.nameEs.trim(),
+                        "equipment" to draft.equipment?.raw,
+                        "pattern" to draft.pattern?.raw,
+                        "muscleWeights" to draft.muscleWeights.mapKeys { (m, _) -> m.raw },
+                        "registrationType" to draft.registrationType.raw,
+                        "unilateral" to draft.unilateral,
+                        "searchTextEs" to normalizeSearchText(draft.nameEs),
+                        "createdAt" to ahora,
+                        "updatedAt" to ahora,
+                    )
+                )
+                .await()
+        return referencia.id
+    }
+
+    suspend fun deleteCustomExercise(uid: String, exerciseId: String) {
+        coleccionPropia(uid).document(exerciseId).delete().await()
+    }
+
+    /**
+     * La búsqueda del selector de ejercicios no distingue acentos ni mayúsculas,
+     * como el `normalizeSearchText` de la web: "press" tiene que encontrar
+     * "Press".
+     */
+    private fun normalizeSearchText(value: String): String =
+        java.text.Normalizer.normalize(value, java.text.Normalizer.Form.NFD)
+            .replace("\\p{InCombiningDiacriticalMarks}+".toRegex(), "")
+            .lowercase()
 
     // MARK: - Sesiones
 
