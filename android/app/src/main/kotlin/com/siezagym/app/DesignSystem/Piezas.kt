@@ -34,6 +34,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material3.Icon
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.input.ImeAction
@@ -316,5 +317,22 @@ fun Buscador(
                 }
             },
         )
+    }
+}
+
+/** El error de un formulario: un ícono y la frase, sin caja alrededor. */
+@Composable
+fun Aviso(texto: String) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Icon(
+            Icons.Filled.WarningAmber,
+            null,
+            tint = tema.texto,
+            modifier = Modifier.size(16.dp),
+        )
+        Text(texto, color = tema.texto, fontSize = 13.sp, lineHeight = 19.sp)
     }
 }

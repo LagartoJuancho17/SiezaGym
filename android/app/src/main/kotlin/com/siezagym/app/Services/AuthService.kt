@@ -9,6 +9,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.auth.api.signin.GoogleSignInStatusCodes
 import com.google.android.gms.common.api.ApiException
+import com.siezagym.app.Domain.AuthForm
+import com.siezagym.app.Domain.CodigoMFA
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
@@ -28,7 +30,7 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
 /** Sesión del usuario. Envuelve FirebaseAuth y expone solo lo que la UI necesita. */
-class AuthService(private val appContext: Context) {
+class AuthService(private val appContext: Context) : MFAHost {
     private val auth = FirebaseAuth.getInstance()
     private val repository = GymRepository()
     private val authScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -46,8 +48,8 @@ class AuthService(private val appContext: Context) {
     private val _isWorking = MutableStateFlow(false)
 
     val state: StateFlow<State> = _state.asStateFlow()
-    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
-    val isWorking: StateFlow<Boolean> = _isWorking.asStateFlow()
+    override val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
+    override val isWorking: StateFlow<Boolean> = _isWorking.asStateFlow()
 
     init {
         auth.addAuthStateListener { firebaseAuth ->
@@ -62,6 +64,41 @@ class AuthService(private val appContext: Context) {
         get() = (_state.value as? State.SignedIn)?.uid
 
     // MARK: - Email / Contraseña
+
+    /**
+     * El proveedor del segundo factor. Se puede cambiar en los tests.
+     */
+    var mfa: MFAService = MFAService()
+
+    /**
+     * Paso 1 del login con código: comprueba la contraseña contra el servidor y hace que salga el
+     * mail. No crea sesión; con la contraseña correcta y sin el código, la app sigue afuera.
+     *
+     * Devuelve `null` si algo falló; el motivo queda en [errorMessage].
+     */
+    override suspend fun pedirCodigo(form: AuthForm): MFAService.Desafio? = attempt { mfa.iniciar(form) }
+
+    /**
+     * Paso 2: canjea el código por la sesión. El servidor devuelve un custom token y recién con
+     * eso Firebase abre la sesión. El listener de [init] se encarga del resto.
+     */
+    override suspend fun entrarConCodigo(desafio: String, codigo: CodigoMFA): Boolean {
+        val token = attempt { mfa.verificar(desafio, codigo) } ?: return false
+        val entro =
+            attempt {
+                auth.signInWithCustomToken(token).await()
+                val user = auth.currentUser
+                if (user != null)
+                    repository.ensureProfile(
+                        uid = user.uid,
+                        email = user.email,
+                        displayName = user.displayName,
+                        photoUrl = user.photoUrl?.toString(),
+                        provider = "password",
+                    )
+            }
+        return entro != null
+    }
 
     suspend fun signIn(email: String, password: String) = attempt {
         val user =
@@ -103,8 +140,7 @@ class AuthService(private val appContext: Context) {
      */
     fun googleSignInIntent(): Intent? {
         val webClientId = stringByIdentifier("default_web_client_id") ?: return null
-        val client = googleClient(webClientId)
-        return client.signInIntent
+        return googleClient(webClientId).signInIntent
     }
 
     /**
@@ -157,7 +193,7 @@ class AuthService(private val appContext: Context) {
         }
     }
 
-    fun clearError() {
+    override fun clearError() {
         _errorMessage.value = null
     }
 
@@ -166,22 +202,25 @@ class AuthService(private val appContext: Context) {
     /** El usuario cerró la ventana de Google a propósito: no es un error. */
     private class GoogleCanceledException : RuntimeException()
 
-    private suspend fun attempt(block: suspend () -> Unit) =
+    private suspend fun <T> attempt(block: suspend () -> T): T? =
         withContext(authScope.coroutineContext) {
             _isWorking.value = true
             _errorMessage.value = null
             try {
-                block()
+                val resultado = block()
                 val user = auth.currentUser
                 _state.value =
                     if (user != null) State.SignedIn(user.uid, user.email) else State.SignedOut
+                resultado
             } catch (e: CancellationException) {
                 throw e
             } catch (e: GoogleCanceledException) {
                 // Silencioso.
+                null
             } catch (e: Exception) {
                 Log.w(TAG, "auth fallo: ${e.message}")
                 _errorMessage.value = readableAuthError(e)
+                null
             } finally {
                 _isWorking.value = false
             }
@@ -215,6 +254,7 @@ class AuthService(private val appContext: Context) {
  */
 internal fun readableAuthError(error: Exception): String {
     return when (error) {
+        is MFAError -> error.message
         is FirebaseAuthUserCollisionException ->
             when (error.errorCode) {
                 CODE_ACCOUNT_EXISTS_WITH_DIFFERENT_CREDENTIAL,
