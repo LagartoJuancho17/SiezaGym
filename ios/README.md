@@ -254,6 +254,34 @@ creó hoy.
 El detalle lee la rutina del store por id y no la que recibió al navegar: esa es
 una copia del momento en que se tocó la fila y queda vieja apenas se guarda.
 
+## Menú de mantener presionado
+
+Mantener presionada una fila en Rutinas abre las mismas cuatro acciones que
+`RoutineHoldSheet` en la web (Editar, portada, Duplicar, Eliminar), pero con
+`.contextMenu(menuItems:)` nativo en vez de una hoja custom: en iOS ya resuelve
+el problema que la hoja de la web existe para resolver — que el pulgar no tape
+la fila al mantenerla presionada — sin reinventar nada.
+
+`RoutinesScreen.fila(_:)` replica el gate de `routineMenuActions` de
+`lib/routines/menu.js`: una rutina del coach (`isAssigned`) no ofrece ningún
+menú, porque esas viven en `assignments` y se editan desde su panel. Las
+acciones en sí ya existían en `GymRepository`/`GymStore` (edición, semana
+asignada) salvo tres nuevas, escritas puerto a puerto desde
+`lib/routines/routines.js`:
+
+- `setShowOnHome` — mismo campo `showOnHome` que usa la Home para elegir
+  `featuredRoutine`.
+- `duplicateRoutine` — reusa `RoutineDraftExercise.init(_:)` (el mismo
+  conversor que ya evita aplastar rampas al editar) para armar el draft y
+  llamar a `createRoutine` con el nombre más "(copia)".
+- `deleteRoutine` — borra en Firestore y saca la rutina del array en memoria
+  sin recargar todo; como el borrado puede afectar qué rutina se muestra en
+  la portada, también republica el widget.
+
+Eliminar pide confirmación con el mismo texto que `RoutineHoldSheet`
+("No se puede deshacer. Los entrenamientos que ya hiciste con ella quedan en
+el historial.") antes de tocar Firestore.
+
 ## Bloques de ejercicios
 
 Ejercicios consecutivos se agrupan en bloques con nombre y color ("Entrada en
@@ -328,6 +356,18 @@ que `ProgressMetrics`.
 calculadas y ninguna pantalla mostraba: `volumeByWeekday` (por día de la
 semana) y `volumePerSession` (últimas sesiones). `store.weekdayVolume` y
 `store.volumeTrend` existían en `GymStore` desde antes, sin ningún lector.
+
+**"Tus datos" y "Configuración" están ordenados en grupos, no en una sola
+lista.** Un separador corta Sexo/Experiencia de Peso/Altura, y la leyenda de
+para qué sirve el peso quedó pegada debajo del campo que explica en vez de
+suelta al final de la tarjeta. "Guardar" muestra "Guardando…" y se
+deshabilita mientras la escritura está en vuelo, para que tocarlo dos veces
+no dispare dos writes. Tema y Entrenador se unieron en una sola `GlassCard`
+con un separador adentro — antes eran dos tarjetas separadas y el segundo
+grupo quedaba corrido respecto al primero; la fila de Entrenador está armada
+a mano en vez de reusar `FilaLista`, porque ese componente trae su propio
+padding horizontal pensado para un `PanelLista` sin relleno, y duplicarlo
+encima del padding de esta tarjeta la desalineaba.
 
 ## Ejercicios propios
 

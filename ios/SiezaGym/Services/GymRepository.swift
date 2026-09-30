@@ -218,6 +218,23 @@ nonisolated struct GymRepository: Sendable {
         log.info("semana de \(routineID, privacy: .public): \(weekKey ?? "ninguna", privacy: .public)")
     }
 
+    /// Muestra u oculta la rutina en la portada. Mismo campo que
+    /// `setRoutineShowOnHome` en la web.
+    func setShowOnHome(routineID: String, showOnHome: Bool) async throws {
+        try await db.collection("routines").document(routineID).updateData([
+            "showOnHome": showOnHome,
+            "updatedAt": FieldValue.serverTimestamp(),
+        ])
+        log.info("portada de \(routineID, privacy: .public): \(showOnHome)")
+    }
+
+    /// Borra una rutina propia. Las reglas de Firestore exigen que sea del
+    /// dueño; las del coach viven en `assignments` y no pasan por acá.
+    func deleteRoutine(routineID: String) async throws {
+        try await db.collection("routines").document(routineID).delete()
+        log.info("rutina borrada \(routineID, privacy: .public)")
+    }
+
     // MARK: - Sesiones
 
     func sessions(uid: String, limit: Int = 50) async throws -> [WorkoutSession] {

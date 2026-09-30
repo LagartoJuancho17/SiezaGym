@@ -175,6 +175,32 @@ final class GymStore {
         await load()
     }
 
+    /// Muestra u oculta una rutina propia en la portada.
+    func setShowOnHome(_ routine: Routine, showOnHome: Bool) async throws {
+        guard !routine.isAssigned else { throw RoutineEditError.esDelCoach }
+        try await repository.setShowOnHome(routineID: routine.id, showOnHome: showOnHome)
+        await load()
+    }
+
+    /// Copia una rutina propia: mismo nombre con "(copia)", mismos ejercicios,
+    /// sin arrastrar cuándo se usó por última vez. Mismo criterio que
+    /// "Duplicar" en la web.
+    func duplicateRoutine(_ routine: Routine) async throws {
+        guard !routine.isAssigned else { throw RoutineEditError.esDelCoach }
+        let ejercicios = routine.exercises.map(RoutineDraftExercise.init)
+        try await createRoutine(name: "\(routine.name) (copia)", note: routine.note, exercises: ejercicios)
+    }
+
+    /// Borra una rutina propia. Nunca la del coach: esas se editan desde su
+    /// panel. Saca la rutina en memoria y avisa al widget de una, en vez de
+    /// recargar todo — la racha y el volumen no dependen de qué rutinas hay.
+    func deleteRoutine(_ routine: Routine) async throws {
+        guard !routine.isAssigned else { throw RoutineEditError.esDelCoach }
+        try await repository.deleteRoutine(routineID: routine.id)
+        routines.removeAll { $0.id == routine.id }
+        publicarWidget()
+    }
+
     /// Crea un ejercicio propio y lo suma al catálogo en memoria, para que
     /// aparezca en el selector sin recargar todo desde Firestore.
     @discardableResult

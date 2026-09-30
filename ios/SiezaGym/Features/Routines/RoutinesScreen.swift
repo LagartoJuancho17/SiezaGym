@@ -8,6 +8,9 @@ struct RoutinesScreen: View {
     @State private var busqueda = ""
     @State private var workout: WorkoutTarget?
     @State private var creando = false
+    @State private var editando: Routine?
+    @State private var confirmandoBorrado: Routine?
+    @State private var error: String?
 
     private var visibles: [Routine] {
         let termino = busqueda.trimmingCharacters(in: .whitespaces).folding(
@@ -73,6 +76,32 @@ struct RoutinesScreen: View {
             .fullScreenCover(isPresented: $creando) {
                 RoutineComposerScreen(store: store)
             }
+            .fullScreenCover(item: $editando) { rutina in
+                RoutineComposerScreen(store: store, routine: rutina)
+            }
+            .confirmationDialog(
+                "¿Eliminar \(confirmandoBorrado?.name ?? "esta rutina")?",
+                isPresented: Binding(
+                    get: { confirmandoBorrado != nil },
+                    set: { if !$0 { confirmandoBorrado = nil } }
+                ),
+                titleVisibility: .visible
+            ) {
+                Button("Eliminar", role: .destructive) {
+                    if let rutina = confirmandoBorrado { Task { await borrar(rutina) } }
+                }
+                Button("Cancelar", role: .cancel) {}
+            } message: {
+                Text("No se puede deshacer. Los entrenamientos que ya hiciste con ella quedan en el historial.")
+            }
+            .alert(
+                "No se pudo hacer",
+                isPresented: Binding(get: { error != nil }, set: { if !$0 { error = nil } })
+            ) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(error ?? "")
+            }
         }
     }
 
@@ -82,20 +111,62 @@ struct RoutinesScreen: View {
                 if indice > 0 {
                     Rectangle().fill(tema.borde).frame(height: 1)
                 }
-                NavigationLink {
-                    RoutineDetailScreen(routine: rutina, store: store) { elegida in
-                        workout = WorkoutTarget(routine: elegida)
-                    }
-                } label: {
-                    FilaLista(
-                        nombre: rutina.name,
-                        detalle: detalle(rutina),
-                        etiqueta: rutina.isAssigned ? "Del coach" : nil
-                    )
-                }
-                .buttonStyle(.plain)
+                fila(rutina)
             }
         }
+    }
+
+    @ViewBuilder private func fila(_ rutina: Routine) -> some View {
+        let enlace = NavigationLink {
+            RoutineDetailScreen(routine: rutina, store: store) { elegida in
+                workout = WorkoutTarget(routine: elegida)
+            }
+        } label: {
+            FilaLista(
+                nombre: rutina.name,
+                detalle: detalle(rutina),
+                etiqueta: rutina.isAssigned ? "Del coach" : nil
+            )
+        }
+        .buttonStyle(.plain)
+
+        // Igual que `routineMenuActions` en la web: una rutina del coach no
+        // ofrece nada al mantenerla presionada, ni editar ni borrar — esa se
+        // maneja desde su panel.
+        if rutina.isAssigned {
+            enlace
+        } else {
+            enlace.contextMenu {
+                Button { editando = rutina } label: {
+                    Label("Editar", systemImage: "pencil")
+                }
+                Button { Task { await alternarPortada(rutina) } } label: {
+                    Label(
+                        rutina.showOnHome ? "Quitar de la portada" : "Mostrar en la portada",
+                        systemImage: rutina.showOnHome ? "house.slash" : "house"
+                    )
+                }
+                Button { Task { await duplicar(rutina) } } label: {
+                    Label("Duplicar", systemImage: "doc.on.doc")
+                }
+                Button(role: .destructive) { confirmandoBorrado = rutina } label: {
+                    Label("Eliminar", systemImage: "trash")
+                }
+            }
+        }
+    }
+
+    private func borrar(_ rutina: Routine) async {
+        do { try await store.deleteRoutine(rutina) } catch { self.error = error.localizedDescription }
+    }
+
+    private func duplicar(_ rutina: Routine) async {
+        do { try await store.duplicateRoutine(rutina) } catch { self.error = error.localizedDescription }
+    }
+
+    private func alternarPortada(_ rutina: Routine) async {
+        do { try await store.setShowOnHome(rutina, showOnHome: !rutina.showOnHome) }
+        catch { self.error = error.localizedDescription }
     }
 
     private var buscador: some View {
