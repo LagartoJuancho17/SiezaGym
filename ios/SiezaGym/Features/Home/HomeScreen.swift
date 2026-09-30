@@ -365,11 +365,9 @@ struct HomeScreen: View {
                 .padding(.bottom, 10)
 
             GlassCard(padding: 0) {
-                VStack(spacing: 0) {
-                    FilaAcceso(nombre: "Historial", detalle: "Todo lo que entrenaste")
-                    Rectangle().fill(tema.borde).frame(height: 1)
-                    FilaAcceso(nombre: "Progreso", detalle: "Volumen y marcas")
-                }
+                // El progreso (volumen, músculos, marcas) se mudó a Perfil, que
+                // es donde vive ahora como grilla de accesos.
+                FilaAcceso(nombre: "Historial", detalle: "Todo lo que entrenaste")
             }
         }
     }

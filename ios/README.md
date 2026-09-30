@@ -309,6 +309,26 @@ Con una búsqueda en curso (`RoutinesScreen.agrupar == false`) se desarma todo y
 se muestra la lista plana: cortar tres resultados de búsqueda en secciones por
 semana los desordena en vez de ayudar a encontrar algo.
 
+## Perfil con el progreso adentro
+
+Distinto de la web: acá Perfil y Progreso son la misma pestaña. La barra de
+abajo bajó de cinco pestañas a cuatro (`Inicio`/`Rutinas`/`Historial`/`Perfil`)
+y `ProgressScreen.swift` ya no existe — sus cinco secciones se repartieron en
+cinco pantallas propias bajo `Features/Profile/` (`VolumeScreen`,
+`TrainedDaysScreen`, `MuscleVolumeScreen`, `PushPullScreen`,
+`ExerciseHistoryScreen`), con una grilla de accesos ("Tu progreso") en
+`ProfileScreen` que abre cada una — estilo Strong/Hevy, no el scroll único de
+`/progreso` en la web. La app entrenó dos metáforas seguidas en la misma
+sesión: primero widgets nuevos con espejos livianos porque `HomeMetrics` no
+cruza el límite de target, después esto, que sí puede usar `HomeMetrics`
+directo porque las cinco pantallas nuevas viven en el target de la app, igual
+que `ProgressMetrics`.
+
+`VolumeScreen` de paso estrena dos cuentas que `HomeMetrics` ya tenía
+calculadas y ninguna pantalla mostraba: `volumeByWeekday` (por día de la
+semana) y `volumePerSession` (últimas sesiones). `store.weekdayVolume` y
+`store.volumeTrend` existían en `GymStore` desde antes, sin ningún lector.
+
 ## Ejercicios propios
 
 Lo que no está en el catálogo de 94 se carga desde el `+` del selector y vive en
@@ -433,11 +453,12 @@ xcodebuild test -project SiezaGym.xcodeproj -scheme SiezaGym \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 ```
 
-236 tests: la matemática de `Domain/`, lo que muestran los widgets, los links de
+252 tests: la matemática de `Domain/`, lo que muestran los widgets, los links de
 YouTube, el formato de las métricas de Salud, las reglas del formulario de login,
 el código del segundo factor, la bienvenida de tres pantallas, los bloques de
-ejercicios, la semana asignada y el agrupamiento de Rutinas por mes y semana.
-Son funciones puras, no tocan Firestore ni la red.
+ejercicios, la semana asignada, el agrupamiento de Rutinas por mes y semana y
+las cuentas de `ProgressMetrics` que arma el Perfil. Son funciones puras, no
+tocan Firestore ni la red.
 
 Lo que corre del lado del servidor (generar el código, hashearlo, vencimiento,
 intentos, límite de pedidos, las rutas y la comprobación de contraseña) se

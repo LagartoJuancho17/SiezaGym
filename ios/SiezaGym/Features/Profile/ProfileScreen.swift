@@ -1,7 +1,9 @@
 import SwiftUI
 
-/// Perfil, igual que `/perfil` en la web: la tarjeta de identidad, tres
-/// números, los datos de la cuenta y la configuración con el tema adentro.
+/// Perfil, con la identidad, tres números, una grilla de accesos al progreso
+/// (antes su propia pestaña, ver `VolumeScreen` y compañía), los datos de la
+/// cuenta y la configuración con el tema adentro. Distinto de `/perfil` en la
+/// web: ahí Progreso sigue siendo `/progreso` aparte.
 struct ProfileScreen: View {
     @Environment(\.tema) private var tema
     @Environment(ThemeStore.self) private var temas
@@ -29,6 +31,9 @@ struct ProfileScreen: View {
                     ("\(store.streak)", store.streak == 1 ? "día seguido" : "días seguidos"),
                 ])
                 .padding(.top, 14)
+
+                SectionLabel("Tu progreso").padding(.top, 24).padding(.bottom, 10)
+                progreso
 
                 SectionLabel("Tus datos").padding(.top, 24).padding(.bottom, 10)
                 datos
@@ -92,6 +97,43 @@ struct ProfileScreen: View {
                 .font(.system(size: 24, weight: .medium))
                 .foregroundStyle(tema.texto)
         }
+    }
+
+    // MARK: - Progreso
+
+    /// Antes era su propia pestaña (`/progreso`). Con pantalla de inicio
+    /// limitada a cinco lugares, y estos números leyéndose más como "cómo
+    /// vengo" que como algo del día a día, viven acá adentro: una grilla de
+    /// accesos con el dato más importante de cada uno, cada uno con su
+    /// pantalla propia para no amontonar todo en un solo scroll larguísimo.
+    @ViewBuilder private var progreso: some View {
+        if store.sessions.isEmpty {
+            Vacio(texto: "Todavía no terminaste ningún entrenamiento. Cuando termines el primero, acá vas a ver tu volumen, tus músculos y tu balance de empuje y tracción.")
+        } else {
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
+                NavigationLink { VolumeScreen(store: store) } label: {
+                    TarjetaProgreso(icono: "chart.bar.fill", titulo: "Volumen", valor: "\(ProgressMetrics.formatKg(store.weeklyVolumeKg)) esta semana")
+                }
+                NavigationLink { TrainedDaysScreen(store: store) } label: {
+                    TarjetaProgreso(icono: "calendar", titulo: "Días entrenados", valor: "\(store.trainedDayKeys.count) en total")
+                }
+                NavigationLink { MuscleVolumeScreen(store: store) } label: {
+                    TarjetaProgreso(icono: "figure.strengthtraining.traditional", titulo: "Músculos", valor: musculoDestacado)
+                }
+                NavigationLink { PushPullScreen(store: store) } label: {
+                    TarjetaProgreso(icono: "arrow.left.arrow.right", titulo: "Empuje y tracción", valor: store.pushPull.label)
+                }
+                NavigationLink { ExerciseHistoryScreen(store: store) } label: {
+                    TarjetaProgreso(icono: "list.bullet", titulo: "Por ejercicio", valor: "\(ProgressMetrics.byExercise(store.sessions, limit: 99).count) entrenados")
+                }
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    private var musculoDestacado: String {
+        guard let primero = store.muscleVolume.rows.first else { return "Sin datos todavía" }
+        return primero.label
     }
 
     // MARK: - Datos
@@ -259,6 +301,43 @@ struct ProfileScreen: View {
         campos["experienceLevel"] = nivel?.rawValue ?? NSNull()
         await store.updateProfile(campos)
         guardadoEn = Date()
+    }
+}
+
+/// Una tarjeta de acceso a una vista de progreso: ícono, título y el dato más
+/// importante de esa vista, para que la grilla sirva como resumen y no solo
+/// como menú.
+private struct TarjetaProgreso: View {
+    @Environment(\.tema) private var tema
+    let icono: String
+    let titulo: String
+    let valor: String
+
+    var body: some View {
+        GlassCard(padding: 14) {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    Image(systemName: icono)
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundStyle(tema.solido)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(tema.texto3)
+                }
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(titulo)
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(tema.texto)
+                        .lineLimit(1)
+                    Text(valor)
+                        .font(.system(size: 11))
+                        .foregroundStyle(tema.texto2)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.85)
+                }
+            }
+        }
     }
 }
 

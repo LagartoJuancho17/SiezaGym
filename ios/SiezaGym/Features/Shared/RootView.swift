@@ -36,7 +36,7 @@ struct RootView: View {
 
 struct MainTabView: View {
     @Environment(\.scenePhase) private var scenePhase
-    /// Un solo store para las cinco pantallas. Si cada tab creara el suyo
+    /// Un solo store para las cuatro pantallas. Si cada tab creara el suyo
     /// pagariamos las mismas lecturas cinco veces y podrian mostrar numeros
     /// distintos entre si.
     @State private var store: GymStore
@@ -60,9 +60,6 @@ struct MainTabView: View {
                 .toolbar(.hidden, for: .tabBar)
             HistoryScreen(store: store)
                 .tag(AppTab.history)
-                .toolbar(.hidden, for: .tabBar)
-            ProgressScreen(store: store)
-                .tag(AppTab.progress)
                 .toolbar(.hidden, for: .tabBar)
             ProfileScreen(store: store)
                 .tag(AppTab.profile)
