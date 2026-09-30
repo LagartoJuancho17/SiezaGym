@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">SiezaGym</string>
+    <string name="widget_hoy_etiqueta">Hoy</string>
+    <string name="widget_hoy_descripcion">La rutina que toca, la racha y el volumen de la semana.</string>
 </resources>

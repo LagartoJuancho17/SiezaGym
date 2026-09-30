@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.siezagym.app.R
+import com.siezagym.app.Services.WidgetBridge
 
 /**
  * Un tema del diseño: los mismos tokens que `.d2[data-d2-theme="..."]` en la web.
@@ -173,6 +174,7 @@ private const val CLAVE_TEMA = "d2-theme-v2"
  * no de la cuenta, así que no viaja a Firestore.
  */
 class ThemeStore(context: Context) {
+    private val appContext = context.applicationContext
     private val prefs: SharedPreferences =
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
@@ -184,6 +186,8 @@ class ThemeStore(context: Context) {
     fun seleccionar(theme: Theme) {
         estado.value = theme
         prefs.edit().putString(CLAVE_TEMA, theme.id).apply()
+        // El widget no lee este `SharedPreferences`: el tema viaja en el snapshot.
+        WidgetBridge.actualizarTema(appContext, theme.id)
     }
 
     companion object {

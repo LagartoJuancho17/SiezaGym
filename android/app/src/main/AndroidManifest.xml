@@ -51,6 +51,19 @@
                 <category android:name="android.intent.category.HEALTH_PERMISSIONS" />
             </intent-filter>
         </activity-alias>
+
+        <!-- El widget "Hoy": la app le deja el resumen y Glance lo dibuja. -->
+        <receiver
+            android:name=".Widget.SiezaWidgetReceiver"
+            android:exported="false"
+            android:label="@string/widget_hoy_etiqueta">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/sieza_widget_info" />
+        </receiver>
     </application>
 
 </manifest>

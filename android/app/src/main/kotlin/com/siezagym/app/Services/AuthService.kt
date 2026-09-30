@@ -180,6 +180,8 @@ class AuthService(private val appContext: Context) : MFAHost {
     // MARK: - Cerrar sesión
 
     fun signOut() {
+        // El widget no puede seguir mostrando la racha del usuario anterior.
+        WidgetBridge.limpiar(appContext)
         // Sin esto Google recuerda la cuenta y el próximo login entra solo, sin
         // dejar elegir otra. El cierre de Google corre async y no bloquea el de
         // Firebase: fallar ahí no debería impedir salir.

@@ -1,10 +1,12 @@
 package com.siezagym.app.Services
 
+import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.siezagym.app.DesignSystem.ThemeStore
 import com.siezagym.app.Domain.*
 import com.siezagym.app.Features.Workout.WorkoutDraft
 import com.siezagym.app.Models.*
@@ -81,7 +83,7 @@ data class GymData(
             )
 }
 
-class GymStore(val uid: String) : ViewModel() {
+class GymStore(val uid: String, private val context: Context? = null) : ViewModel() {
     private val repository = GymRepository()
     private val mutableData = MutableStateFlow(GymData())
     val data = mutableData.asStateFlow()
@@ -119,6 +121,7 @@ class GymStore(val uid: String) : ViewModel() {
                         hasLoaded = true,
                     )
             }
+            publicarWidget()
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -143,6 +146,27 @@ class GymStore(val uid: String) : ViewModel() {
         repository.updateProfile(uid, fields)
         val profile = repository.profile(uid)
         mutableData.update { it.copy(profile = profile) }
+        // El peso y la meta de calorías cambian los números del widget.
+        publicarWidget()
+    }
+
+    /**
+     * Deja el resumen del widget al día. El widget no puede leer Firestore: la app le pasa los
+     * mismos números que muestra la portada, ya resueltos.
+     */
+    private fun publicarWidget() {
+        val app = context?.applicationContext ?: return
+        val datos = mutableData.value
+        WidgetBridge.publicar(
+            app,
+            WidgetSnapshotBuilder.build(
+                themeID = ThemeStore.temaGuardado(app),
+                sessions = datos.sessions,
+                routine = datos.featuredRoutine,
+                catalog = datos.catalog,
+                profile = datos.profile,
+            ),
+        )
     }
 
     // MARK: - Rutinas

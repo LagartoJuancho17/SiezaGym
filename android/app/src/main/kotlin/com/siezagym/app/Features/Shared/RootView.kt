@@ -87,7 +87,7 @@ fun RootView(auth: AuthService) {
                             object : ViewModelProvider.Factory {
                                 @Suppress("UNCHECKED_CAST")
                                 override fun <T : ViewModel> create(modelClass: Class<T>): T =
-                                    GymStore(current.uid) as T
+                                    GymStore(current.uid, context.applicationContext) as T
                             },
                     )
                 MainTabs(auth, store)
