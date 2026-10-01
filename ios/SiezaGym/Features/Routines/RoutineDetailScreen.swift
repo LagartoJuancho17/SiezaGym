@@ -88,17 +88,15 @@ struct RoutineDetailScreen: View {
                         accion: sePuedeEditar ? ("Agregar ejercicios", { editando = true }) : nil
                     )
                 } else {
-                    PanelLista {
+                    VStack(spacing: 10) {
                         ForEach(secciones) { seccion in
                             if seccion.agrupada {
                                 EncabezadoDeGrupoLectura(seccion: seccion)
+                                    .padding(.top, 6)
                             }
 
                             ForEach(Array(actual.exercises.enumerated()), id: \.offset) { indice, item in
                                 if seccion.items.contains(where: { $0.id == item.id }) {
-                                    if item.id != seccion.items.first?.id {
-                                        Rectangle().fill(tema.borde).frame(height: 1)
-                                    }
                                     FilaEjercicio(
                                         item: item,
                                         ejercicio: store.exercise(item.exerciseID),
@@ -190,7 +188,7 @@ struct RoutineDetailScreen: View {
         Button { onStart(actual) } label: {
             Label("Comenzar entrenamiento", systemImage: "play.fill")
         }
-        .buttonStyle(SolidButtonStyle())
+        .buttonStyle(BotonBrilloStyle())
         .disabled(actual.exercises.isEmpty)
         .padding(.horizontal, 18)
         .padding(.bottom, 12)
@@ -218,10 +216,7 @@ private struct EncabezadoDeGrupoLectura: View {
         .padding(.horizontal, 14)
         .padding(.vertical, 8)
         .frame(maxWidth: .infinity)
-        .background((seccion.color?.color ?? tema.texto3).opacity(0.12))
-        .overlay(alignment: .leading) {
-            Rectangle().fill(seccion.color?.color ?? tema.texto3).frame(width: 3)
-        }
+        .background((seccion.color?.color ?? tema.texto3).opacity(0.14), in: .rect(cornerRadius: 12))
         .accessibilityElement(children: .combine)
     }
 }
@@ -253,42 +248,20 @@ private struct FilaEjercicio: View {
     private var resumen: String {
         let reps = series.map(\.reps)
         let unidad = esDeTiempo ? "s" : ""
-        if Set(reps).count == 1 { return "\(reps.count) × \(reps[0])\(unidad)" }
-        return reps.map(String.init).joined(separator: " · ") + unidad
+        let sufijo = esDeTiempo ? "" : " reps"
+        if Set(reps).count == 1 { return "\(reps.count) × \(reps[0])\(unidad)\(sufijo)" }
+        return reps.map(String.init).joined(separator: " · ") + unidad + sufijo
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            Button(action: alTocar) {
-                HStack(spacing: 12) {
-                    Miniatura(url: ejercicio?.thumbnailURL, lado: 54)
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(nombre)
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(tema.texto)
-                            .lineLimit(1)
-                        Text(ejercicio?.primaryMuscle?.label ?? "Sin datos")
-                            .font(.system(size: 11))
-                            .foregroundStyle(tema.texto2)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                    Text(resumen)
-                        .font(.system(size: 12))
-                        .foregroundStyle(tema.texto2)
-                        .lineLimit(1)
-
-                    Image(systemName: "chevron.down")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(tema.texto3)
-                        .rotationEffect(.degrees(abierto ? 180 : 0))
-                }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 12)
-                .contentShape(.rect)
-            }
-            .buttonStyle(.plain)
-
+        TarjetaEjercicio(
+            miniatura: ejercicio?.thumbnailURL,
+            nombre: nombre,
+            detalle: resumen,
+            alTocar: alTocar
+        ) {
+            AccesorioTarjeta(abierto: abierto)
+        } contenido: {
             if abierto {
                 VStack(spacing: 6) {
                     HStack(spacing: 8) {
@@ -318,15 +291,7 @@ private struct FilaEjercicio: View {
                 }
                 .padding(.horizontal, 14)
                 .padding(.bottom, 14)
-            }
-        }
-        .background(abierto ? tema.solido.opacity(0.08) : .clear)
-        .overlay(alignment: .leading) {
-            if abierto {
-                RoundedRectangle(cornerRadius: 3)
-                    .fill(tema.solido)
-                    .frame(width: 3)
-                    .padding(.vertical, 10)
+                .transition(.opacity)
             }
         }
         .animation(.snappy(duration: 0.2), value: abierto)

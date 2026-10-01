@@ -16,12 +16,12 @@ enum PreviewData {
 
     static let catalog: [String: Exercise] = Dictionary(
         uniqueKeysWithValues: [
-            ejercicio("press-banca", "Press de banca", .barra, .empujeHorizontal, ["pecho": 0.6, "triceps": 0.25, "deltoideAnterior": 0.15]),
-            ejercicio("remo-barra", "Remo con barra", .barra, .traccionHorizontal, ["dorsal": 0.5, "espaldaAltaTrapecio": 0.3, "biceps": 0.2]),
-            ejercicio("sentadilla", "Sentadilla con barra", .barra, .dominanteRodilla, ["cuadriceps": 0.6, "gluteo": 0.3, "aductores": 0.1]),
-            ejercicio("peso-muerto-rumano", "Peso muerto rumano", .barra, .dominanteCadera, ["isquiotibiales": 0.55, "gluteo": 0.35, "lumbar": 0.1]),
+            ejercicio("press-banca", "Press de banca", .barra, .empujeHorizontal, ["pecho": 0.6, "triceps": 0.25, "deltoideAnterior": 0.15], gif: "0025-EIeI8Vf.gif"),
+            ejercicio("remo-barra", "Remo con barra", .barra, .traccionHorizontal, ["dorsal": 0.5, "espaldaAltaTrapecio": 0.3, "biceps": 0.2], gif: "0027-eZyBC3j.gif"),
+            ejercicio("sentadilla", "Sentadilla con barra", .barra, .dominanteRodilla, ["cuadriceps": 0.6, "gluteo": 0.3, "aductores": 0.1], gif: "0043-qXTaZnJ.gif"),
+            ejercicio("peso-muerto-rumano", "Peso muerto rumano", .barra, .dominanteCadera, ["isquiotibiales": 0.55, "gluteo": 0.35, "lumbar": 0.1], gif: "0085-wQ2c4XD.gif"),
             ejercicio("press-militar", "Press militar con mancuernas", .mancuerna, .empujeVertical, ["deltoideAnterior": 0.6, "deltoideLateral": 0.2, "triceps": 0.2]),
-            ejercicio("dominadas", "Dominadas", .pesoCorporal, .traccionVertical, ["dorsal": 0.65, "biceps": 0.35], tipo: .reps),
+            ejercicio("dominadas", "Dominadas", .pesoCorporal, .traccionVertical, ["dorsal": 0.65, "biceps": 0.35], tipo: .reps, gif: "0652-lBDjFxJ.gif"),
             ejercicio("curl-biceps", "Curl de bíceps con mancuernas", .mancuerna, .aislamiento, ["biceps": 0.85, "antebrazo": 0.15]),
             ejercicio("plancha", "Plancha abdominal", .pesoCorporal, .core, ["abdomen": 0.8, "lumbar": 0.2], tipo: .tiempo),
         ].map { ($0.id, $0) }
@@ -33,16 +33,21 @@ enum PreviewData {
         _ equipo: Equipment,
         _ patron: MovementPattern,
         _ musculos: [String: Double],
-        tipo: RegistrationType = .pesoReps
+        tipo: RegistrationType = .pesoReps,
+        gif: String? = nil
     ) -> Exercise {
-        Exercise(id: id, data: [
+        var data: [String: Any] = [
             "nameEs": nombre,
             "equipment": equipo.rawValue,
             "pattern": patron.rawValue,
             "registrationType": tipo.rawValue,
             "muscleWeights": musculos.filter { $0.value > 0 },
             "descriptionEs": "Descripción de ejemplo para ver cómo queda el texto largo de técnica en la pantalla.",
-        ])
+        ]
+        // Los mismos GIF públicos que carga el catálogo real
+        // (scripts/seed/media-map.mjs): el preview los muestra animados.
+        if let gif { data["mediaUrl"] = "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/\(gif)" }
+        return Exercise(id: id, data: data)
     }
 
     // MARK: - Perfil

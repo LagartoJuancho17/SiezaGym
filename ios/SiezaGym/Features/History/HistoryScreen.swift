@@ -133,7 +133,7 @@ struct SessionDetailScreen: View {
 
             VStack(spacing: 14) {
                 ForEach(session.exercises) { ejercicio in
-                    TarjetaEjercicio(ejercicio: ejercicio, store: store)
+                    TarjetaEjercicioSesion(ejercicio: ejercicio, store: store)
                 }
             }
 
@@ -149,7 +149,7 @@ struct SessionDetailScreen: View {
     }
 }
 
-private struct TarjetaEjercicio: View {
+private struct TarjetaEjercicioSesion: View {
     @Environment(\.tema) private var tema
     let ejercicio: LoggedExercise
     let store: GymStore

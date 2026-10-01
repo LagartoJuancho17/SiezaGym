@@ -189,13 +189,19 @@ struct Miniatura: View {
     @Environment(\.tema) private var tema
     let url: URL?
     var lado: CGFloat = 54
+    /// Sin valor, el redondeo sale del lado (30 %), como siempre.
+    var radio: CGFloat?
+
+    private var esGIF: Bool { url?.pathExtension.lowercased() == "gif" }
 
     var body: some View {
         ZStack {
-            Color(white: 0.95)
+            // Los GIF del catálogo tienen fondo blanco: con el mismo blanco
+            // detrás, el margen que deja "ajustar" no se nota como un borde.
+            esGIF ? Color.white : Color(white: 0.95)
             if let url {
-                if url.pathExtension.lowercased() == "gif" {
-                    GIFMiniatura(url: url)
+                if esGIF {
+                    GIFAnimado(url: url)
                 } else {
                     AsyncImage(url: url) { imagen in
                         imagen.resizable().aspectRatio(contentMode: .fill)
@@ -208,7 +214,7 @@ struct Miniatura: View {
             }
         }
         .frame(width: lado, height: lado)
-        .clipShape(.rect(cornerRadius: lado * 0.3))
+        .clipShape(.rect(cornerRadius: radio ?? lado * 0.3))
     }
 }
 
@@ -225,14 +231,16 @@ private struct PlaceholderMiniatura: View {
 /// `AsyncImage` no reproduce GIFs remotos de forma fiable en iOS. Este camino
 /// decodifica sus frames con ImageIO y los entrega a UIImageView, que sí los
 /// anima. La caché evita descargar el mismo ejercicio en cada fila/pantalla.
-private struct GIFMiniatura: UIViewRepresentable {
+struct GIFAnimado: UIViewRepresentable {
     let url: URL
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
     func makeUIView(context: Context) -> UIImageView {
         let imageView = UIImageView()
-        imageView.contentMode = .scaleAspectFill
+        // Ajustar y no llenar: con "llenar" el cuadrado recortaba los pies,
+        // las manos o la barra justo en la parte del movimiento que importa.
+        imageView.contentMode = .scaleAspectFit
         imageView.clipsToBounds = true
         context.coordinator.load(url: url, into: imageView)
         return imageView
@@ -257,7 +265,15 @@ private struct GIFMiniatura: UIViewRepresentable {
             task?.cancel()
             imageView.stopAnimating()
             imageView.animationImages = nil
-            imageView.image = UIImage(systemName: "dumbbell.fill")
+            // Mientras baja el GIF: la mancuerna chica, gris y centrada. Con
+            // "ajustar" el ícono se estiraba al tamaño de la miniatura y se
+            // pintaba del color del tema.
+            imageView.contentMode = .center
+            imageView.tintColor = UIColor(white: 0.6, alpha: 1)
+            imageView.image = UIImage(
+                systemName: "dumbbell.fill",
+                withConfiguration: UIImage.SymbolConfiguration(pointSize: 16, weight: .regular)
+            )
 
             task = Task { @MainActor [weak self, weak imageView] in
                 guard let decoded = try? await GIFImageLoader.load(url: url),
@@ -265,6 +281,8 @@ private struct GIFMiniatura: UIViewRepresentable {
                       let self,
                       let imageView else { return }
 
+                imageView.contentMode = .scaleAspectFit
+                imageView.image = decoded.frames.first
                 imageView.animationImages = decoded.frames
                 imageView.animationDuration = decoded.duration
                 imageView.animationRepeatCount = 0

@@ -404,93 +404,43 @@ private struct ExerciseCard: View {
 
     private var completo: Bool { exercise.estaCompleto }
 
+    /// El GIF del catálogo, o la portada del video de YouTube en los propios.
+    private var miniatura: URL? {
+        if let mediaURL = exercise.mediaURL { return mediaURL }
+        guard let videoURL = exercise.videoURL, let id = YouTubeLink.id(de: videoURL.absoluteString) else { return nil }
+        return YouTubeLink.miniatura(paraID: id)
+    }
+
+    private var tieneMedia: Bool { exercise.mediaURL != nil || exercise.videoURL != nil }
+
+    private var progreso: String {
+        let total = exercise.sets.count
+        let hechas = exercise.completedCount
+        if completo { return "\(total) \(total == 1 ? "serie" : "series") · listo" }
+        return "\(hechas) de \(total) \(total == 1 ? "serie" : "series")"
+    }
+
     var body: some View {
-        SurfaceCard(padding: 12) {
-            VStack(alignment: .leading, spacing: 8) {
-                encabezado
-                if abierto { detalle }
+        TarjetaEjercicio(
+            miniatura: miniatura,
+            nombre: exercise.name,
+            detalle: progreso,
+            completo: completo,
+            alTocar: alTocar,
+            // Tocar la miniatura abre el GIF o el video, igual que en la web.
+            alTocarMiniatura: tieneMedia ? onShowMedia : nil
+        ) {
+            AccesorioTarjeta(abierto: abierto)
+        } contenido: {
+            if abierto {
+                detalle
+                    .padding(.horizontal, 12)
+                    .padding(.bottom, 12)
+                    .transition(.opacity)
             }
         }
-        .overlay(alignment: .leading) {
-            RoundedRectangle(cornerRadius: 3)
-                .fill(completo ? Theme.hecho : (exercise.completedCount > 0 ? tema.solido : tema.borde))
-                .frame(width: 3)
-                .padding(.vertical, 14)
-        }
-        // El borde verde es lo que se ve de reojo al scrollear la lista.
-        .overlay {
-            RoundedRectangle(cornerRadius: Theme.radius)
-                .strokeBorder(Theme.hecho.opacity(completo ? 0.55 : 0), lineWidth: 1.5)
-        }
-        .animation(.snappy(duration: 0.25), value: completo)
         .animation(.snappy(duration: 0.22), value: abierto)
-    }
-
-    private var encabezado: some View {
-        Button(action: alTocar) {
-            HStack(spacing: 8) {
-                // El nombre queda en el color del tema aunque esté terminado:
-                // el verde sobre el vidrio claro de Plata no se lee. El estado
-                // lo dicen el borde, la barra y el contador, que son tres
-                // señales y ninguna tapa el texto.
-                Text(exercise.name)
-                    .font(.system(size: 15, weight: .bold))
-                    .foregroundStyle(tema.texto)
-                    .lineLimit(1)
-
-                if exercise.mediaURL != nil || exercise.videoURL != nil {
-                    // Fuera del botón de plegar: abre la media, no despliega.
-                    Button(action: onShowMedia) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "play.circle.fill")
-                            Text(exercise.mediaURL != nil ? "GIF" : "Video")
-                        }
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundStyle(tema.solido)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(tema.vidrio(2), in: .capsule)
-                        .overlay { Capsule().strokeBorder(tema.borde, lineWidth: 1) }
-                    }
-                    .buttonStyle(.plain)
-                }
-
-                Spacer(minLength: 4)
-
-                contador
-
-                Image(systemName: "chevron.down")
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(tema.texto3)
-                    .rotationEffect(.degrees(abierto ? 180 : 0))
-            }
-            .contentShape(.rect)
-        }
-        .buttonStyle(.plain)
         .accessibilityHint(abierto ? "Tocá para plegar" : "Tocá para ver las series")
-    }
-
-    private var contador: some View {
-        HStack(spacing: 4) {
-            if completo {
-                Image(systemName: "checkmark")
-                    .font(.system(size: 10, weight: .black))
-                    .transition(.scale.combined(with: .opacity))
-            }
-            Text("\(exercise.completedCount)/\(exercise.sets.count)")
-                .font(.system(size: 12, weight: .bold))
-                .monospacedDigit()
-        }
-        .foregroundStyle(completo ? .white : tema.texto2)
-        .padding(.horizontal, completo ? 8 : 0)
-        .padding(.vertical, completo ? 3 : 0)
-        .background(completo ? Theme.hecho : .clear, in: .capsule)
-        // El pulso al terminar: mínimo, una sola vez, sin animación en loop.
-        .scaleEffect(completo ? 1.08 : 1)
-        .animation(.spring(duration: 0.35, bounce: 0.5), value: completo)
-        .accessibilityLabel(completo
-                            ? "Ejercicio terminado, \(exercise.sets.count) series"
-                            : "\(exercise.completedCount) de \(exercise.sets.count) series")
     }
 
     private var detalle: some View {
@@ -651,7 +601,14 @@ private struct ExerciseMediaSheet: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 16) {
-                if let mediaURL = exercise.mediaURL {
+                if let mediaURL = exercise.mediaURL, mediaURL.pathExtension.lowercased() == "gif" {
+                    // Animado y entero: AsyncImage dejaba el primer cuadro quieto.
+                    GIFAnimado(url: mediaURL)
+                        .aspectRatio(1, contentMode: .fit)
+                        .frame(maxWidth: .infinity, maxHeight: 320)
+                        .background(Color.white, in: .rect(cornerRadius: 16))
+                        .clipShape(.rect(cornerRadius: 16))
+                } else if let mediaURL = exercise.mediaURL {
                     AsyncImage(url: mediaURL) { phase in
                         switch phase {
                         case .empty:
