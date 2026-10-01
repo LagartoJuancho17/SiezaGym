@@ -1,9 +1,8 @@
 import SwiftUI
 
-/// Tres pantallas de bienvenida, sobrias: negro, la foto en círculo con un aro
-/// fino Brasa, el número de pantalla como único acento y el naranja lleno
-/// reservado para "Empezar".
-/// Las fotos son locales para que la bienvenida no dependa de la red.
+/// Tres pantallas de bienvenida hechas solo de color: negro, una mancha de
+/// Brasa a naranja vista a través de vidrio acanalado, grano fino y el texto
+/// grande en blanco. Sin fotos: la marca es el color.
 struct OnboardingView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var flow = OnboardingFlow()
@@ -14,21 +13,20 @@ struct OnboardingView: View {
 
     var body: some View {
         ZStack {
-            fondo
+            brand.fondoPlano.ignoresSafeArea()
+
+            ArteAcanalado(pagina: flow.page.rawValue)
+                .ignoresSafeArea()
+                .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 0) {
                 header
-                    .padding(.horizontal, 24)
-
-                hero
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-
+                Spacer(minLength: 24)
                 message
-                    .padding(.horizontal, 24)
                 controls
-                    .padding(.horizontal, 24)
-                    .padding(.top, 32)
+                    .padding(.top, 36)
             }
+            .padding(.horizontal, 24)
             .padding(.top, 12)
             .padding(.bottom, 18)
         }
@@ -48,23 +46,10 @@ struct OnboardingView: View {
         )
     }
 
-    /// El número de la pantalla, como "01" en las secciones del sitio.
-    private var numero: String { String(format: "%02d", flow.page.rawValue + 1) }
-
-    // MARK: - Fondo
-
-    /// Negro plano: la foto y el texto tienen que ser lo único que se mire.
-    private var fondo: some View {
-        brand.fondoPlano
-            .ignoresSafeArea()
-            .accessibilityHidden(true)
-    }
-
     // MARK: - Encabezado
 
     private var header: some View {
         HStack(spacing: 16) {
-            // El logo real en blanco: sobre el negro de SIEZA va siempre claro.
             Image("SiezaWordmark")
                 .renderingMode(.template)
                 .resizable()
@@ -73,11 +58,13 @@ struct OnboardingView: View {
                 .foregroundStyle(brand.texto)
                 .accessibilityLabel("SiezaGym")
 
+            Spacer(minLength: 0)
+
             HStack(spacing: 6) {
                 ForEach(OnboardingPage.allCases) { page in
                     Capsule()
-                        .fill(page.rawValue <= flow.page.rawValue ? brand.texto : brand.texto.opacity(0.18))
-                        .frame(height: 3)
+                        .fill(brand.texto.opacity(page == flow.page ? 1 : 0.25))
+                        .frame(width: page == flow.page ? 18 : 6, height: 6)
                 }
             }
             .animation(.snappy(duration: 0.3), value: flow.page)
@@ -86,103 +73,40 @@ struct OnboardingView: View {
 
             Button("Omitir", action: onComplete)
                 .font(.system(size: 14, weight: .medium))
-                .padding(.horizontal, 14)
+                .foregroundStyle(brand.texto.opacity(0.75))
                 .frame(minHeight: 44)
-                .overlay { Capsule().strokeBorder(brand.texto.opacity(0.18), lineWidth: 1) }
+                .padding(.leading, 6)
                 .accessibilityHint("Abre el inicio de sesión")
         }
-    }
-
-    // MARK: - El círculo
-
-    /// La foto en círculo con un aro fino Brasa y un halo leve detrás.
-    private var hero: some View {
-        GeometryReader { size in
-            let lado = min(size.size.width * 0.84, size.size.height * 0.92, 380)
-
-            ZStack {
-                // Un halo apenas perceptible detrás, no un sol.
-                Circle()
-                    .fill(brand.solido.opacity(0.10))
-                    .frame(width: lado, height: lado)
-                    .blur(radius: 60)
-
-                Image(flow.page.imageName)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: lado * 0.86, height: lado * 0.86)
-                    .clipShape(.circle)
-                    .id("foto-\(flow.page.rawValue)")
-                    .transition(.asymmetric(
-                        insertion: .scale(scale: 0.94).combined(with: .opacity),
-                        removal: .opacity
-                    ))
-                    .accessibilityHidden(true)
-
-                // El naranja como un trazo fino alrededor, separado de la foto.
-                Circle()
-                    .strokeBorder(brand.solido, lineWidth: 1.5)
-                    .frame(width: lado * 0.94, height: lado * 0.94)
-            }
-            .frame(width: size.size.width, height: size.size.height)
-        }
-        .padding(.vertical, 12)
     }
 
     // MARK: - Texto
 
     private var message: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            HStack(alignment: .firstTextBaseline, spacing: 8) {
-                Text(numero)
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundStyle(brand.solido)
-                Text(flow.page.eyebrow)
-                    .font(.system(size: 11, weight: .bold))
-                    .tracking(2)
-                    .foregroundStyle(brand.texto2)
-            }
-            .padding(.bottom, 14)
-
-            Text(flow.page.headline)
-                .font(.system(size: 40, weight: .regular))
-                .tracking(-1.6)
-
-            Text(flow.page.headlineEmphasis)
-                .font(.system(size: 40, weight: .bold))
-                .tracking(-1.6)
-                .padding(.bottom, 14)
+        VStack(alignment: .leading, spacing: 16) {
+            Text("\(flow.page.headline)\n\(flow.page.headlineEmphasis)")
+                .font(.system(size: 48, weight: .semibold))
+                .tracking(-1.8)
+                .lineSpacing(-4)
+                .fixedSize(horizontal: false, vertical: true)
 
             Text(flow.page.detail)
                 .font(.system(size: 15, weight: .regular))
                 .lineSpacing(4)
                 .foregroundStyle(brand.texto.opacity(0.78))
                 .fixedSize(horizontal: false, vertical: true)
-                .frame(maxWidth: 330, alignment: .leading)
+                .frame(maxWidth: 320, alignment: .leading)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .minimumScaleFactor(0.8)
         .id(flow.page)
-        .transition(.opacity.combined(with: .offset(y: 12)))
+        .transition(.opacity.combined(with: .offset(y: 14)))
     }
 
     // MARK: - Controles
 
     private var controls: some View {
-        HStack(spacing: 10) {
-            Button {
-                changePage { flow.goBack() }
-            } label: {
-                Image(systemName: "arrow.left")
-                    .font(.system(size: 17, weight: .semibold))
-                    .frame(width: 60, height: 60)
-                    .overlay { Circle().strokeBorder(brand.texto.opacity(0.2), lineWidth: 1) }
-            }
-            .buttonStyle(.plain)
-            .disabled(!flow.canGoBack)
-            .opacity(flow.canGoBack ? 1 : 0.35)
-            .accessibilityLabel("Volver")
-
+        VStack(spacing: 12) {
             Button {
                 if flow.isLastPage {
                     onComplete()
@@ -190,29 +114,151 @@ struct OnboardingView: View {
                     changePage { _ = flow.advance() }
                 }
             } label: {
-                HStack(spacing: 10) {
-                    Text(flow.isLastPage ? "Empezar" : "Continuar")
-                        .font(.system(size: 17, weight: .semibold))
-                    Image(systemName: "arrow.right")
-                        .font(.system(size: 15, weight: .semibold))
-                }
-                .frame(maxWidth: .infinity, minHeight: 60)
-                // Continuar: solo un borde. El naranja lleno queda para
-                // Empezar, que es la única acción que importa.
-                .foregroundStyle(flow.isLastPage ? brand.sobreSolido : brand.texto)
-                .background(flow.isLastPage ? brand.solido : .clear, in: .capsule)
-                .overlay {
-                    Capsule().strokeBorder(flow.isLastPage ? .clear : brand.texto.opacity(0.22), lineWidth: 1)
-                }
-                .contentShape(.capsule)
+                Text(flow.isLastPage ? "Empezar" : "Continuar")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity, minHeight: 58)
+                    .background(
+                        LinearGradient(
+                            colors: [OnboardingColor.brasa, OnboardingColor.naranja],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        ),
+                        in: .capsule
+                    )
+                    .contentShape(.capsule)
             }
             .buttonStyle(.plain)
             .accessibilityHint(flow.isLastPage ? "Abre el inicio de sesión" : "Va a la siguiente pantalla")
+
+            // La segunda opción: en la primera pantalla, ir directo a entrar;
+            // después, volver a la anterior.
+            Button {
+                if flow.canGoBack {
+                    changePage { flow.goBack() }
+                } else {
+                    onComplete()
+                }
+            } label: {
+                Text(flow.canGoBack ? "Volver" : "Ya tengo cuenta")
+                    .font(.system(size: 17, weight: .medium))
+                    .frame(maxWidth: .infinity, minHeight: 58)
+                    .overlay { Capsule().strokeBorder(brand.texto.opacity(0.35), lineWidth: 1) }
+                    .contentShape(.capsule)
+            }
+            .buttonStyle(.plain)
         }
     }
 
     private func changePage(_ update: () -> Void) {
-        withAnimation(reduceMotion ? nil : .spring(duration: 0.45, bounce: 0.18), update)
+        withAnimation(reduceMotion ? nil : .spring(duration: 0.7, bounce: 0.12), update)
+    }
+}
+
+/// Los dos naranjas de la marca para el arte y el botón principal.
+enum OnboardingColor {
+    static let brasa = Color(r: 255, g: 50, b: 1, a: 1)
+    static let naranja = Color(r: 255, g: 118, b: 1, a: 1)
+}
+
+/// Dónde cae la mancha de color en cada pantalla, en proporción a la vista.
+/// Se mueve de una a otra para que avanzar se sienta como avanzar.
+nonisolated enum ArteOnboarding {
+    struct Mancha: Equatable {
+        let centro: UnitPoint
+        let ancho: Double
+        let alto: Double
+    }
+
+    static func mancha(pagina: Int) -> Mancha {
+        switch pagina {
+        case 0: Mancha(centro: UnitPoint(x: 0.68, y: 0.36), ancho: 0.95, alto: 0.42)
+        case 1: Mancha(centro: UnitPoint(x: 0.32, y: 0.32), ancho: 1.0, alto: 0.38)
+        default: Mancha(centro: UnitPoint(x: 0.55, y: 0.44), ancho: 1.15, alto: 0.5)
+        }
+    }
+
+    /// Generador con semilla fija: el grano sale igual en cada dibujo, así
+    /// no titila al redibujar la pantalla.
+    struct Semilla: RandomNumberGenerator {
+        var estado: UInt64
+        mutating func next() -> UInt64 {
+            estado = estado &* 6364136223846793005 &+ 1442695040888963407
+            return estado
+        }
+    }
+}
+
+/// La mancha de color vista a través de vidrio acanalado, como la referencia:
+/// un brillo radial Brasa→naranja cortado en franjas verticales que alternan
+/// luz y sombra, con grano encima.
+private struct ArteAcanalado: View {
+    let pagina: Int
+
+    var body: some View {
+        let mancha = ArteOnboarding.mancha(pagina: pagina)
+
+        GeometryReader { size in
+            ZStack {
+                // El brillo: naranja en el centro, Brasa alrededor, se apaga
+                // en el negro.
+                Ellipse()
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                OnboardingColor.naranja,
+                                OnboardingColor.brasa.opacity(0.85),
+                                OnboardingColor.brasa.opacity(0.25),
+                                .clear,
+                            ],
+                            center: .center,
+                            startRadius: 0,
+                            endRadius: size.size.width * mancha.ancho * 0.55
+                        )
+                    )
+                    .frame(width: size.size.width * mancha.ancho, height: size.size.height * mancha.alto)
+                    .position(
+                        x: size.size.width * mancha.centro.x,
+                        y: size.size.height * mancha.centro.y
+                    )
+                    .blur(radius: 30)
+
+                // El vidrio acanalado: franjas finas que oscurecen y aclaran.
+                Canvas { contexto, lienzo in
+                    let ancho: CGFloat = 9
+                    var x: CGFloat = 0
+                    while x < lienzo.width {
+                        let franja = CGRect(x: x, y: 0, width: ancho, height: lienzo.height)
+                        contexto.fill(
+                            Path(franja),
+                            with: .linearGradient(
+                                Gradient(colors: [.black.opacity(0.55), .black.opacity(0.0), .white.opacity(0.06), .black.opacity(0.4)]),
+                                startPoint: CGPoint(x: x, y: 0),
+                                endPoint: CGPoint(x: x + ancho, y: 0)
+                            )
+                        )
+                        x += ancho
+                    }
+                }
+                .blendMode(.multiply)
+
+                // El grano, con semilla fija.
+                Canvas { contexto, lienzo in
+                    var azar = ArteOnboarding.Semilla(estado: 42)
+                    let puntos = Int(lienzo.width * lienzo.height / 90)
+                    for _ in 0..<puntos {
+                        let punto = CGRect(
+                            x: CGFloat.random(in: 0..<lienzo.width, using: &azar),
+                            y: CGFloat.random(in: 0..<lienzo.height, using: &azar),
+                            width: 1, height: 1
+                        )
+                        contexto.fill(Path(punto), with: .color(.white.opacity(Double.random(in: 0.02...0.09, using: &azar))))
+                    }
+                }
+                .allowsHitTesting(false)
+            }
+            .animation(.spring(duration: 0.9, bounce: 0.1), value: mancha)
+        }
     }
 }
 

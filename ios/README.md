@@ -14,8 +14,12 @@ rutinas.
 
 ## Bienvenida de tres pantallas
 
-En el primer arranque, antes del login, se muestran tres escenas fotográficas
-en blanco y negro con controles opacos de la paleta SIEZA. Explican tres pasos
+En el primer arranque, antes del login, se muestran tres pantallas hechas
+solo de color, sin fotos: negro, una mancha de Brasa a naranja (`#FF3201` →
+`#FF7601`) vista a través de vidrio acanalado y grano fino, dibujada con
+`Canvas` (`ArteAcanalado` en `OnboardingView.swift`). La mancha cambia de lugar
+en cada pantalla (`ArteOnboarding.mancha`). Abajo, el botón con el degradado de
+los dos naranjas y uno de borde ("Ya tengo cuenta" / "Volver"). Explican tres pasos
 reales de la app: armar rutinas, registrar series y consultar progreso; la
 tercera menciona Apple Salud solo como conexión opcional. Se puede avanzar,
 volver u omitir. El último botón y «Omitir» abren el login si no hay sesión, o
@@ -26,14 +30,15 @@ La elección se guarda **una vez por instalación** en
 `sieza.onboarding.completed.v1` (UserDefaults). Cerrar la app a mitad del
 recorrido vuelve a mostrarlo desde el principio; al completarlo no reaparece
 en cada apertura. Para revisar el primer arranque, desinstalá la app del
-simulador y volvé a instalarla. Las fotos son recursos locales del catálogo y
-están versionadas con Git LFS, para que también funcionen sin internet.
+simulador y volvé a instalarla, o lanzala con
+`xcrun simctl launch booted com.siezagym.app -sieza.onboarding.completed.v1 NO`.
 
 Pruebas: `ios/SiezaGymTests/OnboardingFlowTests.swift` verifica orden, límites y
-navegación. `tests/ios-onboarding.eval.test.js` comprueba que las tres fotos
-existan, sean verticales y distintas, y que el recorrido siga conectado al
+navegación, y que la mancha cambie de lugar y el grano no titile.
+`tests/ios-onboarding.eval.test.js` comprueba que no se usen fotos y que el
+recorrido siga conectado al
 inicio de sesión. Para revisión visual en iPhone chico/grande, comprobar que
-los títulos y botones no se corten, que la foto no tape el texto, y que
+los títulos y botones no se corten, que la mancha no le quite contraste al texto, y que
 VoiceOver lea «Omitir», «Volver» y «Continuar/Empezar» en ese orden.
 
 ## Tema SIEZA
