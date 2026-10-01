@@ -46,16 +46,17 @@ struct OnboardingView: View {
             Image(flow.page.imageName)
                 .resizable()
                 .scaledToFill()
+                .saturation(0)
                 .frame(width: size.size.width, height: size.size.height)
                 .clipped()
                 .overlay {
                     LinearGradient(
                         stops: [
-                            .init(color: brand.fondoPlano.opacity(0.52), location: 0),
-                            .init(color: brand.fondoPlano.opacity(0.02), location: 0.24),
-                            .init(color: brand.fondoPlano.opacity(0.04), location: 0.46),
-                            .init(color: brand.fondoPlano.opacity(0.83), location: 0.70),
-                            .init(color: brand.fondoPlano, location: 1),
+                            .init(color: .black.opacity(0.52), location: 0),
+                            .init(color: .black.opacity(0.02), location: 0.24),
+                            .init(color: .black.opacity(0.04), location: 0.46),
+                            .init(color: .black.opacity(0.83), location: 0.70),
+                            .init(color: .black, location: 1),
                         ],
                         startPoint: .top,
                         endPoint: .bottom
