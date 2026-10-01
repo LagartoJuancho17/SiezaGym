@@ -61,6 +61,11 @@ class ScreenInteractionTest {
         compose.onNodeWithText("Tus objetivos").performScrollTo().assertIsDisplayed()
         // "Esta semana" dice dos veces: el rótulo de la semana y la tarjeta de volumen.
         compose.onAllNodesWithText("Esta semana").assertCountEquals(2)
+        compose.onNodeWithTag("home-goals").performScrollTo()
+        compose.onNodeWithText("Calorías").assertIsDisplayed()
+        compose.onNodeWithTag("home-goals").performTouchInput { swipeLeft() }
+        compose.onNodeWithText("Series").assertIsDisplayed()
+        capture("home-goals")
         compose.onNodeWithText("Las rutinas").performScrollTo().assertIsDisplayed()
     }
 
@@ -76,7 +81,7 @@ class ScreenInteractionTest {
         compose.onNodeWithText("entrenar libre").assertIsDisplayed()
         compose.onNodeWithContentDescription("Empezar entrenamiento").performClick()
         assertEquals(1, libres)
-        compose.onNodeWithText("Todavía no tenés rutinas.").assertIsDisplayed()
+        compose.onNodeWithText("Todavía no tenés rutinas.").performScrollTo().assertIsDisplayed()
     }
 
     @Test

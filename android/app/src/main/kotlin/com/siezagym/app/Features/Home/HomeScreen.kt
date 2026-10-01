@@ -1,11 +1,13 @@
 package com.siezagym.app.Features.Home
 
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -24,6 +26,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -66,10 +69,23 @@ fun HomeScreen(
 
         HoyToca(data) { onStart(it) }
 
+        SemanaCard(data.trainedDayKeys, data.streak)
+
         Column {
             EncabezadoSeccion(data.currentWeek.texto)
             Spacer(Modifier.height(14.dp))
-            SemanaCard(data.trainedDayKeys, data.streak)
+            GlassCard(radius = 30f, respectThemeRadius = false, padding = 20.dp) {
+                if (data.routinesThisWeek.isEmpty()) {
+                    Text("Todavía no asignaste rutinas a esta semana.", color = tema.texto2, fontSize = 14.sp)
+                    Spacer(Modifier.height(4.dp))
+                    Text("Abrí una rutina y agregala desde ahí.", color = tema.texto3, fontSize = 12.sp)
+                } else {
+                    data.routinesThisWeek.forEachIndexed { index, routine ->
+                        if (index > 0) Separador()
+                        FilaRutina(routine, data) { onStart(routine) }
+                    }
+                }
+            }
         }
 
         Column {
@@ -84,11 +100,11 @@ fun HomeScreen(
             EncabezadoSeccion("Las rutinas")
             Spacer(Modifier.height(14.dp))
             if (data.routines.isEmpty()) {
-                GlassCard(padding = 24.dp) {
+                GlassCard(radius = 30f, respectThemeRadius = false, padding = 24.dp) {
                     Text("Todavía no tenés rutinas.", color = tema.texto2, fontSize = 14.sp)
                 }
             } else {
-                PanelLista {
+                GlassCard(radius = 30f, respectThemeRadius = false, padding = 0.dp) {
                     data.routines.take(3).forEachIndexed { indice, rutina ->
                         if (indice > 0) Separador()
                         FilaRutina(rutina, data) { onStart(rutina) }
@@ -100,7 +116,7 @@ fun HomeScreen(
         Column {
             SectionLabel("Tu espacio")
             Spacer(Modifier.height(10.dp))
-            GlassCard(padding = 0.dp) {
+            GlassCard(radius = 30f, respectThemeRadius = false, padding = 0.dp) {
                 FilaLista("Historial", "Todo lo que entrenaste", onClick = onOpenHistory)
             }
         }
@@ -215,20 +231,20 @@ private fun EncabezadoSeccion(texto: String) {
     )
 }
 
-/** Las tres tarjetas que se corren en horizontal: volumen, calorías, series. */
+/** Tres tarjetas que se recorren con el dedo, como en iOS. */
 @Composable
 private fun Objetivos(data: GymData) {
-    LazyRow(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-        item {
+    Row(
+        Modifier.fillMaxWidth().testTag("home-goals").horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
             ObjetivoCard(
                 titulo = "Esta semana",
                 valor = ProgressMetrics.formatKg(data.weeklyVolumeKg),
                 insignia = "volumen",
                 progreso = (data.weeklyVolumeKg / 10000.0).coerceIn(0.0, 1.0),
-                icono = Icons.Filled.Bolt,
+                icono = Icons.Filled.FitnessCenter,
             )
-        }
-        item {
             ObjetivoCard(
                 titulo = "Calorías",
                 valor = "${data.calories.kcal} kcal",
@@ -236,8 +252,6 @@ private fun Objetivos(data: GymData) {
                 progreso = data.calories.pct / 100.0,
                 icono = Icons.Filled.Schedule,
             )
-        }
-        item {
             ObjetivoCard(
                 titulo = "Series",
                 valor = "${data.completion.pct} %",
@@ -245,7 +259,6 @@ private fun Objetivos(data: GymData) {
                 progreso = data.completion.pct / 100.0,
                 icono = Icons.Filled.Check,
             )
-        }
     }
 }
 
@@ -257,28 +270,41 @@ private fun ObjetivoCard(
     progreso: Double,
     icono: ImageVector,
 ) {
-    GlassCard(radius = 30f, padding = 14.dp) {
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    titulo,
-                    Modifier.weight(1f),
-                    color = tema.texto2,
-                    fontSize = 11.sp,
-                    maxLines = 1,
-                )
-                Icon(icono, null, tint = tema.solido, modifier = Modifier.size(13.dp))
-            }
+    GlassCard(
+        modifier = Modifier.width(164.dp).height(148.dp),
+        radius = 30f,
+        respectThemeRadius = false,
+        padding = 13.dp,
+    ) {
+        Text(titulo, color = tema.texto2, fontSize = 14.sp, maxLines = 1)
+        Spacer(Modifier.height(6.dp))
+        Text(valor, color = tema.texto, fontSize = 18.sp,
+            fontWeight = FontWeight.SemiBold, maxLines = 1,
+            overflow = TextOverflow.Ellipsis)
+        Spacer(Modifier.weight(1f))
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
             Text(
-                valor,
-                color = tema.texto,
-                fontSize = 22.sp,
-                lineHeight = 26.sp,
-                fontWeight = FontWeight.SemiBold,
-                maxLines = 1,
+                insignia,
+                modifier = Modifier.weight(1f, fill = false)
+                    .clip(RoundedCornerShape(50))
+                    .background(tema.vidrio(2))
+                    .border(1.dp, tema.borde, RoundedCornerShape(50))
+                    .padding(horizontal = 8.dp, vertical = 5.dp),
+                color = tema.texto2, fontSize = 9.sp, maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
-            WidgetMeter(progreso)
-            Text(insignia, color = tema.texto3, fontSize = 10.sp, maxLines = 1)
+            Spacer(Modifier.weight(0.1f))
+            Box(Modifier.size(54.dp), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(
+                    progress = { progreso.coerceIn(0.0, 1.0).toFloat() },
+                    modifier = Modifier.fillMaxSize(),
+                    color = tema.solido,
+                    trackColor = tema.borde,
+                    strokeWidth = 3.dp,
+                    gapSize = 0.dp,
+                )
+                Icon(icono, null, tint = tema.solido, modifier = Modifier.size(18.dp))
+            }
         }
     }
 }
@@ -296,7 +322,7 @@ private fun ActividadDeHoy(health: HealthUiState, disponible: Boolean, onConecta
 
         when {
             !disponible ->
-                GlassCard(padding = 18.dp) {
+                GlassCard(radius = 30f, respectThemeRadius = false, padding = 18.dp) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -316,7 +342,7 @@ private fun ActividadDeHoy(health: HealthUiState, disponible: Boolean, onConecta
                 }
             health.isConnected -> TarjetaActividad(health.summary)
             else ->
-                GlassCard(padding = 18.dp) {
+                GlassCard(radius = 30f, respectThemeRadius = false, padding = 18.dp) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(14.dp),
@@ -363,7 +389,7 @@ private fun ActividadDeHoy(health: HealthUiState, disponible: Boolean, onConecta
 
 @Composable
 private fun TarjetaActividad(summary: HealthMetrics) {
-    GlassCard(padding = 16.dp) {
+    GlassCard(radius = 30f, respectThemeRadius = false, padding = 16.dp) {
         Column {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 DatoActividad(

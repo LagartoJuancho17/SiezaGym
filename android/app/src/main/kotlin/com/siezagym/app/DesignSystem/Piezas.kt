@@ -57,10 +57,11 @@ fun GlassCard(
     padding: Dp = 16.dp,
     radius: Float = Theme.radius,
     nivel: Int = 1,
+    respectThemeRadius: Boolean = true,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val theme = LocalTheme.current
-    val esquina = RoundedCornerShape(theme.esquina(radius))
+    val esquina = if (respectThemeRadius) RoundedCornerShape(theme.esquina(radius)) else RoundedCornerShape(radius.dp)
     Column(
         modifier
             .fillMaxWidth()

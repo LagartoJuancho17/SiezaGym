@@ -50,7 +50,7 @@ fun SemanaCard(trainedDayKeys: Set<String>, streak: Int) {
             )
         }
 
-    GlassCard(radius = 26f) {
+    GlassCard(radius = 30f, respectThemeRadius = false) {
         Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Flecha(Icons.AutoMirrored.Filled.KeyboardArrowLeft, true) { offset -= 1 }
@@ -130,6 +130,7 @@ private fun Flecha(
         Modifier
             .size(32.dp)
             .clip(CircleShape)
+            .border(1.dp, tema.borde.copy(alpha = if (habilitada) 1f else 0.3f), CircleShape)
             .clickable(enabled = habilitada, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
