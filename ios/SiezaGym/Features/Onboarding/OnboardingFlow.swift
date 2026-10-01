@@ -6,6 +6,13 @@ enum OnboardingPage: Int, CaseIterable, Identifiable {
 
     var id: Int { rawValue }
 
+    var imageName: String {
+        switch self {
+        case .routines: "OnboardingRoutines"
+        case .workout: "OnboardingWorkout"
+        case .progress: "OnboardingProgress"
+        }
+    }
 
     var eyebrow: String {
         switch self {
