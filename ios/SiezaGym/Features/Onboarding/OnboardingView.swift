@@ -1,8 +1,8 @@
 import SwiftUI
 
-/// Tres pantallas de bienvenida con el lenguaje de la presentación de
-/// SiezaGym: negro con líneas finas, el círculo Brasa con la foto adentro, el
-/// número de la pantalla en naranja y el botón oscuro de borde naranja.
+/// Tres pantallas de bienvenida, sobrias: negro, la foto en círculo con un aro
+/// fino Brasa, el número de pantalla como único acento y el naranja lleno
+/// reservado para "Empezar".
 /// Las fotos son locales para que la bienvenida no dependa de la red.
 struct OnboardingView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -53,25 +53,11 @@ struct OnboardingView: View {
 
     // MARK: - Fondo
 
-    /// Negro plano y las líneas verticales finas del hero de la presentación.
+    /// Negro plano: la foto y el texto tienen que ser lo único que se mire.
     private var fondo: some View {
-        GeometryReader { size in
-            ZStack {
-                brand.fondoPlano
-                ForEach([0.08, 0.22, 0.78, 0.92], id: \.self) { x in
-                    LinearGradient(
-                        colors: [.clear, brand.texto.opacity(0.08), .clear],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                    .frame(width: 1)
-                    .position(x: size.size.width * x, y: size.size.height / 2)
-                    .frame(height: size.size.height)
-                }
-            }
-        }
-        .ignoresSafeArea()
-        .accessibilityHidden(true)
+        brand.fondoPlano
+            .ignoresSafeArea()
+            .accessibilityHidden(true)
     }
 
     // MARK: - Encabezado
@@ -90,7 +76,7 @@ struct OnboardingView: View {
             HStack(spacing: 6) {
                 ForEach(OnboardingPage.allCases) { page in
                     Capsule()
-                        .fill(page.rawValue <= flow.page.rawValue ? brand.solido : brand.texto.opacity(0.22))
+                        .fill(page.rawValue <= flow.page.rawValue ? brand.texto : brand.texto.opacity(0.18))
                         .frame(height: 3)
                 }
             }
@@ -109,30 +95,34 @@ struct OnboardingView: View {
 
     // MARK: - El círculo
 
-    /// El círculo Brasa con la foto adentro, como el hero de la presentación.
+    /// La foto en círculo con un aro fino Brasa y un halo leve detrás.
     private var hero: some View {
         GeometryReader { size in
             let lado = min(size.size.width * 0.84, size.size.height * 0.92, 380)
 
             ZStack {
+                // Un halo apenas perceptible detrás, no un sol.
                 Circle()
-                    .fill(brand.solido)
+                    .fill(brand.solido.opacity(0.10))
                     .frame(width: lado, height: lado)
-                    // El brillo naranja alrededor, sin degradado en el relleno.
-                    .shadow(color: brand.solido.opacity(0.45), radius: 50)
+                    .blur(radius: 60)
 
                 Image(flow.page.imageName)
                     .resizable()
                     .scaledToFill()
-                    .frame(width: lado * 0.8, height: lado * 0.8)
+                    .frame(width: lado * 0.86, height: lado * 0.86)
                     .clipShape(.circle)
-                    .overlay { Circle().strokeBorder(brand.fondoPlano.opacity(0.9), lineWidth: 6) }
                     .id("foto-\(flow.page.rawValue)")
                     .transition(.asymmetric(
-                        insertion: .scale(scale: 0.86).combined(with: .opacity),
+                        insertion: .scale(scale: 0.94).combined(with: .opacity),
                         removal: .opacity
                     ))
                     .accessibilityHidden(true)
+
+                // El naranja como un trazo fino alrededor, separado de la foto.
+                Circle()
+                    .strokeBorder(brand.solido, lineWidth: 1.5)
+                    .frame(width: lado * 0.94, height: lado * 0.94)
             }
             .frame(width: size.size.width, height: size.size.height)
         }
@@ -207,13 +197,13 @@ struct OnboardingView: View {
                         .font(.system(size: 15, weight: .semibold))
                 }
                 .frame(maxWidth: .infinity, minHeight: 60)
-                // Continuar: oscuro con borde naranja que brilla, como
-                // "Comenzar entrenamiento". Empezar: Brasa lleno, es el final.
+                // Continuar: solo un borde. El naranja lleno queda para
+                // Empezar, que es la única acción que importa.
                 .foregroundStyle(flow.isLastPage ? brand.sobreSolido : brand.texto)
-                .background(flow.isLastPage ? brand.solido : Color(r: 13, g: 13, b: 15, a: 1), in: .capsule)
-                .overlay { Capsule().strokeBorder(brand.solido, lineWidth: 1.5) }
-                .shadow(color: brand.solido.opacity(0.5), radius: 4)
-                .shadow(color: brand.solido.opacity(0.3), radius: 16)
+                .background(flow.isLastPage ? brand.solido : .clear, in: .capsule)
+                .overlay {
+                    Capsule().strokeBorder(flow.isLastPage ? .clear : brand.texto.opacity(0.22), lineWidth: 1)
+                }
                 .contentShape(.capsule)
             }
             .buttonStyle(.plain)
