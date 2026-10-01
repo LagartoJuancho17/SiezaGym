@@ -31,6 +31,7 @@ pantalla. Umbral: todos los escenarios siguientes deben pasar.
 `xcodebuild test -project ios/SiezaGym.xcodeproj -scheme SiezaGym -destination 'platform=iOS Simulator,name=iPhone 17' -only-testing:SiezaGymTests/WorkoutWeightTests`
 
 El pase visual en iPhone verifica que la nueva entrada RIR, los botones de
-peso, las repeticiones y los controles de completar quepan sin solaparse,
-también con texto grande y VoiceOver. La estimación nunca sustituye el
+peso y las repeticiones queden en una segunda línea sin cortar «kg»; los
+controles de completar van arriba y no se solapan. Revisar también con texto
+grande y VoiceOver. La estimación nunca sustituye el
 criterio del usuario para elegir una carga segura.

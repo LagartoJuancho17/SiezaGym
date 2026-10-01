@@ -524,63 +524,75 @@ private struct SetRow: View {
     let onCompleted: () -> Void
 
     var body: some View {
-        HStack(spacing: 6) {
-            Text("\(index)")
-                .font(.system(size: 12, weight: .bold))
-                .foregroundStyle(tema.texto2)
-                .frame(width: 16)
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text("SERIE \(index)")
+                    .font(.system(size: 10, weight: .bold))
+                    .tracking(0.7)
+                    .foregroundStyle(tema.texto2)
+                Spacer()
 
-            if !isTimeBased {
-                weightStepper(value: $set.weight)
-            }
-            intField(value: $set.reps, unit: isTimeBased ? "s" : "reps")
-
-            if !isTimeBased {
-                TextField("RIR", text: Binding(
-                    get: { set.rir.map(String.init) ?? "" },
-                    set: { set.rir = Int($0).flatMap { (0...10).contains($0) ? $0 : nil } }
-                ))
-                .keyboardType(.numberPad)
-                .multilineTextAlignment(.center)
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(tema.texto)
-                .frame(width: 28, height: 30)
-                .background(tema.vidrio(2), in: .rect(cornerRadius: 6))
-                .accessibilityLabel("Repeticiones en reserva")
-            }
-
-            Spacer(minLength: 0)
-
-            // Fallada: el peso se registra pero no suma volumen.
-            Button {
-                set.failed.toggle()
-                if set.failed {
-                    set.done = true
-                    onCompleted()
+                // Fallada: el peso se registra pero no suma volumen.
+                Button {
+                    set.failed.toggle()
+                    if set.failed {
+                        set.done = true
+                        onCompleted()
+                    }
+                } label: {
+                    Image(systemName: set.failed ? "xmark.circle.fill" : "xmark.circle")
+                        .font(.system(size: 20))
+                        .foregroundStyle(set.failed ? tema.solido : tema.texto2.opacity(0.5))
+                        .frame(width: 30, height: 30)
                 }
-            } label: {
-                Image(systemName: set.failed ? "xmark.circle.fill" : "xmark.circle")
-                    .font(.system(size: 20))
-                    .foregroundStyle(set.failed ? tema.solido : tema.texto2.opacity(0.5))
-            }
-            .buttonStyle(.plain)
+                .buttonStyle(.plain)
+                .accessibilityLabel("Marcar serie fallada")
 
-            Button {
-                set.done.toggle()
-                if !set.done {
-                    set.failed = false
-                } else {
-                    onCompleted()
+                Button {
+                    set.done.toggle()
+                    if !set.done {
+                        set.failed = false
+                    } else {
+                        onCompleted()
+                    }
+                } label: {
+                    Image(systemName: set.done ? "checkmark.circle.fill" : "circle")
+                        .font(.system(size: 24))
+                        .foregroundStyle(set.done ? tema.solido : tema.texto2.opacity(0.5))
+                        .frame(width: 34, height: 30)
                 }
-            } label: {
-                Image(systemName: set.done ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 24))
-                    .foregroundStyle(set.done ? tema.solido : tema.texto2.opacity(0.5))
+                .buttonStyle(.plain)
+                .accessibilityLabel(set.done ? "Desmarcar serie" : "Completar serie")
+                .sensoryFeedback(.impact(weight: .medium), trigger: set.done)
             }
-            .buttonStyle(.plain)
-            .sensoryFeedback(.impact(weight: .medium), trigger: set.done)
+
+            HStack(spacing: 10) {
+                if !isTimeBased {
+                    weightStepper(value: $set.weight)
+                        .fixedSize(horizontal: true, vertical: false)
+                }
+                intField(value: $set.reps, unit: isTimeBased ? "s" : "reps")
+                    .fixedSize(horizontal: true, vertical: false)
+                if !isTimeBased {
+                    Spacer(minLength: 0)
+                    Text("RIR")
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundStyle(tema.texto2)
+                    TextField("—", text: Binding(
+                        get: { set.rir.map(String.init) ?? "" },
+                        set: { set.rir = Int($0).flatMap { (0...10).contains($0) ? $0 : nil } }
+                    ))
+                    .keyboardType(.numberPad)
+                    .multilineTextAlignment(.center)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(tema.texto)
+                    .frame(width: 30, height: 30)
+                    .background(tema.vidrio(2), in: .rect(cornerRadius: 6))
+                    .accessibilityLabel("Repeticiones en reserva")
+                }
+            }
         }
-        .frame(minHeight: 44)
+        .padding(.vertical, 5)
         .opacity(set.failed ? 0.65 : 1)
     }
 
