@@ -395,3 +395,10 @@ struct FlowRow: Layout {
         }
     }
 }
+
+#if DEBUG
+#Preview("Perfil") {
+    ProfileScreen(store: PreviewData.store())
+        .previewSieza()
+}
+#endif

@@ -112,7 +112,7 @@ describe("Estilo", () => {
   });
 
   it("el botón principal usa el sólido del tema", () => {
-    expect(cssSource).toMatch(/\.d2-submit \{[^}]*background: var\(--d2-ink\)/);
+    expect(cssSource).toMatch(/\.d2-submit \{[^}]*background: var\(--d2-ink(-grad)?\)/);
   });
 
   it("los campos no disparan el zoom de iOS", () => {

@@ -42,3 +42,12 @@ struct ExerciseHistoryScreen: View {
         .bottomNavInset()
     }
 }
+
+#if DEBUG
+#Preview {
+    NavigationStack {
+        ExerciseHistoryScreen(store: PreviewData.store())
+    }
+    .previewSieza()
+}
+#endif

@@ -80,7 +80,7 @@ describe("Volumen por semana", () => {
 describe("Días entrenados", () => {
   it("el día entrenado usa el sólido del tema", () => {
     // El mismo que la semana de la portada y la serie confirmada.
-    expect(cssSource).toMatch(/\.d2-cell-on \{ background: var\(--d2-ink\)/);
+    expect(cssSource).toMatch(/\.d2-cell-on \{ background: var\(--d2-ink(-grad)?\)/);
   });
 
   it("los días que no pasaron van aparte", () => {

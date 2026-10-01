@@ -28,6 +28,10 @@ describe("Evaluación de legibilidad del tema SIEZA", () => {
     ["texto auxiliar sobre fondo", "text-3", "ground"],
     ["texto auxiliar sobre tarjeta", "text-3", "surface-1"],
     ["botón Brasa", "on-ink", "ink"],
+    // El texto del botón cruza todo el degradado: tiene que leerse también
+    // sobre el segundo naranja, no solo sobre el primero.
+    ["botón, extremo claro del degradado", "on-ink", "ink-2"],
+    ["acento naranja sobre fondo", "ink", "ground"],
   ])("%s supera WCAG AA para texto normal", (_label, foreground, background) => {
     expect(contrast(foreground, background)).toBeGreaterThanOrEqual(4.5);
   });

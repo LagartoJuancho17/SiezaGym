@@ -266,7 +266,7 @@ describe("Estilo del detalle", () => {
 
   it("la serie confirmada usa el sólido del tema", () => {
     // El mismo que el día entrenado del calendario y la pestaña activa.
-    expect(cssSource).toMatch(/\.d2-log-check-on \{ background: var\(--d2-ink\); color: var\(--d2-on-ink\)/);
+    expect(cssSource).toMatch(/\.d2-log-check-on \{ background: var\(--d2-ink(-grad)?\); color: var\(--d2-on-ink\)/);
   });
 
   it("la página reserva el alto de la barra de acción", () => {

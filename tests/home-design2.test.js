@@ -78,7 +78,7 @@ describe("Semana de la portada", () => {
   it("marca los días entrenados con el sólido del tema", () => {
     // El mismo que el FAB y la pestaña activa: "esto está hecho" se lee igual
     // en toda la app.
-    expect(cssSource).toMatch(/\.d2-week-num-on \{ background: var\(--d2-ink\)/);
+    expect(cssSource).toMatch(/\.d2-week-num-on \{ background: var\(--d2-ink(-grad)?\)/);
   });
 
   it("hoy y entrenado a la vez conserva el color del relleno", () => {

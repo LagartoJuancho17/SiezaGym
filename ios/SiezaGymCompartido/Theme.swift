@@ -29,6 +29,11 @@ struct Theme: Identifiable, Equatable, Sendable {
     let solido: Color
     let sobreSolido: Color
 
+    /// El segundo color de la marca (`--d2-ink-2`), solo para degradados. En
+    /// los temas que no lo traen es igual a `solido`, así `degradado` queda
+    /// liso y nadie tiene que preguntar qué tema es.
+    let solido2: Color
+
     /// Las tres luces que se apoyan sobre el degradado de base.
     let luzA: Color
     let luzB: Color
@@ -57,6 +62,20 @@ struct Theme: Identifiable, Equatable, Sendable {
 
     static func conId(_ id: String?) -> Theme {
         Theme.todos.first { $0.id == id } ?? .porDefecto
+    }
+
+    /// `--d2-ink-grad` de la web: del sólido al segundo color, en diagonal
+    /// (135deg en CSS es de arriba a la izquierda hacia abajo a la derecha).
+    /// Va en lo que se toca para avanzar: botón principal, pestaña activa,
+    /// barras de progreso.
+    var degradado: LinearGradient {
+        LinearGradient(colors: [solido, solido2], startPoint: .topLeading, endPoint: .bottomTrailing)
+    }
+
+    /// Lo mismo de abajo hacia arriba, para barras verticales: crecen hacia
+    /// el color más claro.
+    var degradadoVertical: LinearGradient {
+        LinearGradient(colors: [solido, solido2], startPoint: .bottom, endPoint: .top)
     }
 
     /// Un color plano del tema, para los pocos lugares que no pueden llevar el

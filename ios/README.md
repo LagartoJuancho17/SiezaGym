@@ -52,7 +52,8 @@ con títulos en negrita y números tabulares donde los datos lo requieren.
 | Texto principal / Blanco | `#F4F5F7` |
 | Texto secundario / Plata | `#858A91` |
 | Bordes y estado inactivo / Plata oscura | `#63666E` |
-| Acción / Brasa | `#FF5733` |
+| Acción / Brasa | `#FF3201` |
+| Degradados (segundo naranja) | `#FF7601` |
 
 Las elecciones previas de tema se conservan. El usuario puede cambiarlo en
 Perfil → Configuración → Tema. Los tokens se generan desde el bloque SIEZA de
@@ -61,6 +62,24 @@ Perfil → Configuración → Tema. Los tokens se generan desde el bloque SIEZA 
 Las pruebas de contraste y sincronización están en
 `tests/ios-sieza-theme*.test.js`, y las del tema nativo en
 `ios/SiezaGymTests/WidgetTests.swift`.
+
+## Editar el diseño en vivo (previews de Xcode)
+
+Cada pantalla trae su `#Preview` con datos de ejemplo: abrí el archivo
+(`HomeScreen.swift`, `ProfileScreen.swift`, `WorkoutView.swift`...) y prendé el
+canvas con ⌥⌘↩. Cambiar un tamaño de letra, un radio o un color se ve al
+instante, sin compilar ni instalar. `RootView.swift` tiene "App completa", con
+la barra de abajo: en modo interactivo (▶︎) se recorren todas las pestañas.
+
+Los datos salen de `SiezaGym/Preview/PreviewData.swift` (rutinas, sesiones con
+una racha de 3 días, perfil) y nunca tocan Firestore: `GymStore(preview:...)`
+arranca cargado y `load()` no hace nada. Para otro tema:
+`.previewSieza(tema: "plata")`. Todo esto es `#if DEBUG`: no llega a la app que
+se instala en Release.
+
+Lo mismo en el simulador, navegable entero y sin login:
+
+    xcrun simctl launch booted com.siezagym.app -sieza-preview
 
 ## Poner a andar el proyecto
 

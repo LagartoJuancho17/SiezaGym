@@ -45,3 +45,12 @@ struct TrainedDaysScreen: View {
         .bottomNavInset()
     }
 }
+
+#if DEBUG
+#Preview {
+    NavigationStack {
+        TrainedDaysScreen(store: PreviewData.store())
+    }
+    .previewSieza()
+}
+#endif

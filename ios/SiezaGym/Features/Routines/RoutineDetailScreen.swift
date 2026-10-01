@@ -341,3 +341,19 @@ private struct FilaEjercicio: View {
             .background(texto == nil ? tema.vidrio(1) : tema.solido.opacity(0.08), in: .rect(cornerRadius: 11))
     }
 }
+
+#if DEBUG
+#Preview("Detalle de rutina") {
+    NavigationStack {
+        RoutineDetailScreen(routine: PreviewData.routines[0], store: PreviewData.store()) { _ in }
+    }
+    .previewSieza()
+}
+
+#Preview("Detalle · rutina del coach") {
+    NavigationStack {
+        RoutineDetailScreen(routine: PreviewData.routines[3], store: PreviewData.store()) { _ in }
+    }
+    .previewSieza()
+}
+#endif

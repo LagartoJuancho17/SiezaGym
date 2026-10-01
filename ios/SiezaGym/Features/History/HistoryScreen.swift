@@ -200,3 +200,10 @@ private struct TarjetaEjercicio: View {
         }
     }
 }
+
+#if DEBUG
+#Preview("Historial") {
+    HistoryScreen(store: PreviewData.store())
+        .previewSieza()
+}
+#endif

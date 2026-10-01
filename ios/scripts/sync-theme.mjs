@@ -29,7 +29,7 @@ const VARIABLES = [
   "glass-1", "glass-2", "glass-3",
   "border", "border-strong",
   "text", "text-2", "text-3",
-  "ink", "on-ink",
+  "ink", "ink-2", "on-ink",
   "bg-grad", "bg-a", "bg-b", "bg-c",
   "blob-1", "blob-2", "blob-3",
   "ground",
@@ -153,6 +153,7 @@ const cuerpos = TEMAS.map((id) => {
             texto3: ${swiftColor(v["text-3"])},
             solido: ${swiftColor(v.ink)},
             sobreSolido: ${swiftColor(v["on-ink"])},
+            solido2: ${swiftColor(segundoSolido(v))},
             luzA: ${swiftColor(v["bg-a"])},
             luzB: ${swiftColor(v["bg-b"])},
             luzC: ${swiftColor(v["bg-c"])},
@@ -167,6 +168,16 @@ const cuerpos = TEMAS.map((id) => {
             obra: ${obra}
         )`;
 });
+
+/**
+ * El segundo color de los degradados. En la base del CSS vale
+ * `var(--d2-ink)` (los temas que no traen uno pintan con su sólido); acá no
+ * hay var() que resolver, así que ese caso es directamente el sólido.
+ */
+function segundoSolido(v) {
+  const valor = v["ink-2"];
+  return !valor || valor.startsWith("var(") ? v.ink : valor;
+}
 
 function nombre(id) {
   return { noche: "Noche", plata: "Plata", brasa: "Brasa", electrico: "Eléctrico", pliegues: "Pliegues", sieza: "SIEZA" }[id] || id;

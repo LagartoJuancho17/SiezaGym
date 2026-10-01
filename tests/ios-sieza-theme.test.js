@@ -20,7 +20,30 @@ describe("SIEZA en iOS", () => {
     });
     expect(tokens).toContain('id: "sieza"');
     expect(tokens).toContain("plano: true");
-    expect(tokens).toContain("solido: Color(r: 255, g: 87, b: 51, a: 1)");
+    expect(tokens).toContain("solido: Color(r: 255, g: 50, b: 1, a: 1)");
+    expect(tokens).toContain("solido2: Color(r: 255, g: 118, b: 1, a: 1)");
+  });
+
+  it("los naranjas de la marca son #FF3201 y #FF7601, con el degradado entre los dos", () => {
+    const block = themeBlock("sieza");
+    expect(block).toContain("--d2-ink: #ff3201;");
+    expect(block).toContain("--d2-ink-2: #ff7601;");
+    expect(block).toContain("--d2-ink-grad: linear-gradient(135deg, #ff3201 0%, #ff7601 100%);");
+    expect(block).toContain("--d2-ring-fill: #ff3201;");
+  });
+
+  it("los otros temas no se pintan con degradado: su segundo color es el sólido", () => {
+    expect(css).toMatch(/--d2-ink-2: var\(--d2-ink\);/);
+    expect(css).toMatch(/--d2-ink-grad: var\(--d2-ink\);/);
+    for (const id of ["noche", "plata", "brasa", "pliegues", "electrico"]) {
+      expect(themeBlock(id)).not.toContain("--d2-ink-grad:");
+    }
+    // En iOS, cada tema que no es SIEZA repite el sólido como segundo color.
+    const pares = [
+      ...tokens.matchAll(/solido: (Color\([^)]*\)),\n\s*sobreSolido: Color\([^)]*\),\n\s*solido2: (Color\([^)]*\))/g),
+    ];
+    expect(pares).toHaveLength(6);
+    expect(pares.filter(([, a, b]) => a !== b)).toHaveLength(1);
   });
 
   it("el tema no usa blur, grano, manchas ni superficies translúcidas", () => {

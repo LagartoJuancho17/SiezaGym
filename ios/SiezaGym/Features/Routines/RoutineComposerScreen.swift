@@ -844,3 +844,15 @@ private struct CampoDecimal: View {
             .overlay { RoundedRectangle(cornerRadius: 12).strokeBorder(tema.borde, lineWidth: 1) }
     }
 }
+
+#if DEBUG
+#Preview("Nueva rutina") {
+    RoutineComposerScreen(store: PreviewData.store())
+        .previewSieza()
+}
+
+#Preview("Editar rutina") {
+    RoutineComposerScreen(store: PreviewData.store(), routine: PreviewData.routines[0])
+        .previewSieza()
+}
+#endif

@@ -134,7 +134,7 @@ private struct ActiveWorkoutMiniBar: View {
                 .foregroundStyle(tema.sobreSolido)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
-                .background(tema.solido, in: .capsule)
+                .background(tema.degradado, in: .capsule)
 
             Button(action: onDiscard) {
                 Image(systemName: "xmark")
@@ -154,3 +154,17 @@ private struct ActiveWorkoutMiniBar: View {
         .shadow(color: .black.opacity(tema.plano ? 0 : 0.12), radius: 8, y: 3)
     }
 }
+
+#if DEBUG
+// La app entera con la barra de abajo: tocá las pestañas en el canvas en modo
+// interactivo (el botón ▶︎ del preview) para recorrer todas las pantallas.
+#Preview("App completa") {
+    MainTabView(store: PreviewData.store())
+        .previewSieza()
+}
+
+#Preview("App completa · Plata") {
+    MainTabView(store: PreviewData.store())
+        .previewSieza(tema: "plata")
+}
+#endif

@@ -40,7 +40,7 @@ struct RoutinesScreen: View {
                         .font(.system(size: 22, weight: .medium))
                         .foregroundStyle(tema.sobreSolido)
                         .frame(width: 56, height: 56)
-                        .background(tema.solido, in: .circle)
+                        .background(tema.degradado, in: .circle)
                 }
                 .accessibilityLabel("Nueva rutina")
             } contenido: {
@@ -193,3 +193,15 @@ struct RoutinesScreen: View {
         return "\(ejercicios) \(ejercicios == 1 ? "ejercicio" : "ejercicios") · \(series) \(series == 1 ? "serie" : "series") · \(minutos) min"
     }
 }
+
+#if DEBUG
+#Preview("Rutinas") {
+    RoutinesScreen(store: PreviewData.store())
+        .previewSieza()
+}
+
+#Preview("Rutinas · vacío") {
+    RoutinesScreen(store: PreviewData.storeVacio())
+        .previewSieza()
+}
+#endif

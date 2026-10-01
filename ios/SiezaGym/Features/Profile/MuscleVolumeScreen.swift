@@ -47,3 +47,12 @@ struct MuscleVolumeScreen: View {
         .bottomNavInset()
     }
 }
+
+#if DEBUG
+#Preview {
+    NavigationStack {
+        MuscleVolumeScreen(store: PreviewData.store())
+    }
+    .previewSieza()
+}
+#endif

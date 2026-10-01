@@ -80,7 +80,7 @@ struct BarraProgreso: View {
             ZStack(alignment: .leading) {
                 Capsule().fill(tema.plano ? tema.bordeFuerte : Color.white.opacity(tema.glass2))
                 Capsule()
-                    .fill(tema.solido)
+                    .fill(tema.degradado)
                     .frame(width: geo.size.width * CGFloat(min(100, max(0, pct))) / 100)
             }
         }

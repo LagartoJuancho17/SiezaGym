@@ -31,9 +31,35 @@ final class GymStore {
         self.uid = uid
     }
 
+    #if DEBUG
+    /// Para los previews de Xcode: arranca con datos ya cargados y nunca va a
+    /// Firestore. `hasLoaded` queda en true, así `MainTabView` no dispara la
+    /// carga, y `load()` igual corta acá por las dudas.
+    private var esPreview = false
+
+    init(
+        preview uid: String,
+        profile: UserProfile?,
+        routines: [Routine],
+        sessions: [WorkoutSession],
+        catalog: [String: Exercise]
+    ) {
+        self.uid = uid
+        self.profile = profile
+        self.routines = routines
+        self.sessions = sessions
+        self.catalog = catalog
+        lastLoadedAt = Date()
+        esPreview = true
+    }
+    #endif
+
     var hasLoaded: Bool { lastLoadedAt != nil }
 
     func load() async {
+        #if DEBUG
+        if esPreview { return }
+        #endif
         guard !isLoading else { return }
         isLoading = true
         defer { isLoading = false }

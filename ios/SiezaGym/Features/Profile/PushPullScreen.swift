@@ -44,3 +44,12 @@ struct PushPullScreen: View {
         .bottomNavInset()
     }
 }
+
+#if DEBUG
+#Preview {
+    NavigationStack {
+        PushPullScreen(store: PreviewData.store())
+    }
+    .previewSieza()
+}
+#endif

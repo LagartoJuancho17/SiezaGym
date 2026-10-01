@@ -168,7 +168,7 @@ struct SolidButtonStyle: ButtonStyle {
             .foregroundStyle(tema.sobreSolido)
             .padding(.horizontal, 22)
             .frame(maxWidth: expands ? .infinity : nil, minHeight: 52)
-            .background(tema.solido, in: .rect(cornerRadius: tema.plano ? 14 : 26))
+            .background(tema.degradado, in: .rect(cornerRadius: tema.plano ? 14 : 26))
             .opacity(configuration.isPressed ? 0.85 : 1)
             .scaleEffect(configuration.isPressed ? 0.98 : 1)
             .animation(.snappy(duration: 0.15), value: configuration.isPressed)
@@ -250,7 +250,7 @@ struct WidgetMeter: View {
             let ancho = proxy.size.width
             ZStack(alignment: .leading) {
                 Capsule().fill(tema.texto3.opacity(0.35))
-                Capsule().fill(tema.solido).frame(width: ancho * min(max(value, 0), 1))
+                Capsule().fill(tema.degradado).frame(width: ancho * min(max(value, 0), 1))
             }
         }
         .frame(height: 6)

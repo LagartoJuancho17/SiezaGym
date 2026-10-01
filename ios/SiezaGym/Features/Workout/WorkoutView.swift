@@ -689,7 +689,7 @@ private struct ExerciseMediaSheet: View {
                             .font(.system(size: 14, weight: .bold))
                             .foregroundStyle(tema.sobreSolido)
                             .frame(maxWidth: .infinity, minHeight: 44)
-                            .background(tema.solido, in: .capsule)
+                            .background(tema.degradado, in: .capsule)
                     }
                 }
 
@@ -724,3 +724,10 @@ private struct ExerciseMediaSheet: View {
         .presentationDetents([.medium, .large])
     }
 }
+
+#if DEBUG
+#Preview("Entrenamiento") {
+    WorkoutView(store: PreviewData.store(), routine: PreviewData.routines[0])
+        .previewSieza()
+}
+#endif

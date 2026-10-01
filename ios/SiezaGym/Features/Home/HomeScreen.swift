@@ -228,7 +228,7 @@ struct HomeScreen: View {
                     .font(.system(size: 20))
                     .foregroundStyle(tema.sobreSolido)
                     .frame(width: 56, height: 56)
-                    .background(tema.solido, in: .circle)
+                    .background(tema.degradado, in: .circle)
             }
             .accessibilityLabel("Empezar entrenamiento")
         }
@@ -516,3 +516,15 @@ private struct FilaAcceso: View {
         .padding(.vertical, 12)
     }
 }
+
+#if DEBUG
+#Preview("Inicio") {
+    HomeScreen(store: PreviewData.store())
+        .previewSieza()
+}
+
+#Preview("Inicio · sin datos") {
+    HomeScreen(store: PreviewData.storeVacio())
+        .previewSieza()
+}
+#endif
