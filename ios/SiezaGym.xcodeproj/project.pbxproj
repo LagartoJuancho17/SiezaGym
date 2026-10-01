@@ -28,6 +28,7 @@
 		48BF104E24EF4D98C227F1B7 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A503466AED5D1CC5A073ABF /* Theme.swift */; };
 		568E4A4B8F74B60CFC82DB9A /* HealthMetricsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2EF42F69ECBC7B4BADFE19B /* HealthMetricsTests.swift */; };
 		58A2A258E40613DA50FCAE15 /* RachaWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B821EA63F7F81AE7EC6A134 /* RachaWidget.swift */; };
+		636E107570BF79EEECC1B47C /* EmailAuthFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 865A941D123B403CAAEB860D /* EmailAuthFlowTests.swift */; };
 		63F8AB022BFBAB69283BF27A /* RestTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE7997B5960418F748BF7C38 /* RestTimer.swift */; };
 		642B07B10CFEB9681166D86D /* ProfileScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECAF92A0B6F1015DB00C6E84 /* ProfileScreen.swift */; };
 		6579BC0C63E884AFC31B9C91 /* TrainingCalendar.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9F497722DB4661FFF746FD1 /* TrainingCalendar.swift */; };
@@ -63,12 +64,14 @@
 		B0B297E0FDAA904D85B665BE /* AuthMessageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61A8217EE572685B2AF5F08A /* AuthMessageTests.swift */; };
 		B0EA2CE5E685D1FC164705BC /* HomeMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = D23EED55AC67DF9CAA4DB093 /* HomeMetrics.swift */; };
 		B1B3AA68F97836D037C4F264 /* TrainingCalendarTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00CB416B92890D19B623F38A /* TrainingCalendarTests.swift */; };
+		B1E5FD87E7C156CB3D727067 /* EmailAuthClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = E27B9D7FDB26256544FD99C6 /* EmailAuthClient.swift */; };
 		BEA06009214DEAE119B35BB8 /* WidgetSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D1501279ED31259AE8A634B /* WidgetSnapshot.swift */; };
 		C0283CF3A0439D767EF2D6CD /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = F83202DC4E3A3E212094214A /* FirebaseAuth */; };
 		C287FE9BAF2970770A93748F /* WorkoutSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3EA1A8C682800BC7D50005F /* WorkoutSession.swift */; };
 		C54F5A15042A76D2DA1223A6 /* WidgetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA39B73463D8D7371833B997 /* WidgetTests.swift */; };
 		C99827486C874C150987BB58 /* HistoryScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74A77B3D5FCE817B76BF4DA8 /* HistoryScreen.swift */; };
 		CB6D8CF9E2B63894CAA0EEE4 /* LiveActivityController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE88FE15304FF74783052D63 /* LiveActivityController.swift */; };
+		CFD704E03DD6127C04438CBC /* EmailAuthFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8D8361A6692ED7C2D79F43E /* EmailAuthFlow.swift */; };
 		D317C7E99F21783DB9D03BA1 /* SnapshotStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FCB09C4AAFE60F78F355E02 /* SnapshotStore.swift */; };
 		D5A1D4CDE82275A9CF26E004 /* TrainingCalendar.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9F497722DB4661FFF746FD1 /* TrainingCalendar.swift */; };
 		D9F80FBFC6018FC60BD5CA5F /* Routine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6050D5EE6B1267B77E113FA9 /* Routine.swift */; };
@@ -150,6 +153,7 @@
 		7BB942DE1A39FD7B6B945979 /* RoutineDetailScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoutineDetailScreen.swift; sourceTree = "<group>"; };
 		7D1501279ED31259AE8A634B /* WidgetSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSnapshot.swift; sourceTree = "<group>"; };
 		7F0F214C93B960FC0BB9A7A8 /* SiezaGym.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SiezaGym.entitlements; sourceTree = "<group>"; };
+		865A941D123B403CAAEB860D /* EmailAuthFlowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailAuthFlowTests.swift; sourceTree = "<group>"; };
 		8E6F08807055187F66AB97E3 /* HoyWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoyWidget.swift; sourceTree = "<group>"; };
 		9B20CDD344068C731A037D44 /* WorkoutDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutDraft.swift; sourceTree = "<group>"; };
 		9BC67D543EEAF3E15E9493B2 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
@@ -177,6 +181,7 @@
 		DD844D5CFED5C704AFB9FB7C /* UserProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfile.swift; sourceTree = "<group>"; };
 		DF6ECA83E3BA00B298F73B83 /* ThemeTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeTokens.swift; sourceTree = "<group>"; };
 		E214A34767069CF23C2434F5 /* HomeScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeScreen.swift; sourceTree = "<group>"; };
+		E27B9D7FDB26256544FD99C6 /* EmailAuthClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailAuthClient.swift; sourceTree = "<group>"; };
 		E2F85DEF1F4F5E0A0F7B422E /* WidgetSnapshotBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSnapshotBuilder.swift; sourceTree = "<group>"; };
 		E67F3CD2D19C5C9646C24949 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		E7E47E5DACFE6DA5281E7768 /* Exercise.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Exercise.swift; sourceTree = "<group>"; };
@@ -184,10 +189,11 @@
 		EF605D479E084C61AD3550D8 /* WorkoutTarget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutTarget.swift; sourceTree = "<group>"; };
 		F3EA1A8C682800BC7D50005F /* WorkoutSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutSession.swift; sourceTree = "<group>"; };
 		F59182899A1B9BF47AA4539C /* BottomNav.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomNav.swift; sourceTree = "<group>"; };
+		F8D8361A6692ED7C2D79F43E /* EmailAuthFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailAuthFlow.swift; sourceTree = "<group>"; };
 		F9F497722DB4661FFF746FD1 /* TrainingCalendar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainingCalendar.swift; sourceTree = "<group>"; };
 		F9F6A2EBFC13CEDC7984B640 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		FD8ADFF2CAA687963AB3D3AA /* Piezas.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Piezas.swift; sourceTree = "<group>"; };
-		"TEMP_CF3F6F03-625A-4A0A-969E-B5266531BD34" /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
+		"TEMP_BC27A242-1272-46B8-AA42-66FF9E06CA57" /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -339,6 +345,7 @@
 			isa = PBXGroup;
 			children = (
 				9BC67D543EEAF3E15E9493B2 /* AuthService.swift */,
+				E27B9D7FDB26256544FD99C6 /* EmailAuthClient.swift */,
 				0090F07F6E3B43CEC19FD58E /* FirestoreValue.swift */,
 				C274E2BEAA284A87E09CB167 /* GymRepository.swift */,
 				B00831C4B5DF350BB44E6270 /* GymStore.swift */,
@@ -413,6 +420,7 @@
 			children = (
 				61A8217EE572685B2AF5F08A /* AuthMessageTests.swift */,
 				32C968911E9AA6B64763A207 /* CustomExerciseTests.swift */,
+				865A941D123B403CAAEB860D /* EmailAuthFlowTests.swift */,
 				698A3E0F778AD459293863DB /* ExerciseMediaTests.swift */,
 				CD7C5E866FDE71F8AEC3C985 /* HealthKitConfigurationTests.swift */,
 				C2EF42F69ECBC7B4BADFE19B /* HealthMetricsTests.swift */,
@@ -429,6 +437,7 @@
 		F278A40AC0A5C800BD62D206 /* Auth */ = {
 			isa = PBXGroup;
 			children = (
+				F8D8361A6692ED7C2D79F43E /* EmailAuthFlow.swift */,
 				E67F3CD2D19C5C9646C24949 /* LoginView.swift */,
 			);
 			path = Auth;
@@ -442,10 +451,10 @@
 			path = Progress;
 			sourceTree = "<group>";
 		};
-		"TEMP_DA48BA54-3758-414D-9301-13EDB6220804" /* ios */ = {
+		"TEMP_FCC3263D-A897-4335-88DC-3570B9148FCE" /* ios */ = {
 			isa = PBXGroup;
 			children = (
-				"TEMP_CF3F6F03-625A-4A0A-969E-B5266531BD34" /* Signing.xcconfig */,
+				"TEMP_BC27A242-1272-46B8-AA42-66FF9E06CA57" /* Signing.xcconfig */,
 			);
 			path = ios;
 			sourceTree = "<group>";
@@ -583,6 +592,8 @@
 				03F659D058019C8EA8AB2DB5 /* CustomExerciseDraft.swift in Sources */,
 				1467DB9BF571D0A493C06833 /* CustomExerciseSheet.swift in Sources */,
 				689D5D3F4C4C5A786417D2F7 /* DesignSystem.swift in Sources */,
+				B1E5FD87E7C156CB3D727067 /* EmailAuthClient.swift in Sources */,
+				CFD704E03DD6127C04438CBC /* EmailAuthFlow.swift in Sources */,
 				765B33F0C6E2CA822388FC44 /* Epley.swift in Sources */,
 				8D087CEFB48437FF6FEECA76 /* Exercise.swift in Sources */,
 				B04F17235DCB60CC640053CE /* ExercisePickerSheet.swift in Sources */,
@@ -651,6 +662,7 @@
 			files = (
 				B0B297E0FDAA904D85B665BE /* AuthMessageTests.swift in Sources */,
 				92137B36659F1FB8DCDC432E /* CustomExerciseTests.swift in Sources */,
+				636E107570BF79EEECC1B47C /* EmailAuthFlowTests.swift in Sources */,
 				76AF706F5D7BCAD8AB74FD5B /* ExerciseMediaTests.swift in Sources */,
 				8F39EEF6AAEB18DFEE31FE9B /* HealthKitConfigurationTests.swift in Sources */,
 				568E4A4B8F74B60CFC82DB9A /* HealthMetricsTests.swift in Sources */,
@@ -701,7 +713,7 @@
 		};
 		04764DE4336904985F4049C2 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_CF3F6F03-625A-4A0A-969E-B5266531BD34" /* Signing.xcconfig */;
+			baseConfigurationReference = "TEMP_BC27A242-1272-46B8-AA42-66FF9E06CA57" /* Signing.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -860,7 +872,7 @@
 		};
 		FC6682134BF5D75535C2BAE4 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_CF3F6F03-625A-4A0A-969E-B5266531BD34" /* Signing.xcconfig */;
+			baseConfigurationReference = "TEMP_BC27A242-1272-46B8-AA42-66FF9E06CA57" /* Signing.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;

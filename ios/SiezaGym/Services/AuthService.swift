@@ -21,6 +21,7 @@ final class AuthService {
     private(set) var state: State = .loading
     private(set) var errorMessage: String?
     private(set) var isWorking = false
+    private let emailClient = EmailAuthClient()
 
     // Se escribe una sola vez en `init` y se lee una sola vez en `deinit`,
     // cuando ya no queda ninguna otra referencia viva. No hay carrera posible,
@@ -47,25 +48,23 @@ final class AuthService {
         if let listener { Auth.auth().removeStateDidChangeListener(listener) }
     }
 
-    func signIn(email: String, password: String) async {
-        await run { try await Auth.auth().signIn(withEmail: email, password: password) }
+    func startEmail(form: EmailAuthForm) async -> PendingEmailChallenge? {
+        isWorking = true
+        errorMessage = nil
+        defer { isWorking = false }
+        do {
+            return try await emailClient.start(form: form)
+        } catch {
+            log.error("mfa/start fallo: \(error.localizedDescription, privacy: .public)")
+            errorMessage = Self.readableMessage(for: error)
+            return nil
+        }
     }
 
-    func signUp(email: String, password: String, displayName: String) async {
+    func verifyEmail(challengeID: String, code: String) async {
         await run {
-            let result = try await Auth.auth().createUser(withEmail: email, password: password)
-            let name = displayName.trimmingCharacters(in: .whitespacesAndNewlines)
-            if !name.isEmpty {
-                let request = result.user.createProfileChangeRequest()
-                request.displayName = name
-                try await request.commitChanges()
-            }
-            try await GymRepository().ensureProfile(
-                uid: result.user.uid,
-                email: result.user.email,
-                displayName: name.isEmpty ? nil : name,
-                provider: "password"
-            )
+            let token = try await emailClient.verify(challengeID: challengeID, code: code)
+            try await Auth.auth().signIn(withCustomToken: token)
         }
     }
 
@@ -174,6 +173,12 @@ final class AuthService {
     static func readableMessage(for error: Error) -> String {
         if let signInError = error as? SignInError {
             return signInError.localizedDescription
+        }
+        if let emailError = error as? EmailAuthClient.Failure {
+            return emailError.localizedDescription
+        }
+        if let urlError = error as? URLError, urlError.code == .notConnectedToInternet {
+            return "Sin conexión. Revisá internet."
         }
         guard (error as NSError).domain == AuthErrorDomain,
               let code = AuthErrorCode(rawValue: (error as NSError).code) else {

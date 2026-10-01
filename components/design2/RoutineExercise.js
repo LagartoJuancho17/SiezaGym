@@ -5,6 +5,7 @@ import "./routine-technique.css";
 import { useId, useState } from "react";
 import { CheckIcon, CheckRingIcon, ChevronDownIcon, CloseIcon, PlayIcon, WeightIcon } from "./Icons";
 import { playSetCompleteSound, triggerHaptic } from "@/lib/audio/workoutSound";
+import { getYouTubeEmbedUrl } from "@/lib/exercises/youtube";
 
 /** La celda de un valor prescrito. Vacío se muestra como raya, no como cero. */
 function Cell({ value, unit = "" }) {
@@ -235,12 +236,12 @@ export default function RoutineExercise({
           <span
             className="d2-ex-thumb"
             onClick={(e) => {
-              if (exercise.mediaUrl) {
+              if (exercise.mediaUrl || exercise.videoUrl) {
                 e.stopPropagation();
                 setShowMediaModal(true);
               }
             }}
-            title={exercise.mediaUrl ? "Tocar para ampliar GIF de técnica" : undefined}
+            title={exercise.mediaUrl || exercise.videoUrl ? "Tocar para ver técnica o video" : undefined}
           >
             {exercise.mediaUrl ? (
               <Image src={exercise.mediaUrl} alt="" width={54} height={54} unoptimized />
@@ -301,18 +302,38 @@ export default function RoutineExercise({
           )}
           <details className="d2-technique">
             <summary>Ver técnica</summary>
+            {exercise.videoUrl ? (
+              <div className="my-3 aspect-video w-full max-w-[340px] overflow-hidden rounded-xl border border-[var(--d2-border)] bg-black/40">
+                <iframe
+                  src={getYouTubeEmbedUrl(exercise.videoUrl)}
+                  title={`Video de técnica de ${exercise.name}`}
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            ) : null}
             {exercise.mediaUrl && (
               <Image src={exercise.mediaUrl} alt={`Técnica de ${exercise.name}`} width={300} height={300} unoptimized className="d2-technique-image" />
             )}
             <p>{exercise.description || "Todavía no hay una descripción de técnica para este ejercicio."}</p>
             {exercise.techniqueNote && <p><strong>Nota de la rutina:</strong> {exercise.techniqueNote}</p>}
-            {exercise.mediaUrl && <p className="d2-technique-credit">Animación © <a href="https://gymvisual.com/" target="_blank" rel="noopener noreferrer">Gym visual</a></p>}
+            {exercise.videoUrl ? (
+              <p className="d2-technique-credit">
+                Video en{" "}
+                <a href={exercise.videoUrl} target="_blank" rel="noopener noreferrer">
+                  YouTube
+                </a>
+              </p>
+            ) : (
+              exercise.mediaUrl && <p className="d2-technique-credit">Animación © <a href="https://gymvisual.com/" target="_blank" rel="noopener noreferrer">Gym visual</a></p>
+            )}
           </details>
         </div>
       )}
 
       {/* Modal flotante para ver GIF/video durante el entrenamiento */}
-      {showMediaModal && exercise.mediaUrl && (
+      {showMediaModal && (exercise.mediaUrl || exercise.videoUrl) && (
         <div className="d2-modal" onClick={() => setShowMediaModal(false)}>
           <div
             className="d2-glass-strong d2-modal-card d2-media-modal-card"
@@ -334,16 +355,30 @@ export default function RoutineExercise({
             </div>
 
             <div className="d2-media-modal-body">
-              <div className="d2-media-modal-thumb">
-                <Image
-                  src={exercise.mediaUrl}
-                  alt={`Demostración animada de ${exercise.name}`}
-                  width={340}
-                  height={340}
-                  unoptimized
-                  className="d2-media-modal-gif"
-                />
-              </div>
+              {exercise.videoUrl ? (
+                <div className="aspect-video w-full overflow-hidden rounded-xl border border-[var(--d2-border)] bg-black">
+                  <iframe
+                    src={getYouTubeEmbedUrl(exercise.videoUrl)}
+                    title={`Demostración de ${exercise.name}`}
+                    className="w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+              ) : (
+                exercise.mediaUrl && (
+                  <div className="d2-media-modal-thumb">
+                    <Image
+                      src={exercise.mediaUrl}
+                      alt={`Demostración animada de ${exercise.name}`}
+                      width={340}
+                      height={340}
+                      unoptimized
+                      className="d2-media-modal-gif"
+                    />
+                  </div>
+                )
+              )}
 
               {exercise.description && (
                 <p className="d2-media-modal-desc">{exercise.description}</p>
@@ -353,12 +388,21 @@ export default function RoutineExercise({
                   <strong>Nota del ejercicio:</strong> {exercise.techniqueNote}
                 </p>
               )}
-              <p className="d2-technique-credit">
-                Animación ©{" "}
-                <a href="https://gymvisual.com/" target="_blank" rel="noopener noreferrer">
-                  Gym visual
-                </a>
-              </p>
+              {exercise.videoUrl ? (
+                <p className="d2-technique-credit">
+                  Video en{" "}
+                  <a href={exercise.videoUrl} target="_blank" rel="noopener noreferrer">
+                    YouTube
+                  </a>
+                </p>
+              ) : (
+                <p className="d2-technique-credit">
+                  Animación ©{" "}
+                  <a href="https://gymvisual.com/" target="_blank" rel="noopener noreferrer">
+                    Gym visual
+                  </a>
+                </p>
+              )}
             </div>
 
             <div className="d2-modal-actions">

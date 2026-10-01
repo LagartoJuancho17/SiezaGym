@@ -46,6 +46,44 @@ describe("Coach design2 render contracts", () => {
     expect(html).toContain("Todavía no tiene sesiones registradas.");
     expect(render(AddStudentModal, { open: false, onClose: () => {} })).toBe("");
   });
+  it("student history displays rich multi-session analytics, kpis, search controls, and exercise set pills with top-set and 1RM", () => {
+    const sessions = [
+      {
+        id: "s1",
+        routineName: "Piernas",
+        finishedAt: "2026-09-20T12:00:00Z",
+        durationSeconds: 3000,
+        totalVolumeKg: 1200,
+        exercises: [{ exerciseId: "squat", sets: [{ weight: 100, reps: 6 }, { weight: 100, reps: 6 }] }],
+      },
+      {
+        id: "s2",
+        routineName: "Torso",
+        finishedAt: "2026-09-24T12:00:00Z",
+        durationSeconds: 2400,
+        totalVolumeKg: 890,
+        exercises: [{ exerciseId: "bench", sets: [{ weight: 80, reps: 8 }] }],
+      },
+    ];
+    const catalog = [
+      { id: "squat", nameEs: "Sentadilla", equipment: "barra", muscleWeights: { cuadriceps: 0.8, gluteo: 0.2 } },
+      { id: "bench", nameEs: "Press de banca", equipment: "barra", muscleWeights: { pecho: 0.7, triceps: 0.3 } },
+    ];
+    const html = render(StudentDetailView, { studentProfile: student, sessions, catalogExercises: catalog });
+    expect(html).toContain("Volumen (kg)");
+    expect(html).toContain("Duración (min)");
+    expect(html).toContain("Series");
+    expect(html).toContain("Músculos");
+    expect(html).toContain("Volumen Acumulado");
+    expect(html).toContain("Promedio / Sesión");
+    expect(html).toContain("Buscar por rutina o ejercicio...");
+    expect(html).toContain("Sentadilla");
+    expect(html).toContain("Press de banca");
+    expect(html).toContain("100kg×6");
+    expect(html).toContain("80kg×8");
+    expect(html).toContain("Barra");
+    expect(html).toContain("Colapsar todo");
+  });
   it("coach components never restore legacy hardcoded palette", () => {
     const dir = new URL("../components/coach/", import.meta.url);
     for (const file of readdirSync(dir).filter((name) => name.endsWith(".js"))) {
