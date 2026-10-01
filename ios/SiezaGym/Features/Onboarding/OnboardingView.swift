@@ -1,7 +1,8 @@
 import SwiftUI
 
 /// Tres escenas editoriales, con controles planos sobre la paleta SIEZA.
-/// Las fotos son locales para que la bienvenida no dependa de la red.
+/// Las fotos son locales para que la bienvenida no dependa de la red. Son en
+/// blanco y negro y se muestran teñidas de naranja con `tonoMarca()`.
 struct OnboardingView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var flow = OnboardingFlow()
@@ -48,6 +49,7 @@ struct OnboardingView: View {
                 .scaledToFill()
                 .frame(width: size.size.width, height: size.size.height)
                 .clipped()
+                .tonoMarca()
                 .overlay {
                     LinearGradient(
                         stops: [
@@ -170,8 +172,8 @@ struct OnboardingView: View {
                 .padding(.leading, 8)
                 .padding(.trailing, 20)
                 .frame(height: 62)
-                .foregroundStyle(flow.isLastPage ? brand.sobreSolido : brand.texto)
-                .background(flow.isLastPage ? brand.solido : brand.bordeFuerte, in: .capsule)
+                .foregroundStyle(brand.sobreSolido)
+                .background(brand.solido, in: .capsule)
             }
             .buttonStyle(.plain)
             .accessibilityHint(flow.isLastPage ? "Abre el inicio de sesión" : "Va a la siguiente pantalla")
