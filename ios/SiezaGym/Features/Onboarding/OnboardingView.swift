@@ -2,7 +2,8 @@ import SwiftUI
 
 /// Tres pantallas de bienvenida hechas solo de color: negro, una mancha de
 /// Brasa a naranja vista a través de vidrio acanalado, grano fino y el texto
-/// grande en blanco. Sin fotos: la marca es el color.
+/// grande en blanco. Sin fotos: la marca es el color. El arte lo dibuja p5
+/// (`ArteP5`) a la resolución real de la pantalla.
 struct OnboardingView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var flow = OnboardingFlow()
@@ -15,9 +16,12 @@ struct OnboardingView: View {
         ZStack {
             brand.fondoPlano.ignoresSafeArea()
 
-            ArteAcanalado(pagina: flow.page.rawValue)
-                .ignoresSafeArea()
-                .accessibilityHidden(true)
+            ZStack {
+                BrilloNativo(pagina: flow.page.rawValue)
+                ArteP5(pagina: flow.page.rawValue, sinMovimiento: reduceMotion)
+            }
+            .ignoresSafeArea()
+            .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 0) {
                 header
@@ -177,87 +181,39 @@ nonisolated enum ArteOnboarding {
         default: Mancha(centro: UnitPoint(x: 0.55, y: 0.44), ancho: 1.15, alto: 0.5)
         }
     }
-
-    /// Generador con semilla fija: el grano sale igual en cada dibujo, así
-    /// no titila al redibujar la pantalla.
-    struct Semilla: RandomNumberGenerator {
-        var estado: UInt64
-        mutating func next() -> UInt64 {
-            estado = estado &* 6364136223846793005 &+ 1442695040888963407
-            return estado
-        }
-    }
 }
 
-/// La mancha de color vista a través de vidrio acanalado, como la referencia:
-/// un brillo radial Brasa→naranja cortado en franjas verticales que alternan
-/// luz y sombra, con grano encima.
-private struct ArteAcanalado: View {
+/// El brillo sin vidrio ni grano, en el mismo lugar que el de p5. Se ve el
+/// instante antes de que p5 dibuje su primer cuadro (y queda si WebGL fallara),
+/// para que no aparezca un negro vacío.
+private struct BrilloNativo: View {
     let pagina: Int
 
     var body: some View {
         let mancha = ArteOnboarding.mancha(pagina: pagina)
 
         GeometryReader { size in
-            ZStack {
-                // El brillo: naranja en el centro, Brasa alrededor, se apaga
-                // en el negro.
-                Ellipse()
-                    .fill(
-                        RadialGradient(
-                            colors: [
-                                OnboardingColor.naranja,
-                                OnboardingColor.brasa.opacity(0.85),
-                                OnboardingColor.brasa.opacity(0.25),
-                                .clear,
-                            ],
-                            center: .center,
-                            startRadius: 0,
-                            endRadius: size.size.width * mancha.ancho * 0.55
-                        )
+            Ellipse()
+                .fill(
+                    RadialGradient(
+                        colors: [
+                            OnboardingColor.naranja,
+                            OnboardingColor.brasa.opacity(0.85),
+                            OnboardingColor.brasa.opacity(0.25),
+                            .clear,
+                        ],
+                        center: .center,
+                        startRadius: 0,
+                        endRadius: size.size.width * mancha.ancho * 0.55
                     )
-                    .frame(width: size.size.width * mancha.ancho, height: size.size.height * mancha.alto)
-                    .position(
-                        x: size.size.width * mancha.centro.x,
-                        y: size.size.height * mancha.centro.y
-                    )
-                    .blur(radius: 30)
-
-                // El vidrio acanalado: franjas finas que oscurecen y aclaran.
-                Canvas { contexto, lienzo in
-                    let ancho: CGFloat = 9
-                    var x: CGFloat = 0
-                    while x < lienzo.width {
-                        let franja = CGRect(x: x, y: 0, width: ancho, height: lienzo.height)
-                        contexto.fill(
-                            Path(franja),
-                            with: .linearGradient(
-                                Gradient(colors: [.black.opacity(0.55), .black.opacity(0.0), .white.opacity(0.06), .black.opacity(0.4)]),
-                                startPoint: CGPoint(x: x, y: 0),
-                                endPoint: CGPoint(x: x + ancho, y: 0)
-                            )
-                        )
-                        x += ancho
-                    }
-                }
-                .blendMode(.multiply)
-
-                // El grano, con semilla fija.
-                Canvas { contexto, lienzo in
-                    var azar = ArteOnboarding.Semilla(estado: 42)
-                    let puntos = Int(lienzo.width * lienzo.height / 90)
-                    for _ in 0..<puntos {
-                        let punto = CGRect(
-                            x: CGFloat.random(in: 0..<lienzo.width, using: &azar),
-                            y: CGFloat.random(in: 0..<lienzo.height, using: &azar),
-                            width: 1, height: 1
-                        )
-                        contexto.fill(Path(punto), with: .color(.white.opacity(Double.random(in: 0.02...0.09, using: &azar))))
-                    }
-                }
-                .allowsHitTesting(false)
-            }
-            .animation(.spring(duration: 0.9, bounce: 0.1), value: mancha)
+                )
+                .frame(width: size.size.width * mancha.ancho, height: size.size.height * mancha.alto)
+                .position(
+                    x: size.size.width * mancha.centro.x,
+                    y: size.size.height * mancha.centro.y
+                )
+                .blur(radius: 30)
+                .animation(.spring(duration: 0.9, bounce: 0.1), value: mancha)
         }
     }
 }

@@ -16,8 +16,15 @@ rutinas.
 
 En el primer arranque, antes del login, se muestran tres pantallas hechas
 solo de color, sin fotos: negro, una mancha de Brasa a naranja (`#FF3201` →
-`#FF7601`) vista a través de vidrio acanalado y grano fino, dibujada con
-`Canvas` (`ArteAcanalado` en `OnboardingView.swift`). La mancha cambia de lugar
+`#FF7601`) vista a través de vidrio acanalado y grano fino, dibujada con un
+shader de **p5.js** (`ArteP5.swift`, boceto en
+`SiezaGym/Resources/ArteOnboarding/`) que calcula cada píxel real de la pantalla
+(3x en iPhone): vidrio acanalado, grano por píxel y dither, nítido y sin bandas.
+p5 (LGPL-2.1, `p5-license.txt`) va dentro de la app, no necesita conexión. Hasta
+el primer cuadro de p5 se ve un brillo nativo en el mismo lugar (`BrilloNativo`).
+Para iterar el boceto en el navegador:
+`python3 -m http.server 4799 --directory ios/SiezaGym/Resources/ArteOnboarding`
+y abrir `/onboarding-arte.html`. La mancha cambia de lugar
 en cada pantalla (`ArteOnboarding.mancha`). Abajo, el botón con el degradado de
 los dos naranjas y uno de borde ("Ya tengo cuenta" / "Volver"). Explican tres pasos
 reales de la app: armar rutinas, registrar series y consultar progreso; la
@@ -34,7 +41,10 @@ simulador y volvé a instalarla, o lanzala con
 `xcrun simctl launch booted com.siezagym.app -sieza.onboarding.completed.v1 NO`.
 
 Pruebas: `ios/SiezaGymTests/OnboardingFlowTests.swift` verifica orden, límites y
-navegación, y que la mancha cambie de lugar y el grano no titile.
+navegación, que la mancha cambie de lugar, el comando que se manda a p5 y que
+el boceto esté empaquetado. `tests/ios-onboarding-arte.test.js` prueba la
+lógica del boceto (suavizado independiente de los fps, límites, posición inicial
+igual a la de Swift).
 `tests/ios-onboarding.eval.test.js` comprueba que no se usen fotos y que el
 recorrido siga conectado al
 inicio de sesión. Para revisión visual en iPhone chico/grande, comprobar que

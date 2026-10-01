@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		03F659D058019C8EA8AB2DB5 /* CustomExerciseDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB34317AC8D6136CC35EEBFA /* CustomExerciseDraft.swift */; };
 		04B915F3B0FE86BBF24246A5 /* ExerciseHistoryScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F6780B751C38E189FC42918 /* ExerciseHistoryScreen.swift */; };
+		05074031E28009333316E793 /* p5.min.js in Resources */ = {isa = PBXBuildFile; fileRef = E7306C9FE1739F0CB30C0F1F /* p5.min.js */; };
 		05F79F67B679E5552CE44AFE /* WorkoutActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37248E78EEF32A7F25E70489 /* WorkoutActivity.swift */; };
 		09BF360C5D608AA8940A33AD /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEC42CD9901F9007C6EF6E4C /* RootView.swift */; };
 		0B23DD40818F48CA7D89AA42 /* HoyWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E6F08807055187F66AB97E3 /* HoyWidget.swift */; };
@@ -30,6 +31,7 @@
 		4467DEEA8E76D3EC89ABF532 /* WidgetSnapshotBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2F85DEF1F4F5E0A0F7B422E /* WidgetSnapshotBuilder.swift */; };
 		48017DDAD1F5624C87AB4D92 /* CodigoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79873891990A602C05C8F77E /* CodigoView.swift */; };
 		48BF104E24EF4D98C227F1B7 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A503466AED5D1CC5A073ABF /* Theme.swift */; };
+		4C6EC0A4FECBF22A1F15B2CC /* onboarding-arte.js in Resources */ = {isa = PBXBuildFile; fileRef = 9D48C061D63864094BFF3421 /* onboarding-arte.js */; };
 		4F9C0FB11FD9EC290E3BE3D5 /* ProgressMetricsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0F8180D7F9B910BF7F31E2E /* ProgressMetricsTests.swift */; };
 		568E4A4B8F74B60CFC82DB9A /* HealthMetricsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2EF42F69ECBC7B4BADFE19B /* HealthMetricsTests.swift */; };
 		58A2A258E40613DA50FCAE15 /* RachaWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B821EA63F7F81AE7EC6A134 /* RachaWidget.swift */; };
@@ -53,6 +55,7 @@
 		7E69107D0D6BE09CC0864C8F /* AuthForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DCBEC43F3E4CA9983F44570 /* AuthForm.swift */; };
 		7E739AEF5A7A60A1D36CCB94 /* SiezaGymApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DDA47487C90F2CFC08882C9 /* SiezaGymApp.swift */; };
 		7F0C06C58FF2DF941DA9EC1E /* HomeScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = E214A34767069CF23C2434F5 /* HomeScreen.swift */; };
+		8A09528C0D1FC5E88174A835 /* onboarding-arte.html in Resources */ = {isa = PBXBuildFile; fileRef = E059378DA0B443AE265196AB /* onboarding-arte.html */; };
 		8D087CEFB48437FF6FEECA76 /* Exercise.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7E47E5DACFE6DA5281E7768 /* Exercise.swift */; };
 		8F2E921BEAA2B58013F8E450 /* ThemeTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF6ECA83E3BA00B298F73B83 /* ThemeTokens.swift */; };
 		8F39EEF6AAEB18DFEE31FE9B /* HealthKitConfigurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD7C5E866FDE71F8AEC3C985 /* HealthKitConfigurationTests.swift */; };
@@ -65,6 +68,7 @@
 		9A7659413F1FC6EDEB2C21D2 /* GymStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B00831C4B5DF350BB44E6270 /* GymStore.swift */; };
 		9D1E6700C003197ECD3F73FB /* TrainedDaysScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CF5CDCA47C855DCA0133838 /* TrainedDaysScreen.swift */; };
 		9FBD7B25F52BB46BAC1D2D2A /* OnboardingFlowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6790BEA45D1AF4889557274E /* OnboardingFlowTests.swift */; };
+		A48BC343DD16669720CE29E5 /* p5-license.txt in Resources */ = {isa = PBXBuildFile; fileRef = F74184956C797102EABD740C /* p5-license.txt */; };
 		A972A0AAE8862B0EFDCFF589 /* HealthKitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71EFA0ABC951C76A770D0C83 /* HealthKitService.swift */; };
 		ABA103924F05BED951B0F783 /* RoutinesScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CFC52007334BD08265F60F4 /* RoutinesScreen.swift */; };
 		ACFC0AA6A365C88D4CEA48C8 /* Piezas.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD8ADFF2CAA687963AB3D3AA /* Piezas.swift */; };
@@ -93,6 +97,7 @@
 		E4AC6ED5B8F989C7BE829D29 /* VolumeScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = E204BFEF9C87CDD9D8FEA272 /* VolumeScreen.swift */; };
 		E69798908BAAFF66FE14C618 /* RoutineDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2232E5FBF4EB7B2D317BF3A /* RoutineDraft.swift */; };
 		E7DBF80474A41676D85B7E86 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BC67D543EEAF3E15E9493B2 /* AuthService.swift */; };
+		EAB39D97F4F327B3AD1899EA /* ArteP5.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF42A417D2E5A55B52F906A1 /* ArteP5.swift */; };
 		EB0C93A38C9E98C5631C0EB0 /* ThemeTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF6ECA83E3BA00B298F73B83 /* ThemeTokens.swift */; };
 		ECEF4F29FE1B236FEFB4E3D4 /* RoutineGroupsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7763F82C2740CEF200CE38EC /* RoutineGroupsTests.swift */; };
 		F2D0B7CF3656FC67EF2F1973 /* WidgetBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE53E293A5BEE122C7F154F0 /* WidgetBridge.swift */; };
@@ -180,6 +185,7 @@
 		8E6F08807055187F66AB97E3 /* HoyWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoyWidget.swift; sourceTree = "<group>"; };
 		9B20CDD344068C731A037D44 /* WorkoutDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutDraft.swift; sourceTree = "<group>"; };
 		9BC67D543EEAF3E15E9493B2 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
+		9D48C061D63864094BFF3421 /* onboarding-arte.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "onboarding-arte.js"; sourceTree = "<group>"; };
 		A2232E5FBF4EB7B2D317BF3A /* RoutineDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoutineDraft.swift; sourceTree = "<group>"; };
 		A773B5C646AD6054BC247135 /* ExercisePickerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExercisePickerSheet.swift; sourceTree = "<group>"; };
 		AA2CC781CA25B89B64815335 /* PushPullScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PushPullScreen.swift; sourceTree = "<group>"; };
@@ -191,6 +197,7 @@
 		B00831C4B5DF350BB44E6270 /* GymStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GymStore.swift; sourceTree = "<group>"; };
 		B25E860F7C4AE7A29211C87F /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		BC7E72D67809BEF015BE4090 /* PreviewDataTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewDataTests.swift; sourceTree = "<group>"; };
+		BF42A417D2E5A55B52F906A1 /* ArteP5.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArteP5.swift; sourceTree = "<group>"; };
 		C01B5A2C147AA61FE89D195B /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		C274E2BEAA284A87E09CB167 /* GymRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GymRepository.swift; sourceTree = "<group>"; };
 		C2EF42F69ECBC7B4BADFE19B /* HealthMetricsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthMetricsTests.swift; sourceTree = "<group>"; };
@@ -207,10 +214,12 @@
 		DC7A992A496B1479E246C07B /* SiezaGymWidgets.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = SiezaGymWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		DD844D5CFED5C704AFB9FB7C /* UserProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfile.swift; sourceTree = "<group>"; };
 		DF6ECA83E3BA00B298F73B83 /* ThemeTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeTokens.swift; sourceTree = "<group>"; };
+		E059378DA0B443AE265196AB /* onboarding-arte.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = "onboarding-arte.html"; sourceTree = "<group>"; };
 		E204BFEF9C87CDD9D8FEA272 /* VolumeScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeScreen.swift; sourceTree = "<group>"; };
 		E214A34767069CF23C2434F5 /* HomeScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeScreen.swift; sourceTree = "<group>"; };
 		E2F85DEF1F4F5E0A0F7B422E /* WidgetSnapshotBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSnapshotBuilder.swift; sourceTree = "<group>"; };
 		E67F3CD2D19C5C9646C24949 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		E7306C9FE1739F0CB30C0F1F /* p5.min.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = p5.min.js; sourceTree = "<group>"; };
 		E7E47E5DACFE6DA5281E7768 /* Exercise.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Exercise.swift; sourceTree = "<group>"; };
 		EB272917657BA33636976A3B /* AuthFormTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthFormTests.swift; sourceTree = "<group>"; };
 		ECAF92A0B6F1015DB00C6E84 /* ProfileScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileScreen.swift; sourceTree = "<group>"; };
@@ -220,10 +229,11 @@
 		F36288818AFB9B5653244B97 /* MusculosWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusculosWidget.swift; sourceTree = "<group>"; };
 		F3EA1A8C682800BC7D50005F /* WorkoutSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutSession.swift; sourceTree = "<group>"; };
 		F59182899A1B9BF47AA4539C /* BottomNav.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomNav.swift; sourceTree = "<group>"; };
+		F74184956C797102EABD740C /* p5-license.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "p5-license.txt"; sourceTree = "<group>"; };
 		F9F497722DB4661FFF746FD1 /* TrainingCalendar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainingCalendar.swift; sourceTree = "<group>"; };
 		F9F6A2EBFC13CEDC7984B640 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		FD8ADFF2CAA687963AB3D3AA /* Piezas.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Piezas.swift; sourceTree = "<group>"; };
-		"TEMP_C3AA5A89-EED0-4A14-B4A1-3E63E7891DE7" /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
+		"TEMP_BA08F1DA-6CB8-4778-878D-3C8F268D6610" /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -349,6 +359,7 @@
 			children = (
 				3BF9C538E6A757304EFC3144 /* Assets.xcassets */,
 				B25E860F7C4AE7A29211C87F /* GoogleService-Info.plist */,
+				E7102B2A635EB89054E44B8B /* ArteOnboarding */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -447,6 +458,7 @@
 		DDC453AB9769D79BC41094C6 /* Onboarding */ = {
 			isa = PBXGroup;
 			children = (
+				BF42A417D2E5A55B52F906A1 /* ArteP5.swift */,
 				D54F6EE3CF45B6BB631153EE /* OnboardingFlow.swift */,
 				C01B5A2C147AA61FE89D195B /* OnboardingView.swift */,
 			);
@@ -463,6 +475,17 @@
 				3CFC52007334BD08265F60F4 /* RoutinesScreen.swift */,
 			);
 			path = Routines;
+			sourceTree = "<group>";
+		};
+		E7102B2A635EB89054E44B8B /* ArteOnboarding */ = {
+			isa = PBXGroup;
+			children = (
+				E059378DA0B443AE265196AB /* onboarding-arte.html */,
+				9D48C061D63864094BFF3421 /* onboarding-arte.js */,
+				F74184956C797102EABD740C /* p5-license.txt */,
+				E7306C9FE1739F0CB30C0F1F /* p5.min.js */,
+			);
+			path = ArteOnboarding;
 			sourceTree = "<group>";
 		};
 		E8CFB2971497B4CB3F568CB4 /* SiezaGymTests */ = {
@@ -496,10 +519,10 @@
 			path = Auth;
 			sourceTree = "<group>";
 		};
-		"TEMP_D35E7134-0740-4D34-8161-96DA610DACD6" /* ios */ = {
+		"TEMP_2CAE7CF5-7DB5-4420-A5D8-DD525D46F907" /* ios */ = {
 			isa = PBXGroup;
 			children = (
-				"TEMP_C3AA5A89-EED0-4A14-B4A1-3E63E7891DE7" /* Signing.xcconfig */,
+				"TEMP_BA08F1DA-6CB8-4778-878D-3C8F268D6610" /* Signing.xcconfig */,
 			);
 			path = ios;
 			sourceTree = "<group>";
@@ -622,6 +645,10 @@
 			files = (
 				106C3B5F379773A98FB4C5C5 /* Assets.xcassets in Resources */,
 				71B55B68CDDE96E4D0457893 /* GoogleService-Info.plist in Resources */,
+				8A09528C0D1FC5E88174A835 /* onboarding-arte.html in Resources */,
+				4C6EC0A4FECBF22A1F15B2CC /* onboarding-arte.js in Resources */,
+				A48BC343DD16669720CE29E5 /* p5-license.txt in Resources */,
+				05074031E28009333316E793 /* p5.min.js in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -632,6 +659,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EAB39D97F4F327B3AD1899EA /* ArteP5.swift in Sources */,
 				7E69107D0D6BE09CC0864C8F /* AuthForm.swift in Sources */,
 				E7DBF80474A41676D85B7E86 /* AuthService.swift in Sources */,
 				F6E8391204D78ABD2F93C2DD /* BottomNav.swift in Sources */,
@@ -773,7 +801,7 @@
 		};
 		04764DE4336904985F4049C2 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_C3AA5A89-EED0-4A14-B4A1-3E63E7891DE7" /* Signing.xcconfig */;
+			baseConfigurationReference = "TEMP_BA08F1DA-6CB8-4778-878D-3C8F268D6610" /* Signing.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -932,7 +960,7 @@
 		};
 		FC6682134BF5D75535C2BAE4 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_C3AA5A89-EED0-4A14-B4A1-3E63E7891DE7" /* Signing.xcconfig */;
+			baseConfigurationReference = "TEMP_BA08F1DA-6CB8-4778-878D-3C8F268D6610" /* Signing.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
