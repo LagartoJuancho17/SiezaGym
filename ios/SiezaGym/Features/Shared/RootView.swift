@@ -42,6 +42,7 @@ struct MainTabView: View {
     @State private var store: GymStore
     @State private var tab: AppTab = .home
     @State private var resumingWorkout = false
+    @State private var conocerte = false
 
     init(store: GymStore) {
         _store = State(initialValue: store)
@@ -65,6 +66,13 @@ struct MainTabView: View {
                 .tag(AppTab.profile)
                 .toolbar(.hidden, for: .tabBar)
         }
+        // "Conocerte": una vez por cuenta, si al perfil le falta objetivo y peso.
+        .fullScreenCover(isPresented: $conocerte) {
+            ConocerteView(store: store) {
+                UserDefaults.standard.set(true, forKey: Conocerte.claveVisto(uid: store.uid))
+                conocerte = false
+            }
+        }
         .overlay(alignment: .bottom) {
             VStack(spacing: 8) {
                 if let active = store.activeWorkout {
@@ -87,6 +95,12 @@ struct MainTabView: View {
         .ignoresSafeArea(.keyboard, edges: .bottom)
         .task {
             if !store.hasLoaded { await store.load() }
+            let visto = UserDefaults.standard.bool(forKey: Conocerte.claveVisto(uid: store.uid))
+            conocerte = Conocerte.debeMostrar(perfil: store.profile, yaVisto: visto)
+            #if DEBUG
+            // Para revisarlo sin crear una cuenta: lanzar con -sieza-conocerte.
+            if ProcessInfo.processInfo.arguments.contains("-sieza-conocerte") { conocerte = true }
+            #endif
             await store.healthKit.refreshIfConnected()
         }
         .onChange(of: scenePhase) { _, phase in

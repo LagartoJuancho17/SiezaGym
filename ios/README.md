@@ -45,6 +45,30 @@ Para revisión visual en iPhone chico/grande, comprobar que los títulos y
 botones no se corten y que VoiceOver lea «Omitir», «Volver» y
 «Continuar/Empezar» en ese orden.
 
+## Conocerte (después del primer login)
+
+Es el paso 02 del user flow: tres pantallas para armar el perfil de
+entrenamiento (`Features/Onboarding/ConocerteView.swift`, lógica en
+`ConocerteFlow.swift`). 1/3 objetivo (hipertrofia, fuerza, las dos, perder
+grasa, salud), 2/3 días por semana (2 a 6) y experiencia, 3/3 peso con un
+resumen (objetivo principal, frecuencia, peso) y la **meta estimada**.
+
+La meta usa la misma cuenta que Inicio para las calorías (MET × peso × horas),
+con una sesión típica por objetivo (`Conocerte.sesionTipica`), por los días
+elegidos, redondeada a 50: 78,5 kg, hipertrofia, 4 días = 1.550 kcal por
+semana. Guarda en `users/{uid}` (merge) `trainingGoal`, `trainingDaysPerWeek`,
+`experienceLevel`, `bodyWeightKg` y `weeklyCalorieGoalKcal`; lo que no se
+eligió no se pisa. La web ignora los dos campos nuevos sin romperse.
+
+Se muestra **una vez por cuenta y por teléfono** (`sieza.conocerte.v1.<uid>`),
+solo si al perfil le falta objetivo y peso: quien ya los cargó en la web no lo
+ve. «Omitir» cierra sin guardar. Objetivo y días se cambian después en Tus
+datos, que además ofrece "Usar la meta sugerida". Para revisarlo sin crear
+una cuenta: `xcrun simctl launch booted com.siezagym.app -sieza-preview -sieza-conocerte`.
+
+Pruebas: `ios/SiezaGymTests/ConocerteTests.swift` (meta, cuándo se muestra,
+pasos, campos que guarda) y `tests/ios-conocerte.eval.test.js`.
+
 ## Tema SIEZA
 
 En instalaciones nuevas, la app abre con **SIEZA**: una interfaz oscura y

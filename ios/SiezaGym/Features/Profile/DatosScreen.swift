@@ -12,6 +12,8 @@ struct DatosScreen: View {
     @State private var meta = ""
     @State private var sexo: Sex?
     @State private var nivel: ExperienceLevel?
+    @State private var objetivo: TrainingGoal?
+    @State private var dias: Int?
     @State private var guardando = false
     @State private var guardadoEn: Date?
     @State private var cargado = false
@@ -108,11 +110,22 @@ struct DatosScreen: View {
     private var entrenamiento: some View {
         GlassCard(padding: 16) {
             VStack(alignment: .leading, spacing: 16) {
+                opciones("Objetivo", TrainingGoal.allCases, seleccion: objetivo) { objetivo = objetivo == $0 ? nil : $0 }
+                opciones("Días por semana", Conocerte.diasPosibles, seleccion: dias) { dias = dias == $0 ? nil : $0 }
                 opciones("Experiencia", ExperienceLevel.allCases, seleccion: nivel) { nivel = nivel == $0 ? nil : $0 }
 
                 Rectangle().fill(tema.borde).frame(height: 1)
 
                 campo("Meta semanal (kcal)", texto: $meta)
+
+                // Con objetivo y días se puede recalcular la meta con la misma
+                // cuenta de "Conocerte".
+                if let objetivo, let dias {
+                    let sugerida = Conocerte.metaSemanal(objetivo: objetivo, dias: dias, pesoKg: BodyMetrics.decimal(peso))
+                    Button("Usar la meta sugerida: \(sugerida.formatted()) kcal") { meta = String(sugerida) }
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(tema.solido)
+                }
 
                 let semana = store.calories
                 VStack(alignment: .leading, spacing: 6) {
@@ -191,6 +204,8 @@ struct DatosScreen: View {
         meta = perfil.weeklyCalorieGoalKcal.map { $0.formatted() } ?? ""
         sexo = perfil.sex
         nivel = perfil.experienceLevel
+        objetivo = perfil.trainingGoal
+        dias = perfil.trainingDaysPerWeek
         cargado = true
     }
 
@@ -204,6 +219,8 @@ struct DatosScreen: View {
         campos["weeklyCalorieGoalKcal"] = BodyMetrics.decimal(meta) ?? NSNull()
         campos["sex"] = sexo?.rawValue ?? NSNull()
         campos["experienceLevel"] = nivel?.rawValue ?? NSNull()
+        campos["trainingGoal"] = objetivo?.rawValue ?? NSNull()
+        campos["trainingDaysPerWeek"] = dias ?? NSNull()
         await store.updateProfile(campos)
         guardadoEn = Date()
     }
@@ -213,6 +230,8 @@ struct DatosScreen: View {
 protocol Etiquetable { var label: String { get } }
 extension Sex: Etiquetable {}
 extension ExperienceLevel: Etiquetable {}
+extension TrainingGoal: Etiquetable {}
+extension Int: Etiquetable { var label: String { "\(self)" } }
 
 /// Fila que envuelve: "Prefiero no decir" no entra en un tercio de pantalla.
 struct FlowRow: Layout {
