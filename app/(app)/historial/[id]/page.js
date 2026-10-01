@@ -96,6 +96,12 @@ export default async function SesionDetallePage({ params }) {
                   </div>
                 ))}
               </div>
+              {exercise.note && (
+                <p className="d2-ex-note d2-session-note">
+                  <span className="d2-ex-note-tag">Nota</span>
+                  {exercise.note}
+                </p>
+              )}
             </div>
           );
         })}

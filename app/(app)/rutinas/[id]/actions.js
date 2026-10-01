@@ -94,11 +94,11 @@ export async function finishRoutineWorkout({ routineId, routineName, durationSec
  * completeAssignmentSession con lo que quedó registrado y no con lo que manda
  * el navegador.
  */
-export async function finishAssignmentWorkout({ assignmentId, durationSeconds }) {
+export async function finishAssignmentWorkout({ assignmentId, durationSeconds, notes = {} }) {
   const user = await getCurrentUser();
   if (!user) throw new Error("Debes iniciar sesión.");
 
-  const result = await completeAssignmentSessionDb(user.uid, assignmentId, durationSeconds);
+  const result = await completeAssignmentSessionDb(user.uid, assignmentId, durationSeconds, notes);
 
   revalidatePath("/");
   revalidatePath("/rutinas");

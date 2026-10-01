@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import {
   MUSCLE_GROUPS,
   MUSCLE_GROUP_LABELS,
@@ -13,6 +14,11 @@ import {
   muscleWeightsSum,
 } from "@/lib/exercises/constants";
 import { createCustomExercise } from "@/app/(app)/rutinas/actions";
+import {
+  extractYouTubeId,
+  cleanYouTubeUrl,
+  getYouTubeThumbnailUrl,
+} from "@/lib/exercises/youtube";
 
 const WEIGHT_EPSILON = 0.01;
 
@@ -23,10 +29,14 @@ export default function CustomExerciseForm({ onCreated, onCancel }) {
   const [registrationType, setRegistrationType] = useState(REGISTRATION_TYPES[0]);
   const [unilateral, setUnilateral] = useState(false);
   const [descriptionEs, setDescriptionEs] = useState("");
+  const [videoUrl, setVideoUrl] = useState("");
   const [selectedMuscles, setSelectedMuscles] = useState([]);
   const [weights, setWeights] = useState({});
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+
+  const videoId = useMemo(() => extractYouTubeId(videoUrl), [videoUrl]);
+  const isInvalidVideo = videoUrl.trim() !== "" && !videoId;
 
   const sum = useMemo(() => muscleWeightsSum(weights), [weights]);
   const hasMuscles = selectedMuscles.length > 0;
@@ -83,6 +93,8 @@ export default function CustomExerciseForm({ onCreated, onCancel }) {
     const finalEquipment = equipment || null;
     const finalPattern = pattern || null;
     const finalWeights = hasMuscles ? weights : {};
+    const finalVideoUrl = videoId ? cleanYouTubeUrl(videoUrl) : null;
+    const finalMediaUrl = videoId ? getYouTubeThumbnailUrl(videoId) : null;
 
     setSaving(true);
     try {
@@ -94,6 +106,7 @@ export default function CustomExerciseForm({ onCreated, onCancel }) {
         unilateral,
         descriptionEs: descriptionEs.trim(),
         muscleWeights: finalWeights,
+        videoUrl: finalVideoUrl,
       });
       onCreated({
         id,
@@ -105,7 +118,8 @@ export default function CustomExerciseForm({ onCreated, onCancel }) {
         unilateral,
         descriptionEs: descriptionEs.trim(),
         muscleWeights: finalWeights,
-        mediaUrl: null,
+        mediaUrl: finalMediaUrl,
+        videoUrl: finalVideoUrl,
         source: "custom",
       });
     } catch (err) {
@@ -204,6 +218,38 @@ export default function CustomExerciseForm({ onCreated, onCancel }) {
           onChange={(e) => setDescriptionEs(e.target.value)}
           placeholder="2-3 líneas de técnica"
         />
+      </label>
+
+      <label className="d2-form-field">
+        <span>Video de YouTube (opcional)</span>
+        <div className="flex items-center gap-3">
+          <input
+            className="d2-input flex-1"
+            value={videoUrl}
+            onChange={(e) => setVideoUrl(e.target.value)}
+            placeholder="Pegá el link (ej: https://youtu.be/... o youtube.com/watch?v=...)"
+            type="url"
+          />
+          {videoId && (
+            <div className="relative w-14 h-14 rounded-xl overflow-hidden shrink-0 border border-[var(--d2-border)] bg-black/20">
+              <Image
+                src={getYouTubeThumbnailUrl(videoId)}
+                alt="Vista previa de portada"
+                width={56}
+                height={56}
+                className="w-full h-full object-cover"
+                unoptimized
+              />
+            </div>
+          )}
+        </div>
+        <span className={`text-xs mt-1 ${isInvalidVideo ? "text-amber-400" : "text-muted"}`}>
+          {isInvalidVideo
+            ? "Ese enlace no parece ser un link válido de YouTube."
+            : videoId
+            ? "✓ La portada del video quedará como miniatura del ejercicio."
+            : "La portada del video de YouTube queda como miniatura del ejercicio."}
+        </span>
       </label>
 
       <div>

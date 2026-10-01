@@ -161,3 +161,17 @@ export const InfoIcon = (props) => (
   </Stroke>
 );
 
+
+export const NoteIcon = (props) => (
+  <Stroke {...props}>
+    <path d="M5 4h10l4 4v12H5z" />
+    <path d="M15 4v4h4M8.5 12.5h7M8.5 16h5" />
+  </Stroke>
+);
+
+export const StopwatchIcon = (props) => (
+  <Stroke {...props}>
+    <circle cx="12" cy="13.5" r="7.5" />
+    <path d="M12 13.5V9.5M10 2.5h4M18.5 6.5l1.5-1.5" />
+  </Stroke>
+);
