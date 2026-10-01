@@ -34,7 +34,7 @@ export default function CoachDashboardClient({ students, profile, summary, recen
   }, [students, search]);
 
   return (
-    <CoachPageShell title="Panel del entrenador" backHref="/" backLabel="Volver al inicio">
+    <CoachPageShell title="Panel del entrenador" backHref="/?view=athlete" backLabel="Ver Home de atleta">
       <div className="d2-coach-dashboard">
         <section className="d2-coach-welcome" aria-label="Bienvenida">
           <div>

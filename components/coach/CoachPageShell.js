@@ -29,7 +29,7 @@ function CoachNavigation({ active }) {
           </Link>
         ))}
       </nav>
-      <Link href="/" className="d2-coach-back-app">Volver a la app <ExternalArrow /></Link>
+      <Link href="/?view=athlete" className="d2-coach-back-app">Ver Home de atleta <ExternalArrow /></Link>
     </aside>
   );
 }

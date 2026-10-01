@@ -28,3 +28,7 @@ el perfil de Firestore de la misma UID autenticada. El perfil se lee del servido
 el cliente no puede modificar `isAdmin` según `firestore.rules`. El rol también
 habilita el espacio del entrenador. Para verificar la cuenta, consultar su perfil
 y abrir `/admin` y `/dashboard/coach` con esa sesión.
+
+En la web de escritorio, `/` lleva a entrenadores y admins directamente a
+`/dashboard/coach`. La Home de atleta sigue siendo la portada en móvil y para
+cuentas normales. Un entrenador puede abrirla expresamente en `/?view=athlete`.
