@@ -1,7 +1,7 @@
 # SiezaGym Android
 
-Native Kotlin + Jetpack Compose port of **`feat/ios-app` at `4b9256f`**.
-The rest of this branch is that iOS branch's source tree. `android/` is the Android adaptation.
+Native Kotlin + Jetpack Compose app, originally ported from `feat/ios-app`.
+The current visual reference is **`feat/ios-design2` at `02acd87`**; Android lives in `android/`.
 
 ## Open and run
 
@@ -40,21 +40,17 @@ The local debug signing certificate differs across machines. An APK compiled els
 
 Without a Firebase config the project still builds and displays a configuration screen. It does not pretend to log in or show fixture data.
 
-## iOS parity
+## Design2 and account navigation
 
-- Burgundy `#3B0A0C` background, cream cards, orange buttons, 10 dp card corners, the original gym photograph.
-- The custom 292 × 60 bottom bar uses the same icon paths, colors, dividers, selection state, and five tabs.
-- Home: 300 dp photo hero, weekly training strip, muscle volume, calories, intensity, push/pull, set completion, weekday volume, session trend, and intensity zones.
-- Routines: 190 dp hero, expandable months and seven-day week groups, assigned badges, prescriptions, muscle distribution, and workout launch. Like this iOS branch, routine creation happens on the web.
-- History: sessions, dates, duration, volume, calories, logged sets, and failed-set styling.
-- Progress: Epley estimates, maximum actual weights, session counts, and sparklines.
-- Profile: identity, body weight, height, weekly calorie goal, sex, level, saving, and sign-out.
-- Authentication: email login/registration and Google login with Spanish errors.
-- Workout: prescribed individual sets, weight/reps/time fields, failed/completed toggles, add-set, elapsed timer, totals, save confirmation, and Firestore persistence.
+- Six shared themes, with SIEZA as the default. Profile theme changes apply immediately across the app.
+- Four-tab, 300 × 52 dp floating bar: Inicio, Rutinas, Historial, Perfil. The selected tab expands; inactive icons stay 44 × 44 dp.
+- Profile contains all five progress destinations, personal data, theme selection, and sign-out.
+- History and session detail use the design2 list, statistics, exercise thumbnails, and failed-set marks.
+- Each account screen has one scrolling container. Do not nest a vertically scrolling list inside `Pantalla`, which already owns the scroll.
+- `RootView` gates private screens on Firebase authentication. Firebase restores an existing session; a returning signed-in user does not see login again. Signing out removes account ViewModels.
+- Coil needs **both** `coil-gif` (animation decoding) and `coil-network-okhttp` (HTTP downloads). URLs come from the exercise catalogue in Firestore. Exercises without media retain a placeholder; custom exercises can use a YouTube thumbnail.
 
-Android adaptations: system insets and keyboard handling, independent saved tab navigation, Back confirmation for unfinished workouts, saved workout state, and an exercise picker for the free-workout entry. The bottom bar is hidden during a workout. Android uses its system font and platform dialogs; these are not the iOS font or native iOS controls.
-
-Session totals exclude failed-set volume and round once. A stable per-workout document ID avoids duplicate sessions on a save retry. Optional profile values can be cleared, and the save indicator appears only after success. Calendar dates always use Buenos Aires time.
+Read-only verification on 2026-10-01: the local Android config matches the web Firebase project and package; the catalogue contains 94 exercises, 80 with media URLs. Three sampled public URLs returned valid GIFs. No Firestore data was changed.
 
 ## Validation
 
@@ -70,7 +66,9 @@ Rendered UI screenshots: `app/build/reports/screenshots/`.
 
 Domain tests cover iOS metrics, Argentina calendar boundaries, routine grouping, individual prescriptions, failed sets, and saved volume. Robolectric Compose tests exercise workout entry, routine details, and bottom-tab selection without accessing production Firebase. UI rendering uses [Robolectric native graphics](https://robolectric.org/simulator/); on-device checks are still needed for Google account selection, keyboard behavior, and live Firestore access.
 
-Validated on 2026-09-30: `assembleDebug`, all 62 unit/UI tests, and `lintDebug` passed (no lint errors; dependency/API warnings remain). Home and routine-detail renderings were inspected. Live Firebase sign-in/writes and physical-device rendering have not been verified.
+Validated on 2026-10-01: `assembleDebug`, all **234 unit/UI tests**, and `lintDebug` passed (0 lint errors; warnings remain). Profile, History, and session-detail renderings were inspected.
+
+Regression coverage includes opening Profile/History from the lower bar with populated and empty accounts, all five progress destinations and back navigation, theme propagation, authentication gating, and downloading/decoding a two-frame GIF through the production Coil components. UI tests save renderings in `app/build/reports/screenshots/`. Live sign-in/writes and physical-device rendering still require device validation.
 
 This validation used a temporary JDK/SDK and Gradle cache because the local Linux `/home` partition is full. If building on this same machine, free space or choose a Gradle cache location with available space. No temporary SDK path is left in the project.
 

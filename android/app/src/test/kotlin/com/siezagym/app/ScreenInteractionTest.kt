@@ -4,7 +4,6 @@ import android.app.Application
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import androidx.activity.ComponentActivity
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -13,10 +12,10 @@ import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.unit.dp
 import com.siezagym.app.DesignSystem.*
+import com.siezagym.app.Domain.RoutineSearch
 import com.siezagym.app.Features.Home.HomeScreen
 import com.siezagym.app.Features.Routines.*
 import com.siezagym.app.Features.Shared.*
-import com.siezagym.app.Domain.RoutineSearch
 import com.siezagym.app.Models.Routine
 import com.siezagym.app.Services.GymData
 import java.io.File
@@ -71,9 +70,7 @@ class ScreenInteractionTest {
         var libres = 0
         compose.setContent {
             SiezaTheme(Theme.porDefecto) {
-                Backdrop {
-                    HomeScreen(GymData(hasLoaded = true)) { if (it == null) libres++ }
-                }
+                Backdrop { HomeScreen(GymData(hasLoaded = true)) { if (it == null) libres++ } }
             }
         }
         compose.onNodeWithText("entrenar libre").assertIsDisplayed()
@@ -90,7 +87,11 @@ class ScreenInteractionTest {
                 BottomNav(selected, { selected = it })
             }
         }
-        compose.onNodeWithContentDescription("Inicio").assertIsSelected()
+        compose
+            .onNodeWithContentDescription("Inicio")
+            .assertIsSelected()
+            .assertWidthIsEqualTo(145.dp)
+        compose.onNodeWithContentDescription("Historial").assertWidthIsEqualTo(44.dp)
         compose.onNodeWithContentDescription("Historial").performClick().assertIsSelected()
         compose.onNodeWithContentDescription("Inicio").assertIsNotSelected()
     }
@@ -126,9 +127,7 @@ class ScreenInteractionTest {
         var started = false
         compose.setContent {
             SiezaTheme(Theme.porDefecto) {
-                Backdrop {
-                    RoutineDetailScreen(routine, GymData()) { started = true }
-                }
+                Backdrop { RoutineDetailScreen(routine, GymData()) { started = true } }
             }
         }
         // El grupo y el resumen colapsado están a la vista; la grilla no.

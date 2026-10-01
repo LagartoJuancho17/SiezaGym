@@ -1,7 +1,6 @@
 package com.siezagym.app.DesignSystem
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -31,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -39,11 +39,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.SubcomposeAsyncImage
 import coil3.request.ImageRequest
-import androidx.compose.ui.platform.LocalContext
 
 /**
- * El marco de una pantalla: rótulo opcional arriba, título, y una acción a la
- * derecha. Es el `PageShell` de la web.
+ * El marco de una pantalla: rótulo opcional arriba, título, y una acción a la derecha. Es el
+ * `PageShell` de la web.
  */
 @Composable
 fun Pantalla(
@@ -60,10 +59,14 @@ fun Pantalla(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(start = 18.dp, end = 18.dp, top = 8.dp)
-            .padding(bottom = bottomNavInset),
+            .padding(bottom = bottomNavInset + 24.dp),
         horizontalAlignment = Alignment.Start,
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            Modifier.padding(bottom = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
             if (volver) {
                 Box(
                     Modifier.size(44.dp).clickable { onVolver?.invoke() },
@@ -77,7 +80,7 @@ fun Pantalla(
                     )
                 }
             }
-            Column(Modifier.weight(1f).padding(start = if (volver) 0.dp else 4.dp)) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 if (rotulo != null) {
                     Text(rotulo, color = tema.texto2, fontSize = 13.sp, lineHeight = 17.sp)
                 }
@@ -98,13 +101,16 @@ fun Pantalla(
 }
 
 /**
- * Deja libre abajo el lugar que ocupa la barra flotante. Sin esto el contenido
- * termina tapado: la barra va por encima, no dentro del layout.
+ * Deja libre abajo el lugar que ocupa la barra flotante. Sin esto el contenido termina tapado: la
+ * barra va por encima, no dentro del layout.
  */
-val bottomNavInset: Dp get() = bottomNavHeight + bottomNavGap + 12.dp
+val bottomNavInset: Dp
+    get() = bottomNavHeight + bottomNavGap + 12.dp
 
-val bottomNavHeight: Dp get() = 52.dp
-val bottomNavGap: Dp get() = 16.dp
+val bottomNavHeight: Dp
+    get() = 52.dp
+val bottomNavGap: Dp
+    get() = 16.dp
 
 /** Tres números en una tarjeta, separados por líneas. El `d2-stats` de la web. */
 @Composable
@@ -117,7 +123,7 @@ fun StatsCard(datos: List<Pair<String, String>>, modifier: Modifier = Modifier) 
             .clip(esquina)
             .background(theme.vidrio(1))
             .border(BorderStroke(1.dp, theme.borde), esquina)
-            .padding(vertical = 16.dp, horizontal = 10.dp),
+            .padding(vertical = 16.dp, horizontal = 10.dp)
     ) {
         datos.forEachIndexed { indice, dato ->
             if (indice > 0) Box(Modifier.width(1.dp).height(34.dp).background(theme.borde))
@@ -148,8 +154,8 @@ fun StatsCard(datos: List<Pair<String, String>>, modifier: Modifier = Modifier) 
 }
 
 /**
- * Panel de vidrio con filas separadas por una línea fina, como `.d2-routine-list`:
- * la lista se lee como un objeto y no como una pila.
+ * Panel de vidrio con filas separadas por una línea fina, como `.d2-routine-list`: la lista se lee
+ * como un objeto y no como una pila.
  */
 @Composable
 fun PanelLista(modifier: Modifier = Modifier, contenido: @Composable () -> Unit) {
@@ -172,9 +178,7 @@ fun Separador() {
     Box(Modifier.fillMaxWidth().height(1.dp).background(tema.borde))
 }
 
-/**
- * Una fila de lista: nombre, detalle abajo, y un valor opcional a la derecha.
- */
+/** Una fila de lista: nombre, detalle abajo, y un valor opcional a la derecha. */
 @Composable
 fun FilaLista(
     nombre: String,
@@ -194,12 +198,19 @@ fun FilaLista(
             .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier)
             .padding(horizontal = 18.dp, vertical = 13.dp),
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         if (miniatura != null) {
             Miniatura(miniatura, lado = 40.dp, modifier = Modifier.padding(end = 2.dp))
         }
-        Column(Modifier.weight(1f).padding(end = 8.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+        Column(
+            Modifier.weight(1f).padding(end = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(5.dp),
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 Text(
                     nombre,
                     color = theme.texto,
@@ -224,9 +235,13 @@ fun FilaLista(
             )
         }
         if (valor != null) {
-            Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(3.dp),
+            ) {
                 Text(valor, color = theme.texto, fontSize = 13.sp, lineHeight = 17.sp, maxLines = 1)
-                if (unidad != null) Text(unidad, color = theme.texto3, fontSize = 9.sp, lineHeight = 13.sp)
+                if (unidad != null)
+                    Text(unidad, color = theme.texto3, fontSize = 9.sp, lineHeight = 13.sp)
             }
         }
         if (chevron) {
@@ -241,29 +256,27 @@ fun FilaLista(
 }
 
 /**
- * La animación del ejercicio. Fondo claro siempre: son trazos negros sobre blanco
- * y sobre el vidrio de un tema oscuro no se ven.
+ * La animación del ejercicio. Fondo claro siempre: son trazos negros sobre blanco y sobre el vidrio
+ * de un tema oscuro no se ven.
  */
 @Composable
 fun Miniatura(url: String?, lado: Dp = 54.dp, modifier: Modifier = Modifier) {
     Box(
-        modifier
-            .size(lado)
-            .clip(RoundedCornerShape(lado * 0.3f))
-            .background(Color(0xFFF2F2F2f2.toInt())),
+        modifier.size(lado).clip(RoundedCornerShape(lado * 0.3f)).background(Color(0xFFF2F2F2)),
         contentAlignment = Alignment.Center,
     ) {
-        val marcador = @Composable {
-            Icon(Icons.Filled.FitnessCenter, null, tint = Color(0xFF999999))
-        }
+        val marcador =
+            @Composable { Icon(Icons.Filled.FitnessCenter, null, tint = Color(0xFF999999)) }
         if (url != null) {
             SubcomposeAsyncImage(
-                model =
-                    ImageRequest.Builder(LocalContext.current).data(url).build(),
+                model = ImageRequest.Builder(LocalContext.current).data(url).build(),
                 contentDescription = null,
-                contentScale = ContentScale.Crop,
+                contentScale =
+                    if (url.substringBefore('?').endsWith(".gif", ignoreCase = true))
+                        ContentScale.Fit
+                    else ContentScale.Crop,
                 modifier = Modifier.fillMaxSize(),
-                loading = {},
+                loading = { marcador() },
                 error = { marcador() },
             )
         } else {
@@ -292,7 +305,13 @@ fun Vacio(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Text(texto, color = theme.texto2, fontSize = 14.sp, lineHeight = 20.sp, textAlign = TextAlign.Center)
+        Text(
+            texto,
+            color = theme.texto2,
+            fontSize = 14.sp,
+            lineHeight = 20.sp,
+            textAlign = TextAlign.Center,
+        )
         if (accionTitulo != null && onAccion != null) {
             SolidButton(accionTitulo, expands = false, onClick = onAccion)
         }
@@ -300,8 +319,8 @@ fun Vacio(
 }
 
 /**
- * La atribución de los gifs. Es condición de la licencia: donde se ven las
- * animaciones tiene que estar el crédito.
+ * La atribución de los gifs. Es condición de la licencia: donde se ven las animaciones tiene que
+ * estar el crédito.
  */
 @Composable
 fun CreditoGifs(modifier: Modifier = Modifier) {
@@ -318,12 +337,13 @@ fun CreditoGifs(modifier: Modifier = Modifier) {
 /** El ícono de reintentar, para el banner de error de carga. */
 @Composable
 fun Pill(valor: String, color: Color = tema.solido) {
-    Box(
-        Modifier
-            .clip(CircleShape)
-            .background(color)
-            .padding(horizontal = 10.dp, vertical = 5.dp),
-    ) {
-        Text(valor, color = tema.sobreSolido, fontSize = 11.sp, lineHeight = 15.sp, fontWeight = FontWeight.SemiBold)
+    Box(Modifier.clip(CircleShape).background(color).padding(horizontal = 10.dp, vertical = 5.dp)) {
+        Text(
+            valor,
+            color = tema.sobreSolido,
+            fontSize = 11.sp,
+            lineHeight = 15.sp,
+            fontWeight = FontWeight.SemiBold,
+        )
     }
 }

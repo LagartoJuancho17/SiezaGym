@@ -1,15 +1,16 @@
 package com.siezagym.app.Features.Shared
 
 import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
@@ -21,9 +22,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.dp
-import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.compose.ui.unit.sp
 import androidx.health.connect.client.PermissionController
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
@@ -57,9 +57,9 @@ fun RootView(auth: AuthService) {
     // El recorrido va antes del login y sólo la primera vez en cada teléfono.
     val recorrido = remember { OnboardingStore(context) }
     var mostrarRecorrido by remember { mutableStateOf(recorrido.pendiente) }
-    when (val current = state) {
-        AuthService.State.Loading -> Cargando("Abriendo la cuenta…")
-        AuthService.State.SignedOut ->
+    SessionGate(
+        state,
+        signedOut = {
             if (mostrarRecorrido) {
                 OnboardingScreen(
                     onComplete = {
@@ -70,7 +70,8 @@ fun RootView(auth: AuthService) {
             } else {
                 LoginScreen(auth)
             }
-        is AuthService.State.SignedIn ->
+        },
+        signedIn = { current ->
             key(current.uid) {
                 // The account owns all ViewModels. Sign-out cancels loads and removes private
                 // state.
@@ -92,6 +93,21 @@ fun RootView(auth: AuthService) {
                     )
                 MainTabs(auth, store)
             }
+        },
+    )
+}
+
+/** Sólo una sesión Firebase autenticada puede montar los datos y las pestañas. */
+@Composable
+internal fun SessionGate(
+    state: AuthService.State,
+    signedOut: @Composable () -> Unit,
+    signedIn: @Composable (AuthService.State.SignedIn) -> Unit,
+) {
+    when (state) {
+        AuthService.State.Loading -> Cargando("Abriendo la cuenta…")
+        AuthService.State.SignedOut -> signedOut()
+        is AuthService.State.SignedIn -> key(state.uid) { signedIn(state) }
     }
 }
 
@@ -108,10 +124,10 @@ private fun MainTabs(auth: AuthService, store: GymStore) {
     val pedirSalud =
         rememberLauncherForActivityResult(
             PermissionController.createRequestPermissionResultContract()
-        ) { concedidos -> health.onPermissionResult(concedidos) }
-    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
-        scope.launch { health.refreshIfConnected() }
-    }
+        ) { concedidos ->
+            health.onPermissionResult(concedidos)
+        }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { scope.launch { health.refreshIfConnected() } }
     val entry by nav.currentBackStackEntryAsState()
     val route = entry?.destination?.route.orEmpty()
     val active =
@@ -155,7 +171,9 @@ private fun MainTabs(auth: AuthService, store: GymStore) {
                             RoutinesScreen(
                                 data = data,
                                 onCreate = { nav.navigate("composer") },
-                                onEdit = { nav.navigate("composer/${Uri.encode(it.id)}/${it.isAssigned}") },
+                                onEdit = {
+                                    nav.navigate("composer/${Uri.encode(it.id)}/${it.isAssigned}")
+                                },
                                 onOpen = {
                                     nav.navigate("routine/${Uri.encode(it.id)}/${it.isAssigned}")
                                 },
@@ -181,10 +199,12 @@ private fun MainTabs(auth: AuthService, store: GymStore) {
                         )
                     }
                     composable("composer/{id}/{assigned}") { editando ->
-                        val original = data.routines.firstOrNull {
-                            it.id == editando.arguments?.getString("id") &&
-                                it.isAssigned == (editando.arguments?.getString("assigned") == "true")
-                        }
+                        val original =
+                            data.routines.firstOrNull {
+                                it.id == editando.arguments?.getString("id") &&
+                                    it.isAssigned ==
+                                        (editando.arguments?.getString("assigned") == "true")
+                            }
                         if (original != null && !original.isAssigned) {
                             RoutineComposerScreen(
                                 data = data,
@@ -209,7 +229,8 @@ private fun MainTabs(auth: AuthService, store: GymStore) {
                         val routine =
                             data.routines.firstOrNull {
                                 it.id == detail.arguments?.getString("id") &&
-                                    it.isAssigned == (detail.arguments?.getString("assigned") == "true")
+                                    it.isAssigned ==
+                                        (detail.arguments?.getString("assigned") == "true")
                             }
                         val week = data.currentWeek
                         if (routine != null) {
@@ -219,7 +240,9 @@ private fun MainTabs(auth: AuthService, store: GymStore) {
                                 onStart = { start(routine) },
                                 onVolver = { nav.popBackStack() },
                                 onEdit = {
-                                    nav.navigate("composer/${Uri.encode(routine.id)}/${routine.isAssigned}")
+                                    nav.navigate(
+                                        "composer/${Uri.encode(routine.id)}/${routine.isAssigned}"
+                                    )
                                 },
                                 onToggleWeek = {
                                     scope.launch {
@@ -242,65 +265,13 @@ private fun MainTabs(auth: AuthService, store: GymStore) {
                     }
                 }
 
-                navigation(startDestination = "history", route = AppTab.HISTORY.name) {
-                    composable("history") {
-                        Pantalla(titulo = "Historial") {
-                            PullToRefreshBox(data.isLoading, { store.load() }) {
-                                HistoryScreen(data) { nav.navigate("session/${Uri.encode(it.id)}") }
-                            }
-                        }
-                    }
-                    composable("session/{id}") { detail ->
-                        val session = data.sessions.firstOrNull { it.id == detail.arguments?.getString("id") }
-                        Pantalla(
-                            titulo = session?.let(::sessionDate) ?: "Sesión",
-                            volver = true,
-                            onVolver = { nav.popBackStack() },
-                        ) {
-                            if (session != null) SessionDetailScreen(session, data) else NoEncontrado(data)
-                        }
-                    }
-                }
-
-                // Progreso ya no es una pestaña: son cinco pantallas dentro de
-                // Perfil, con su propio título y vuelta atrás.
-                navigation(startDestination = "profile", route = AppTab.PROFILE.name) {
-                    composable("profile") {
-                        Pantalla(titulo = "Perfil") {
-                            ProfileScreen(data, store, auth) { destino -> nav.navigate(destino) }
-                        }
-                    }
-                    composable("progreso/volume") {
-                        Pantalla(titulo = "Volumen", volver = true, onVolver = { nav.popBackStack() }) {
-                            VolumeScreen(data)
-                        }
-                    }
-                    composable("progreso/dias") {
-                        Pantalla(titulo = "Días entrenados", volver = true, onVolver = { nav.popBackStack() }) {
-                            TrainedDaysScreen(data)
-                        }
-                    }
-                    composable("progreso/musculos") {
-                        Pantalla(titulo = "Volumen por músculo", volver = true, onVolver = { nav.popBackStack() }) {
-                            MuscleVolumeScreen(data)
-                        }
-                    }
-                    composable("progreso/empuje-traccion") {
-                        Pantalla(titulo = "Empuje y tracción", volver = true, onVolver = { nav.popBackStack() }) {
-                            PushPullScreen(data)
-                        }
-                    }
-                    composable("progreso/ejercicio/{id}") { detail ->
-                        val id = detail.arguments?.getString("id").orEmpty()
-                        Pantalla(
-                            titulo = data.name(id),
-                            volver = true,
-                            onVolver = { nav.popBackStack() },
-                        ) {
-                            ExerciseHistoryScreen(id, data)
-                        }
-                    }
-                }
+                accountDestinations(
+                    nav,
+                    data,
+                    { store.load() },
+                    store::updateProfile,
+                    auth::signOut,
+                )
 
                 composable("workout/{id}/{assigned}") { detail ->
                     val id = detail.arguments?.getString("id")
@@ -309,14 +280,20 @@ private fun MainTabs(auth: AuthService, store: GymStore) {
                             it.id == id &&
                                 it.isAssigned == (detail.arguments?.getString("assigned") == "true")
                         }
-                        // La rutina pudo borrarse mientras el entrenamiento estaba en standby. Las
-                        // series ya cargadas están en el borrador, así que se sigue con ésas.
-                        ?: store.activeWorkout?.routine?.takeIf { it.id == id }
+                            // La rutina pudo borrarse mientras el entrenamiento estaba en standby.
+                            // Las
+                            // series ya cargadas están en el borrador, así que se sigue con ésas.
+                            ?: store.activeWorkout?.routine?.takeIf { it.id == id }
                     if (data.hasLoaded && (id == "free" || routine != null))
                         WorkoutScreen(routine, data, store) { nav.popBackStack() }
-                    else Pantalla(titulo = "Entrenamiento", volver = true, onVolver = { nav.popBackStack() }) {
-                        NoEncontrado(data)
-                    }
+                    else
+                        Pantalla(
+                            titulo = "Entrenamiento",
+                            volver = true,
+                            onVolver = { nav.popBackStack() },
+                        ) {
+                            NoEncontrado(data)
+                        }
                 }
             }
         }
@@ -325,6 +302,7 @@ private fun MainTabs(auth: AuthService, store: GymStore) {
             Column(
                 Modifier.align(Alignment.BottomCenter).padding(bottom = bottomNavGap),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 // Volver de un entrenamiento no lo tira: la barra de acá ofrece seguir con el
                 // tiempo y las series que faltan.
@@ -362,8 +340,7 @@ private fun MiniBarraEntrenamiento(
 ) {
     val esquina = RoundedCornerShape(tema.esquina(Theme.radius))
     Row(
-        Modifier
-            .fillMaxWidth()
+        Modifier.fillMaxWidth()
             .clip(esquina)
             .background(tema.vidrio(3))
             .border(BorderStroke(1.dp, tema.solido.copy(alpha = 0.35f)), esquina)
@@ -386,12 +363,7 @@ private fun MiniBarraEntrenamiento(
                 fontSize = 11.sp,
             )
         }
-        SolidButton(
-            "Reanudar",
-            Modifier.heightIn(min = 32.dp),
-            expands = false,
-            onClick = onSeguir,
-        )
+        SolidButton("Reanudar", Modifier.heightIn(min = 32.dp), expands = false, onClick = onSeguir)
         IconButton(onClick = onDescartar, modifier = Modifier.size(34.dp)) {
             Icon(
                 Icons.Filled.Close,
@@ -424,7 +396,12 @@ private fun BannerError(error: String, onRetry: () -> Unit) {
             Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(error, Modifier.weight(1f), color = tema.texto2, style = androidx.compose.material3.MaterialTheme.typography.bodySmall)
+            Text(
+                error,
+                Modifier.weight(1f),
+                color = tema.texto2,
+                style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
+            )
             GhostButton("Reintentar", onClick = onRetry)
         }
     }

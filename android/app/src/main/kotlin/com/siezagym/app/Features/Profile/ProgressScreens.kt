@@ -5,12 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.SwapHoriz
-import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.FitnessCenter
-import androidx.compose.material.icons.filled.ShowChart
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,10 +23,7 @@ import com.siezagym.app.Domain.HomeMetrics
 import com.siezagym.app.Domain.ProgressMetrics
 import com.siezagym.app.Services.GymData
 
-/**
- * El volumen en tres vistas: semana a semana, por día de la semana y las últimas
- * sesiones.
- */
+/** El volumen en tres vistas: semana a semana, por día de la semana y las últimas sesiones. */
 @Composable
 fun VolumeScreen(data: GymData) {
     val barras = ProgressMetrics.volumeByWeek(data.sessions, weeks = 12)
@@ -49,12 +41,12 @@ fun VolumeScreen(data: GymData) {
                 ) {
                     barras.forEach { barra ->
                         Box(
-                            Modifier
-                                .weight(1f)
+                            Modifier.weight(1f)
                                 .height(maxOf(4.dp, (96 * barra.height).dp))
                                 .clip(RoundedCornerShape(4.dp))
                                 .background(
-                                    if (barra.isEmpty) tema.texto3.copy(alpha = .35f) else tema.solido
+                                    if (barra.isEmpty) tema.texto3.copy(alpha = .35f)
+                                    else tema.solido
                                 )
                         )
                     }
@@ -91,12 +83,12 @@ fun VolumeScreen(data: GymData) {
                                 verticalArrangement = Arrangement.spacedBy(6.dp),
                             ) {
                                 Box(
-                                    Modifier
-                                        .fillMaxWidth()
+                                    Modifier.fillMaxWidth()
                                         .height(maxOf(4.dp, (72 * dia.pct).dp))
                                         .clip(RoundedCornerShape(3.dp))
                                         .background(
-                                            if (dia.kg > 0) tema.solido else tema.texto3.copy(alpha = .35f)
+                                            if (dia.kg > 0) tema.solido
+                                            else tema.texto3.copy(alpha = .35f)
                                         )
                                 )
                                 Text(
@@ -108,13 +100,16 @@ fun VolumeScreen(data: GymData) {
                             }
                         }
                     }
-                    porDia.maxByOrNull { it.kg }?.takeIf { it.kg > 0 }?.let { mejor ->
-                        Text(
-                            "${mejor.label.replaceFirstChar { c -> c.uppercase() }} concentra más volumen",
-                            color = tema.texto2,
-                            fontSize = 10.sp,
-                        )
-                    }
+                    porDia
+                        .maxByOrNull { it.kg }
+                        ?.takeIf { it.kg > 0 }
+                        ?.let { mejor ->
+                            Text(
+                                "${mejor.label.replaceFirstChar { c -> c.uppercase() }} concentra más volumen",
+                                color = tema.texto2,
+                                fontSize = 10.sp,
+                            )
+                        }
                 }
             }
         }
@@ -133,14 +128,15 @@ fun VolumeScreen(data: GymData) {
                         ) {
                             tendencia.points.forEach { kg ->
                                 Box(
-                                    Modifier
-                                        .weight(1f)
+                                    Modifier.weight(1f)
                                         .height(
-                                            if (maximo > 0) maxOf(4.dp, (72 * kg / maximo).dp) else 4.dp
+                                            if (maximo > 0) maxOf(4.dp, (72 * kg / maximo).dp)
+                                            else 4.dp
                                         )
                                         .clip(RoundedCornerShape(3.dp))
                                         .background(
-                                            if (kg > 0) tema.solido else tema.texto3.copy(alpha = .35f)
+                                            if (kg > 0) tema.solido
+                                            else tema.texto3.copy(alpha = .35f)
                                         )
                                 )
                             }
@@ -178,8 +174,7 @@ fun TrainedDaysScreen(data: GymData) {
                         ) {
                             columna.forEach { dia ->
                                 Box(
-                                    Modifier
-                                        .weight(1f)
+                                    Modifier.weight(1f)
                                         .fillMaxWidth()
                                         .clip(RoundedCornerShape(2.5.dp))
                                         .background(
@@ -194,7 +189,8 @@ fun TrainedDaysScreen(data: GymData) {
                 }
                 Row(Modifier.fillMaxWidth()) {
                     Nota(
-                        if (grilla.total == 1) "1 día entrenado" else "${grilla.total} días entrenados",
+                        if (grilla.total == 1) "1 día entrenado"
+                        else "${grilla.total} días entrenados",
                         Modifier.weight(1f),
                     )
                     Nota(
@@ -209,8 +205,8 @@ fun TrainedDaysScreen(data: GymData) {
 }
 
 /**
- * Dónde fue el volumen, repartido por grupo muscular. Usa el cálculo completo
- * (hasta 8 filas) y no el resumen de tres filas de Inicio.
+ * Dónde fue el volumen, repartido por grupo muscular. Usa el cálculo completo (hasta 8 filas) y no
+ * el resumen de tres filas de Inicio.
  */
 @Composable
 fun MuscleVolumeScreen(data: GymData) {
@@ -260,21 +256,29 @@ fun PushPullScreen(data: GymData) {
         } else {
             GlassCard {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Row(
-                        Modifier.fillMaxWidth().height(26.dp).clip(RoundedCornerShape(9.dp))
-                    ) {
+                    Row(Modifier.fillMaxWidth().height(26.dp).clip(RoundedCornerShape(9.dp))) {
                         Box(
-                            Modifier
-                                .fillMaxHeight()
+                            Modifier.fillMaxHeight()
                                 .weight(balance.pct.coerceAtLeast(1).toFloat())
                                 .background(tema.solido)
                         )
-                        Box(Modifier.fillMaxHeight().weight((100 - balance.pct).coerceAtLeast(1).toFloat()).background(tema.vidrio(3)))
+                        Box(
+                            Modifier.fillMaxHeight()
+                                .weight((100 - balance.pct).coerceAtLeast(1).toFloat())
+                                .background(tema.vidrio(3))
+                        )
                     }
                     Row(Modifier.fillMaxWidth()) {
-                        Nota("empuje ${ProgressMetrics.formatKg(balance.pushKg.toDouble())}", Modifier.weight(1f))
+                        Nota(
+                            "empuje ${ProgressMetrics.formatKg(balance.pushKg.toDouble())}",
+                            Modifier.weight(1f),
+                        )
                         Nota(balance.label, Modifier.weight(1f), centrado = true, atenuado = true)
-                        Nota("tracción ${ProgressMetrics.formatKg(balance.pullKg.toDouble())}", Modifier.weight(1f), derecha = true)
+                        Nota(
+                            "tracción ${ProgressMetrics.formatKg(balance.pullKg.toDouble())}",
+                            Modifier.weight(1f),
+                            derecha = true,
+                        )
                     }
                 }
             }
@@ -283,84 +287,34 @@ fun PushPullScreen(data: GymData) {
 }
 
 /**
- * Una fila por ejercicio: cuántas veces lo entrenaste y tu mejor 1RM estimado.
- * Con pantalla propia entran más de los 12 que se mostraban antes.
+ * Una fila por ejercicio: cuántas veces lo entrenaste y tu mejor 1RM estimado. Con pantalla propia
+ * entran más de los 12 que se mostraban antes.
  */
 @Composable
-fun ExerciseHistoryScreen(exerciseID: String, data: GymData) {
+fun ExerciseHistoryScreen(data: GymData) {
     val ejercicios = ProgressMetrics.byExercise(data.sessions, limit = 30)
-    val ejercicio = data.catalog[exerciseID]
-    val hayGifs = ejercicios.any { data.catalog[it.exerciseID]?.thumbnailUrl != null }
-
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        if (ejercicio != null) {
-            GlassCard {
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Miniatura(ejercicio.thumbnailUrl, lado = 48.dp)
-                    Column(Modifier.weight(1f)) {
-                        Text(ejercicio.nameEs, color = tema.texto, fontSize = 15.sp, fontWeight = FontWeight.Medium)
-                        if (ejercicio.descriptionEs.isNotBlank())
-                            Text(
-                                ejercicio.descriptionEs,
-                                color = tema.texto2,
-                                fontSize = 12.sp,
-                                maxLines = 3,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                    }
-                }
-            }
-        }
-
+    Column(Modifier.padding(top = 12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         if (ejercicios.isEmpty()) {
             Vacio("Todavía no terminaste ningún entrenamiento.")
         } else {
             PanelLista {
                 ejercicios.forEachIndexed { indice, fila ->
                     if (indice > 0) Separador()
-                    FilaEjercicio(fila, data)
+                    FilaLista(
+                        nombre = data.name(fila.exerciseID),
+                        detalle =
+                            if (fila.sessions == 1) "1 entrenamiento"
+                            else "${fila.sessions} entrenamientos",
+                        valor =
+                            if (fila.bestOneRepMax > 0) "${number(fila.bestOneRepMax)} kg"
+                            else null,
+                        unidad = if (fila.bestOneRepMax > 0) "1RM est." else null,
+                        miniatura = data.catalog[fila.exerciseID]?.thumbnailUrl,
+                        chevron = false,
+                    )
                 }
             }
-            if (hayGifs) CreditoGifs()
-        }
-    }
-}
-
-@Composable
-private fun FilaEjercicio(fila: ProgressMetrics.ExerciseRow, data: GymData) {
-    val ejercicio = data.catalog[fila.exerciseID]
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .clickable { }
-            .padding(horizontal = 18.dp, vertical = 13.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Miniatura(ejercicio?.thumbnailUrl, lado = 40.dp, modifier = Modifier.padding(end = 2.dp))
-        Column(Modifier.weight(1f).padding(end = 8.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-            Text(
-                ejercicio?.nameEs ?: fila.exerciseID,
-                color = tema.texto,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Medium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Text(
-                if (fila.sessions == 1) "1 entrenamiento" else "${fila.sessions} entrenamientos",
-                color = tema.texto2,
-                fontSize = 11.sp,
-            )
-        }
-        if (fila.bestOneRepMax > 0) {
-            Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                Text("${fila.bestOneRepMax} kg", color = tema.texto, fontSize = 13.sp)
-                Text("1RM est.", color = tema.texto3, fontSize = 9.sp)
-            }
+            if (ejercicios.any { data.catalog[it.exerciseID]?.thumbnailUrl != null }) CreditoGifs()
         }
     }
 }
@@ -368,10 +322,7 @@ private fun FilaEjercicio(fila: ProgressMetrics.ExerciseRow, data: GymData) {
 /** Una tarjeta de la grilla de progreso: ícono, título y el dato clave. */
 @Composable
 fun TarjetaProgreso(icono: ImageVector, titulo: String, valor: String, onClick: () -> Unit) {
-    GlassCard(
-        modifier = Modifier.clickable(onClick = onClick),
-        padding = 14.dp,
-    ) {
+    GlassCard(modifier = Modifier.clickable(onClick = onClick), padding = 14.dp) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Icon(icono, null, tint = tema.solido, modifier = Modifier.size(15.dp))
@@ -418,10 +369,11 @@ private fun Nota(
         modifier,
         color = if (atenuado) tema.texto3 else tema.texto2,
         fontSize = 10.sp,
-        textAlign = when {
-            centrado -> androidx.compose.ui.text.style.TextAlign.Center
-            derecha -> androidx.compose.ui.text.style.TextAlign.End
-            else -> androidx.compose.ui.text.style.TextAlign.Start
-        },
+        textAlign =
+            when {
+                centrado -> androidx.compose.ui.text.style.TextAlign.Center
+                derecha -> androidx.compose.ui.text.style.TextAlign.End
+                else -> androidx.compose.ui.text.style.TextAlign.Start
+            },
     )
 }

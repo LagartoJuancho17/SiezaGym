@@ -8,6 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.MutableState
@@ -19,18 +20,19 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.siezagym.app.R
 import com.siezagym.app.Services.WidgetBridge
 
 /**
- * Un tema del diseño: los mismos tokens que `.d2[data-d2-theme="..."]` en la web.
- * Los valores están en [temasDesign2].
+ * Un tema del diseño: los mismos tokens que `.d2[data-d2-theme="..."]` en la web. Los valores están
+ * en [temasDesign2].
  */
 data class Theme(
     val id: String,
@@ -63,33 +65,37 @@ data class Theme(
     val obra: Int?,
 ) {
     /** Un color plano del tema, para las barras del sistema y rellenos de respaldo. */
-    val fondoPlano: Color get() = fondo.last().second
+    val fondoPlano: Color
+        get() = fondo.last().second
 
     /**
-     * Los temas anteriores conservan el vidrio. En SIEZA cada superficie es
-     * opaca: el fondo no se filtra ni cambia el contraste de los controles.
+     * Los temas anteriores conservan el vidrio. En SIEZA cada superficie es opaca: el fondo no se
+     * filtra ni cambia el contraste de los controles.
      */
     fun vidrio(nivel: Int = 1): Color {
         if (plano)
             return (when {
-                    nivel >= 3 -> superficie3
-                    nivel == 2 -> superficie2
-                    else -> superficie1
-                })
-                ?: fondoPlano
-        val opacidad = when {
-            nivel >= 3 -> glass3
-            nivel == 2 -> glass2
-            else -> glass1
-        }
+                nivel >= 3 -> superficie3
+                nivel == 2 -> superficie2
+                else -> superficie1
+            }) ?: fondoPlano
+        val opacidad =
+            when {
+                nivel >= 3 -> glass3
+                nivel == 2 -> glass2
+                else -> glass1
+            }
         return Color.White.copy(alpha = opacidad.toFloat())
     }
 
     /** La esquina de las tarjetas: SIEZA, que es plano, usa la chica. */
     fun esquina(radio: Float): Float = if (plano) minOf(radio, 18f) else radio
 
-    val radio: Dp get() = if (plano) 18.dp else 24.dp
-    val radioSmall: Dp get() = if (plano) 14.dp else 16.dp
+    val radio: Dp
+        get() = if (plano) 18.dp else 24.dp
+
+    val radioSmall: Dp
+        get() = if (plano) 14.dp else 16.dp
 
     companion object {
         /** Radios del diseño, iguales a los de la web. */
@@ -97,11 +103,10 @@ data class Theme(
         const val radiusSmall = 16f
 
         /**
-         * El verde de "terminado". Es el único color fijo del diseño: no sale
-         * del tema porque significa una sola cosa y tiene que significarla
-         * igual en todos. El sólido de cada tema ya se usa para "lo importante
-         * de esta pantalla"; si el terminado también fuera el sólido, en
-         * Plata (casi negro) no se distinguiría de lo pendiente.
+         * El verde de "terminado". Es el único color fijo del diseño: no sale del tema porque
+         * significa una sola cosa y tiene que significarla igual en todos. El sólido de cada tema
+         * ya se usa para "lo importante de esta pantalla"; si el terminado también fuera el sólido,
+         * en Plata (casi negro) no se distinguiría de lo pendiente.
          */
         val hecho = Color(52 / 255f, 199 / 255f, 89 / 255f)
 
@@ -160,8 +165,7 @@ data class Theme(
         val chartLight: Color
             @Composable get() = tema.texto3
 
-        @Composable
-        fun fondoBrush(): Brush = Brush.verticalGradient(*tema.fondo.toTypedArray())
+        @Composable fun fondoBrush(): Brush = tema.fondoVertical()
     }
 }
 
@@ -169,19 +173,19 @@ private const val PREFS = "sieza-diseno"
 private const val CLAVE_TEMA = "d2-theme-v2"
 
 /**
- * El tema elegido, guardado en el aparato igual que en la web. `UserDefaults`
- * es el equivalente de `SharedPreferences`: es una preferencia del teléfono,
- * no de la cuenta, así que no viaja a Firestore.
+ * El tema elegido, guardado en el aparato igual que en la web. `UserDefaults` es el equivalente de
+ * `SharedPreferences`: es una preferencia del teléfono, no de la cuenta, así que no viaja a
+ * Firestore.
  */
 class ThemeStore(context: Context) {
     private val appContext = context.applicationContext
-    private val prefs: SharedPreferences =
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+    private val prefs: SharedPreferences = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
     private val estado: MutableState<Theme> =
         mutableStateOf(Theme.conId(prefs.getString(CLAVE_TEMA, null)))
 
-    val actual: Theme get() = estado.value
+    val actual: Theme
+        get() = estado.value
 
     fun seleccionar(theme: Theme) {
         estado.value = theme
@@ -200,6 +204,7 @@ class ThemeStore(context: Context) {
 }
 
 val LocalTheme = staticCompositionLocalOf { Theme.porDefecto }
+private val LocalThemeStore = staticCompositionLocalOf<ThemeStore?> { null }
 
 /** Atajo de lectura: `tema.texto` en lugar de `LocalTheme.current.texto`. */
 val tema: Theme
@@ -208,20 +213,48 @@ val tema: Theme
 @Composable
 fun rememberThemeStore(): ThemeStore {
     val context = LocalContext.current
-    return remember(context) { ThemeStore(context) }
+    val inherited = LocalThemeStore.current
+    return inherited ?: remember(context) { ThemeStore(context) }
 }
 
 @Composable
 fun SiezaTheme(theme: Theme, content: @Composable () -> Unit) {
-    CompositionLocalProvider(LocalTheme provides theme) { content() }
+    val base = if (theme.fondoPlano.luminance() > 0.5f) lightColorScheme() else darkColorScheme()
+    val colors =
+        base.copy(
+            primary = theme.solido,
+            onPrimary = theme.sobreSolido,
+            secondary = theme.solido,
+            onSecondary = theme.sobreSolido,
+            background = theme.fondoPlano,
+            onBackground = theme.texto,
+            surface = theme.superficie1 ?: theme.fondoPlano,
+            onSurface = theme.texto,
+            onSurfaceVariant = theme.texto2,
+            outline = theme.borde,
+        )
+    MaterialTheme(colorScheme = colors) {
+        CompositionLocalProvider(
+            LocalTheme provides theme,
+            LocalTextStyle provides TextStyle(fontSize = 14.sp),
+        ) {
+            content()
+        }
+    }
+}
+
+/** Comparte la preferencia observable entre la raíz y el selector de Perfil. */
+@Composable
+fun SiezaTheme(store: ThemeStore, content: @Composable () -> Unit) {
+    CompositionLocalProvider(LocalThemeStore provides store) { SiezaTheme(store.actual, content) }
 }
 
 /**
- * El fondo de la app: superficie plana en SIEZA; en los temas anteriores, obra o
- * degradado con luces y manchas.
+ * El fondo de la app: superficie plana en SIEZA; en los temas anteriores, obra o degradado con
+ * luces y manchas.
  *
- * Las manchas no son decoración: el vidrio de las tarjetas difumina lo que tiene
- * atrás, y sobre un color plano el desenfoque no se percibe.
+ * Las manchas no son decoración: el vidrio de las tarjetas difumina lo que tiene atrás, y sobre un
+ * color plano el desenfoque no se percibe.
  */
 @Composable
 fun Backdrop(modifier: Modifier = Modifier, content: @Composable BoxScope.() -> Unit) {
@@ -269,9 +302,8 @@ private fun DrawScope.luz(color: Color, x: Float, y: Float, radio: Float) {
 }
 
 /**
- * Una mancha de color. SwiftUI la difumina con `blur(radius: 70)`; el
- * degradado que se apaga da el mismo resultado y funciona desde API 26, donde
- * `Modifier.blur` todavía no existe.
+ * Una mancha de color. SwiftUI la difumina con `blur(radius: 70)`; el degradado que se apaga da el
+ * mismo resultado y funciona desde API 26, donde `Modifier.blur` todavía no existe.
  */
 private fun DrawScope.mancha(color: Color, x: Float, y: Float, lado: Float) {
     val centro = Offset(size.width * x, size.height * y)
@@ -287,12 +319,8 @@ private fun DrawScope.mancha(color: Color, x: Float, y: Float, lado: Float) {
     )
 }
 
-/**
- * El `tracking` de SwiftUI va en puntos; el `letterSpacing` de Compose es
- * relativo al tamaño de fuente. Esta función hace la conversión para poder
- * copiar los valores del diseño tal cual.
- */
-fun tracking(puntos: Float, fontSize: Float): Float = puntos / fontSize
+/** Los llamados usan `.sp`: los puntos de SwiftUI se conservan como unidades absolutas. */
+@Suppress("UNUSED_PARAMETER") fun tracking(puntos: Float, fontSize: Float): Float = puntos
 
 /** El texto del cuerpo: 15 pt medianos, el mismo aire del diseño. */
 fun textoPrincipal() = 15.sp

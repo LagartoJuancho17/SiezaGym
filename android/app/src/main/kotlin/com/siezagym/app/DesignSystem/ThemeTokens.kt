@@ -3,21 +3,21 @@ package com.siezagym.app.DesignSystem
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import com.siezagym.app.R
 
 /**
- * Tokens de los temas del diseño, espejo de
- * `ios/SiezaGymCompartido/ThemeTokens.swift` de `feat/ios-design2`. Ahí los
- * genera `ios/scripts/sync-theme.mjs` desde `app/design2.css`, que es la fuente
- * de verdad de los dos clientes.
+ * Tokens de los temas del diseño, espejo de `ios/SiezaGymCompartido/ThemeTokens.swift` de
+ * `feat/ios-design2`. Ahí los genera `ios/scripts/sync-theme.mjs` desde `app/design2.css`, que es
+ * la fuente de verdad de los dos clientes.
  *
- * Cada tema trae: tres niveles de tinta para el vidrio, los bordes, tres
- * escalones de texto, el sólido con su color de texto encima, las tres luces
- * que se apoyan sobre el degradado, tres manchas desenfocadas y el degradado
- * de fondo. SIEZA es el único plano: superficies opacas, sin desenfoque.
+ * Cada tema trae: tres niveles de tinta para el vidrio, los bordes, tres escalones de texto, el
+ * sólido con su color de texto encima, las tres luces que se apoyan sobre el degradado, tres
+ * manchas desenfocadas y el degradado de fondo. SIEZA es el único plano: superficies opacas, sin
+ * desenfoque.
  */
-
-private fun rgba(r: Int, g: Int, b: Int, a: Double = 1.0) = Color(r / 255f, g / 255f, b / 255f, a.toFloat())
+private fun rgba(r: Int, g: Int, b: Int, a: Double = 1.0) =
+    Color(r / 255f, g / 255f, b / 255f, a.toFloat())
 
 /** Los seis temas del diseño, en el mismo orden que la web. */
 val temasDesign2: List<Theme> =
@@ -47,12 +47,7 @@ val temasDesign2: List<Theme> =
             mancha3 = rgba(20, 22, 27, 0.9),
             fondoInicio = Offset(0.396f, 0.0109f),
             fondoFin = Offset(0.604f, 0.9891f),
-            fondo =
-                listOf(
-                    0f to rgba(26, 29, 34),
-                    0.52f to rgba(11, 12, 14),
-                    1f to rgba(0, 0, 0),
-                ),
+            fondo = listOf(0f to rgba(26, 29, 34), 0.52f to rgba(11, 12, 14), 1f to rgba(0, 0, 0)),
             obra = null,
         ),
         Theme(
@@ -114,12 +109,7 @@ val temasDesign2: List<Theme> =
             mancha3 = rgba(60, 10, 13, 0.85),
             fondoInicio = Offset(0.396f, 0.0109f),
             fondoFin = Offset(0.604f, 0.9891f),
-            fondo =
-                listOf(
-                    0f to rgba(59, 10, 12),
-                    0.55f to rgba(30, 4, 5),
-                    1f to rgba(11, 1, 2),
-                ),
+            fondo = listOf(0f to rgba(59, 10, 12), 0.55f to rgba(30, 4, 5), 1f to rgba(11, 1, 2)),
             obra = null,
         ),
         Theme(
@@ -209,13 +199,18 @@ val temasDesign2: List<Theme> =
     )
 
 /**
- * El degradado de fondo del tema. Las paradas de SwiftUI son fraccionarias
- * del alto y del ancho, así que acá hay que traducirlas a píxeles con el
- * tamaño real de la pantalla.
+ * El degradado de fondo del tema. Las paradas de SwiftUI son fraccionarias del alto y del ancho,
+ * así que acá hay que traducirlas a píxeles con el tamaño real de la pantalla.
  */
 internal fun Theme.fondoBrush(width: Float, height: Float): Brush =
-    Brush.linearGradient(
-        *fondo.toTypedArray(),
-        start = Offset(width * fondoInicio.x, height * fondoInicio.y),
-        end = Offset(width * fondoFin.x, height * fondoFin.y),
-    )
+    if (fondo.size == 1) SolidColor(fondoPlano)
+    else
+        Brush.linearGradient(
+            *fondo.toTypedArray(),
+            start = Offset(width * fondoInicio.x, height * fondoInicio.y),
+            end = Offset(width * fondoFin.x, height * fondoFin.y),
+        )
+
+/** SIEZA tiene un solo color; Android requiere al menos dos para un degradado. */
+internal fun Theme.fondoVertical(): Brush =
+    if (fondo.size == 1) SolidColor(fondoPlano) else Brush.verticalGradient(*fondo.toTypedArray())

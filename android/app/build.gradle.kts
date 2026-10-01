@@ -78,6 +78,7 @@ dependencies {
     // Las miniaturas de ejercicio son GIF remotos: coil-gif los anima.
     implementation(libs.coil.compose)
     implementation(libs.coil.gif)
+    implementation(libs.coil.network.okhttp)
 
     // Lee pasos, distancia y calorías del día desde Health Connect (el Apple Salud de Android).
     implementation(libs.androidx.health.connect)
@@ -86,6 +87,7 @@ dependencies {
     implementation(libs.androidx.glance.appwidget)
 
     testImplementation(libs.junit)
+    testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
     testImplementation("org.robolectric:robolectric:4.16.1")
     testImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-test-manifest")

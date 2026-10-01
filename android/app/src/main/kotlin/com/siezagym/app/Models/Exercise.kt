@@ -105,13 +105,17 @@ data class Exercise(
         get() = muscleWeights.maxByOrNull { it.value }?.key
 
     /**
-     * Lo que se dibuja en la miniatura. Los del catálogo traen su gif; los propios no tienen
-     * media, así que se usa la portada del video de YouTube, que sale del id y no hace falta
-     * guardar.
+     * Lo que se dibuja en la miniatura. Los del catálogo traen su gif; los propios no tienen media,
+     * así que se usa la portada del video de YouTube, que sale del id y no hace falta guardar.
      */
     val thumbnailUrl: String?
         get() {
-            if (mediaUrl != null) return mediaUrl
+            mediaUrl
+                ?.trim()
+                ?.takeIf { it.isNotEmpty() }
+                ?.let {
+                    return it
+                }
             val id = videoUrl?.let { YouTubeLink.id(it) } ?: return null
             return YouTubeLink.miniaturaParaId(id)
         }
@@ -140,7 +144,7 @@ data class Exercise(
                         ?: RegistrationType.PESO_REPS,
                 unilateral = FirestoreValue.bool(data["unilateral"]) ?: false,
                 descriptionEs = data["descriptionEs"] as? String ?: "",
-                mediaUrl = data["mediaUrl"] as? String,
+                mediaUrl = (data["mediaUrl"] as? String)?.trim()?.takeIf { it.isNotEmpty() },
                 source = source,
                 videoUrl = data["videoUrl"] as? String,
             )

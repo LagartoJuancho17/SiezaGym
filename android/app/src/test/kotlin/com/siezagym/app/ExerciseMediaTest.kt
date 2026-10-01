@@ -16,4 +16,19 @@ class ExerciseMediaTest {
             )
         assertEquals(url, exercise.mediaUrl)
     }
+
+    @Test
+    fun blankGifDoesNotHideCustomVideoThumbnail() {
+        val exercise =
+            Exercise.fromRawValue(
+                "custom",
+                mapOf(
+                    "mediaUrl" to "  ",
+                    "videoUrl" to "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                ),
+                com.siezagym.app.Models.ExerciseSource.CUSTOM,
+            )
+        org.junit.Assert.assertNull(exercise.mediaUrl)
+        assertEquals("https://img.youtube.com/vi/dQw4w9WgXcQ/mqdefault.jpg", exercise.thumbnailUrl)
+    }
 }

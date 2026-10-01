@@ -1,62 +1,56 @@
 package com.siezagym.app.Features.History
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.siezagym.app.DesignSystem.*
+import com.siezagym.app.Domain.Epley
 import com.siezagym.app.Domain.HomeMetrics
 import com.siezagym.app.Models.WorkoutSession
 import com.siezagym.app.Services.GymData
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlin.math.roundToInt
 
 fun sessionDate(session: WorkoutSession): String =
     session.finishedAt?.format(
-        DateTimeFormatter.ofPattern("d MMM yyyy", Locale.forLanguageTag("es-AR"))
-    ) ?: "Sesión"
+        DateTimeFormatter.ofPattern("d MMM yyyy · HH:mm", Locale.forLanguageTag("es-AR"))
+    ) ?: "Sin fecha"
 
+private fun duration(session: WorkoutSession): String {
+    val minutes = (HomeMetrics.sessionSeconds(session) / 60.0).roundToInt()
+    return if (minutes < 60) "$minutes min" else "${minutes / 60}h ${minutes % 60}min"
+}
+
+/** Contenido del único scroll de Pantalla; no anidar otra lista desplazable. */
 @Composable
 fun HistoryScreen(data: GymData, onOpen: (WorkoutSession) -> Unit) {
-    LazyColumn(
-        Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 100.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        if (data.sessions.isEmpty() && data.hasLoaded)
-            item {
-                SurfaceCard(padding = 24.dp) {
-                    Text(
-                        "Todavía no registraste entrenamientos.",
-                        color = Theme.cardMuted,
-                        fontSize = 14.sp,
+    Column(Modifier.fillMaxWidth().padding(top = 24.dp)) {
+        if (data.sessions.isEmpty() && data.hasLoaded) {
+            Vacio("Todavía no terminaste ningún entrenamiento.")
+        } else if (data.sessions.isNotEmpty()) {
+            PanelLista {
+                data.sessions.forEachIndexed { index, session ->
+                    if (index > 0) Separador()
+                    val date =
+                        session.finishedAt?.format(
+                            DateTimeFormatter.ofPattern("EEE d MMM", Locale.forLanguageTag("es-AR"))
+                        ) ?: "Sin fecha"
+                    FilaLista(
+                        nombre = session.routineName?.ifBlank { null } ?: "Sesión libre",
+                        detalle =
+                            "$date · ${duration(session)} · ${session.totalSetsCompleted} series",
+                        valor = "${number(session.totalVolumeKg.roundToInt())} kg",
+                        unidad = "volumen",
+                        chevron = false,
+                        onClick = { onOpen(session) },
                     )
                 }
-            }
-        items(data.sessions, key = { it.id }) { session ->
-            SurfaceCard(Modifier.clickable { onOpen(session) }, padding = 12.dp) {
-                Row {
-                    Text(
-                        session.routineName?.ifBlank { null } ?: "Entrenamiento libre",
-                        Modifier.weight(1f),
-                        color = Theme.cardText,
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    Text(sessionDate(session), color = Theme.cardMuted, fontSize = 11.sp)
-                }
-                Text(
-                    "${session.totalSetsCompleted} series    ${number(session.totalVolumeKg.toInt())} kg    ${HomeMetrics.sessionSeconds(session)/60} min",
-                    color = Theme.cardMuted,
-                    fontSize = 11.sp,
-                )
             }
         }
     }
@@ -64,46 +58,76 @@ fun HistoryScreen(data: GymData, onOpen: (WorkoutSession) -> Unit) {
 
 @Composable
 fun SessionDetailScreen(session: WorkoutSession, data: GymData) {
-    LazyColumn(
-        Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 100.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        item {
-            SurfaceCard {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Stat("${session.totalSetsCompleted}", "series")
-                    Stat(number(session.totalVolumeKg.toInt()), "kg")
-                    Stat("${HomeMetrics.sessionSeconds(session)/60}", "min")
-                    Stat("${HomeMetrics.calories(session,data.profile?.bodyWeightKg)}", "kcal est.")
-                }
-            }
-        }
-        items(session.exercises) { exercise ->
-            SurfaceCard(padding = 12.dp) {
-                Text(
-                    data.name(exercise.exerciseID),
-                    color = Theme.cardText,
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold,
-                )
-                exercise.sets.forEach { set ->
-                    Row(
-                        Modifier.fillMaxWidth().heightIn(min = 28.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                    ) {
-                        Text("Serie ${set.setNumber}", color = Theme.cardMuted, fontSize = 12.sp)
-                        if (set.failed) Text("fallada", color = Theme.accentHover, fontSize = 10.sp)
-                        Text(
-                            "${number(set.weight)} kg × ${set.reps}",
-                            color = Theme.cardText,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            textDecoration = if (set.failed) TextDecoration.LineThrough else null,
-                        )
+    Column(Modifier.fillMaxWidth().padding(top = 20.dp)) {
+        StatsCard(
+            listOf(
+                duration(session) to "duración",
+                "${session.totalSetsCompleted}" to "series",
+                "${number(session.totalVolumeKg.roundToInt())} kg" to "volumen",
+            )
+        )
+        Spacer(Modifier.height(24.dp))
+        SectionLabel("Ejercicios realizados")
+        Spacer(Modifier.height(10.dp))
+        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            session.exercises.forEach { exercise ->
+                GlassCard(padding = 16.dp) {
+                    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(13.dp),
+                        ) {
+                            Miniatura(data.catalog[exercise.exerciseID]?.thumbnailUrl, lado = 64.dp)
+                            Text(
+                                data.name(exercise.exerciseID),
+                                color = tema.texto,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Medium,
+                            )
+                        }
+                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            exercise.sets.forEach { set ->
+                                Row(
+                                    Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                ) {
+                                    Text(
+                                        "Serie ${set.setNumber}",
+                                        Modifier.width(58.dp),
+                                        color = tema.texto2,
+                                        fontSize = 12.sp,
+                                    )
+                                    Column(
+                                        Modifier.weight(1f),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                    ) {
+                                        Text(
+                                            "${number(set.weight)}kg × ${set.reps}",
+                                            color = tema.texto,
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Medium,
+                                        )
+                                        if (set.failed)
+                                            Text("fallada", color = tema.texto2, fontSize = 11.sp)
+                                    }
+                                    Text(
+                                        if (set.failed) "sin marca"
+                                        else
+                                            "${number(Epley.estimatedOneRepMax(set.weight, set.reps))} kg · 1RM est.",
+                                        Modifier.width(105.dp),
+                                        color = tema.texto3,
+                                        fontSize = 11.sp,
+                                        textAlign = androidx.compose.ui.text.style.TextAlign.End,
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
+        if (session.exercises.any { data.catalog[it.exerciseID]?.thumbnailUrl != null })
+            CreditoGifs()
     }
 }
