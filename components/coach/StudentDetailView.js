@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import PageShell from "@/components/design2/PageShell";
+import CoachPageShell from "@/components/coach/CoachPageShell";
 import Image from "next/image";
 import StudentVolumeChart from "@/components/coach/StudentVolumeChart";
 import { assignRoutineToStudentAction, unassignRoutineAction } from "@/app/dashboard/coach/actions";
@@ -107,11 +107,11 @@ export default function StudentDetailView({
   }
 
   return (
-    <PageShell
+    <CoachPageShell
       title={studentProfile.displayName || "Sin nombre"}
-      eyebrow="Seguimiento del alumno"
       backHref="/dashboard/coach"
       backLabel="Volver a alumnos"
+      active="students"
     >
       <div className="d2-coach-stack">
         <header className="d2-glass d2-coach-row">
@@ -374,6 +374,6 @@ export default function StudentDetailView({
           </div>
         </div>
       )}
-    </PageShell>
+    </CoachPageShell>
   );
 }

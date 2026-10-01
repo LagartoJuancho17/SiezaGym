@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/firebase/session";
-import { isAdminUser, ADMIN_EMAILS } from "@/lib/admin/access";
+import { isAdminUser } from "@/lib/admin/access";
+import { getUserProfile } from "@/lib/users/users";
 import { formatAdminDate, formatDuration, getAdminDashboardData } from "@/lib/admin/dashboard";
 import { logout } from "@/app/dashboard/actions";
 import "./admin.css";
@@ -46,7 +47,8 @@ function EmptyTable({ children }) {
 export default async function AdminPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  if (!isAdminUser(user)) redirect("/");
+  const profile = await getUserProfile(user.uid);
+  if (!isAdminUser(user, profile)) redirect("/");
 
   const data = await getAdminDashboardData();
   const { metrics } = data;
@@ -179,9 +181,9 @@ export default async function AdminPage() {
         </section>
 
         <section className="admin-section" id="security" aria-labelledby="security-title">
-          <SectionHeading id="security-title" title="Seguridad" detail="Acceso administrativo restringido por email verificado en el servidor." />
+          <SectionHeading id="security-title" title="Seguridad" detail="Acceso administrativo validado en el servidor con el rol de la cuenta." />
           <div className="admin-security-box">
-            <div><span className="admin-security-label">Administradores permitidos</span>{ADMIN_EMAILS.map((email) => <strong key={email}>{email}</strong>)}</div>
+            <div><span className="admin-security-label">Tu acceso</span><strong>{user.email}</strong></div>
             <p>El panel no permite mutaciones globales todavía. Las acciones de usuarios y roles se agregan después de incorporar auditoría y confirmaciones.</p>
           </div>
         </section>

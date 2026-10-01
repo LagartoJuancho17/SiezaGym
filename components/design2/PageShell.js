@@ -5,11 +5,12 @@ import TabBar from "./TabBar";
 import { ArrowLeftIcon } from "./Icons";
 
 /** Shared frame for the remaining authenticated screens. Data stays in each page. */
-export default function PageShell({ title, eyebrow, backHref, backLabel = "Volver", action, wide = false, children }) {
+export default function PageShell({ title, eyebrow, backHref, backLabel = "Volver", action, wide = false, children, forcedTheme, shellClassName = "", pageClassName = "", sidebar, hideTabBar = false }) {
   return (
-    <ThemeRoot>
+    <ThemeRoot forcedTheme={forcedTheme} className={shellClassName}>
       <Backdrop />
-      <div className={`d2-page d2-workspace${wide ? " d2-page-wide" : ""}`}>
+      {sidebar}
+      <div className={`d2-page d2-workspace${wide ? " d2-page-wide" : ""}${pageClassName ? ` ${pageClassName}` : ""}`}>
         <header className="d2-compose-head">
           {backHref && <Link href={backHref} aria-label={backLabel} className="d2-back"><ArrowLeftIcon size={20} width={1.8} /></Link>}
           <div className="d2-page-heading">
@@ -20,7 +21,7 @@ export default function PageShell({ title, eyebrow, backHref, backLabel = "Volve
         </header>
         {children}
       </div>
-      <TabBar />
+      {!hideTabBar && <TabBar />}
     </ThemeRoot>
   );
 }

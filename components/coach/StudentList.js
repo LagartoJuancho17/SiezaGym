@@ -14,7 +14,7 @@ function formatDate(iso) {
   }).format(new Date(iso));
 }
 
-export default function StudentList({ students, onOpenAdd }) {
+export default function StudentList({ students, onOpenAdd, plansByStudent }) {
   const [isPending, startTransition] = useTransition();
 
   function handleRemove(studentId, displayName) {
@@ -98,6 +98,9 @@ export default function StudentList({ students, onOpenAdd }) {
               </p>
               {student.email && (
                 <p className="d2-student-mail">{student.email}</p>
+              )}
+              {plansByStudent && (
+                <p className="d2-coach-plan-count">{plansByStudent[student.studentId] || 0} {(plansByStudent[student.studentId] || 0) === 1 ? "plan asignado" : "planes asignados"}</p>
               )}
             </div>
 

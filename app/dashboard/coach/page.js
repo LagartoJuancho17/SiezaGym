@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/firebase/session";
 import { getUserProfile } from "@/lib/users/users";
 import { listCoachStudents } from "@/lib/coach/students";
 import { listAssignmentsByCoach } from "@/lib/assignments/assignments";
+import { buildCoachDashboardSummary } from "@/lib/coach/dashboardSummary";
 import CoachDashboardClient from "@/components/coach/CoachDashboardClient";
 
 export const dynamic = "force-dynamic";
@@ -25,20 +26,9 @@ export default async function CoachDashboardPage() {
     listAssignmentsByCoach(user.uid),
   ]);
 
-  const studentNameById = new Map(students.map((s) => [s.studentId, s.displayName]));
-  const recentActivity = assignments
-    .filter((a) => a.lastCompletedAt)
-    .map((a) => ({
-      id: a.id,
-      studentName: studentNameById.get(a.studentId) || "Alumno",
-      routineName: a.routineName,
-      completedAt: a.lastCompletedAt,
-      durationSeconds: a.lastDurationSeconds || 0,
-    }))
-    .sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt))
-    .slice(0, 10);
+  const summary = buildCoachDashboardSummary(students, assignments);
 
   return (
-    <CoachDashboardClient students={students} profile={profile} recentActivity={recentActivity} />
+    <CoachDashboardClient students={students} profile={profile} summary={summary} recentActivity={summary.recentActivity} />
   );
 }

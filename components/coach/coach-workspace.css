@@ -1,0 +1,153 @@
+.d2-coach-root {
+  min-height: 100dvh;
+  background: var(--d2-ground);
+  color: var(--d2-text);
+  font-family: var(--font-d2), sans-serif;
+  --coach-panel: var(--d2-surface-1);
+  --coach-subtle: var(--d2-surface-2);
+  --coach-accent: var(--d2-ink);
+}
+
+.d2-coach-root ::selection { background: var(--coach-accent); color: var(--d2-on-ink); }
+.d2-coach-root .d2-backdrop { display: none; }
+.d2-coach-root .d2-page.d2-coach-page {
+  width: auto;
+  max-width: none;
+  min-height: 100dvh;
+  margin: 0 0 0 244px;
+  padding: 34px clamp(24px, 3.4vw, 62px) 72px;
+}
+
+.d2-coach-sidebar {
+  position: fixed;
+  z-index: 20;
+  inset: 0 auto 0 0;
+  display: flex;
+  flex-direction: column;
+  width: 244px;
+  padding: 30px 18px 24px;
+  border-right: 1px solid var(--d2-border);
+  background: var(--d2-bg-a);
+}
+.d2-coach-brand { display: flex; align-items: center; gap: 12px; padding: 5px 10px; color: var(--d2-text); font-size: 20px; font-weight: 800; letter-spacing: -0.055em; text-decoration: none; }
+.d2-coach-brand-mark { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 8px; background: var(--coach-accent); color: var(--d2-on-ink); font-size: 23px; font-weight: 800; font-style: italic; }
+.d2-coach-brand-gym { margin-left: 2px; color: var(--coach-accent); font-size: 11px; letter-spacing: 0.03em; }
+.d2-coach-sidebar-caption { margin: 50px 14px 13px; color: var(--d2-text-3); font-size: 10px; font-weight: 700; letter-spacing: 0.13em; }
+.d2-coach-sidebar-nav { display: flex; flex-direction: column; gap: 5px; }
+.d2-coach-nav-link { display: flex; align-items: center; gap: 13px; min-height: 46px; padding: 0 13px; border-radius: var(--d2-radius-sm); color: var(--d2-text-2); font-size: 13px; font-weight: 600; text-decoration: none; transition: background-color 170ms ease, color 170ms ease; }
+.d2-coach-nav-arrow { margin-left: auto; opacity: 0; transition: opacity 170ms ease; }
+.d2-coach-nav-link:hover, .d2-coach-nav-link:focus-visible { background: var(--coach-panel); color: var(--d2-text); }
+.d2-coach-nav-link:hover .d2-coach-nav-arrow, .d2-coach-nav-link:focus-visible .d2-coach-nav-arrow { opacity: 1; }
+.d2-coach-nav-link.is-active { background: var(--coach-accent); color: var(--d2-on-ink); }
+.d2-coach-back-app { display: flex; justify-content: space-between; margin-top: auto; padding: 13px; border-top: 1px solid var(--d2-border); color: var(--d2-text-2); font-size: 12px; text-decoration: none; }
+.d2-coach-back-app:hover { color: var(--d2-text); }
+
+.d2-coach-root .d2-compose-head { align-items: center; margin-bottom: 28px; }
+.d2-coach-root .d2-page-title { font-size: 27px; font-weight: 700; letter-spacing: -0.035em; }
+.d2-coach-root .d2-back { background: var(--coach-panel); }
+.d2-coach-dashboard { display: flex; flex-direction: column; gap: 22px; max-width: 1440px; margin: 0 auto; }
+.d2-coach-welcome { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 31px 34px; border: 1px solid var(--d2-border); border-radius: var(--d2-radius-lg); background: var(--coach-panel); }
+.d2-coach-welcome-name { font-size: 24px; font-weight: 700; letter-spacing: -0.035em; line-height: 1.2; }
+.d2-coach-welcome-copy { margin-top: 8px; color: var(--d2-text-2); font-size: 13px; }
+.d2-coach-primary-action { display: inline-flex; align-items: center; justify-content: center; flex: none; gap: 10px; min-height: 44px; padding: 0 19px; border: none; border-radius: 12px; background: var(--coach-accent); color: var(--d2-on-ink); font-size: 13px; font-weight: 700; cursor: pointer; transition: filter 160ms ease, transform 160ms ease; }
+.d2-coach-primary-action span { font-size: 20px; line-height: 1; }
+.d2-coach-primary-action:hover { filter: brightness(1.12); }
+.d2-coach-primary-action:active { transform: scale(0.98); }
+.d2-coach-primary-action:disabled { opacity: 0.55; cursor: wait; }
+
+.d2-coach-kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.d2-coach-kpi { display: flex; flex-direction: column; min-height: 147px; padding: 22px 24px; border: 1px solid var(--d2-border); border-radius: var(--d2-radius); background: var(--coach-panel); }
+.d2-coach-kpi > span { color: var(--d2-text-2); font-size: 12px; }
+.d2-coach-kpi > strong { margin: auto 0 2px; font-size: 39px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.06em; line-height: 1; }
+.d2-coach-kpi > small { color: var(--d2-text-3); font-size: 11px; }
+.d2-coach-main-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(310px, .8fr); gap: 16px; align-items: start; }
+.d2-coach-panel { min-width: 0; padding: 23px; border: 1px solid var(--d2-border); border-radius: var(--d2-radius); background: var(--coach-panel); }
+.d2-coach-panel-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.d2-coach-panel-head h2 { font-size: 18px; font-weight: 700; letter-spacing: -0.025em; }
+.d2-coach-panel-head p { margin-top: 5px; color: var(--d2-text-2); font-size: 11px; line-height: 1.5; }
+.d2-coach-counter { flex: none; padding: 5px 9px; border: 1px solid var(--d2-border); border-radius: 8px; color: var(--d2-text-2); font-size: 11px; font-variant-numeric: tabular-nums; }
+.d2-coach-search { display: flex; align-items: center; gap: 10px; height: 43px; margin-top: 20px; padding: 0 13px; border: 1px solid var(--d2-border); border-radius: 11px; background: var(--d2-bg-a); color: var(--d2-text-3); transition: border-color 160ms ease; }
+.d2-coach-search:focus-within { border-color: var(--coach-accent); }
+.d2-coach-search input { width: 100%; min-width: 0; height: 100%; border: 0; outline: 0; background: transparent; color: var(--d2-text); font: inherit; font-size: 12px; }
+.d2-coach-search input::placeholder { color: var(--d2-text-3); opacity: 1; }
+.d2-coach-search-empty { padding: 34px 16px; color: var(--d2-text-2); font-size: 12px; text-align: center; }
+.d2-coach-roster > .d2-coach-stack { gap: 0; margin-top: 14px; }
+.d2-coach-roster .d2-coach-row { min-height: 76px; padding: 12px 6px; border: 0; border-bottom: 1px solid var(--d2-border); border-radius: 0; background: transparent; box-shadow: none; transition: background-color 160ms ease; }
+.d2-coach-roster .d2-coach-row:last-child { border-bottom: 0; }
+.d2-coach-roster .d2-coach-row:hover { background: var(--d2-bg-a); }
+.d2-coach-roster .d2-coach-student-link { padding: 0 7px; }
+.d2-coach-roster .d2-student-name { font-size: 13px; font-weight: 650; }
+.d2-coach-roster .d2-student-mail, .d2-coach-plan-count { color: var(--d2-text-3); font-size: 11px; }
+.d2-coach-plan-count { margin-top: 2px; color: var(--d2-text-2); }
+.d2-coach-roster .d2-coach-icon-button { color: var(--d2-text-3); }
+.d2-coach-roster .d2-coach-icon-button:hover { background: var(--d2-bg-a); color: var(--d2-text); }
+.d2-coach-roster .d2-empty { margin-top: 18px; border-radius: 14px; }
+.d2-coach-side-stack { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.d2-coach-coverage-value { display: flex; align-items: baseline; gap: 8px; margin-top: 27px; }
+.d2-coach-coverage-value strong { font-size: 40px; font-weight: 700; letter-spacing: -0.055em; line-height: 1; font-variant-numeric: tabular-nums; }
+.d2-coach-coverage-value span, .d2-coach-coverage-caption { color: var(--d2-text-2); font-size: 11px; }
+.d2-coach-coverage-track { height: 6px; margin-top: 17px; overflow: hidden; border-radius: 6px; background: var(--d2-bg-a); }
+.d2-coach-coverage-track > span { display: block; height: 100%; border-radius: inherit; background: var(--coach-accent); transform-origin: left center; animation: coach-coverage-reveal 520ms cubic-bezier(.16,1,.3,1) both; }
+.d2-coach-coverage-caption { margin-top: 10px; }
+.d2-coach-activity-list { margin: 13px 0 0; padding: 0; list-style: none; }
+.d2-coach-activity-list li { border-bottom: 1px solid var(--d2-border); }
+.d2-coach-activity-list li:last-child { border-bottom: 0; }
+.d2-coach-activity-link { display: flex; align-items: center; gap: 11px; min-width: 0; padding: 13px 2px; color: var(--d2-text); text-decoration: none; }
+a.d2-coach-activity-link:hover { background: var(--d2-bg-a); }
+.d2-coach-activity-dot { flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--coach-accent); }
+.d2-coach-activity-copy { display: flex; flex-direction: column; min-width: 0; gap: 2px; }
+.d2-coach-activity-copy strong, .d2-coach-activity-copy span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.d2-coach-activity-copy strong { font-size: 12px; font-weight: 650; }
+.d2-coach-activity-copy span { color: var(--d2-text-2); font-size: 11px; }
+.d2-coach-activity-copy small { color: var(--d2-text-3); font-size: 10px; }
+.d2-coach-duration { margin-left: auto; color: var(--d2-text-2); font-size: 11px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.d2-coach-activity-empty { padding: 25px 0 5px; color: var(--d2-text-2); font-size: 12px; line-height: 1.5; }
+.d2-coach-error-state { max-width: 560px; padding: 32px; }
+.d2-coach-error-state h2 { font-size: 21px; font-weight: 700; }
+.d2-coach-error-state p { margin: 10px 0 22px; color: var(--d2-text-2); font-size: 13px; line-height: 1.55; }
+
+/* Student detail keeps its existing data model but gains the same workspace frame. */
+.d2-coach-root .d2-coach-page > .d2-coach-stack { max-width: 1320px; margin-inline: auto; }
+.d2-coach-root .d2-coach-card, .d2-coach-root .d2-coach-chart { background: var(--coach-panel); }
+.d2-coach-root .d2-coach-page .d2-coach-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.d2-coach-root .d2-coach-page .d2-coach-stat { min-height: 130px; }
+
+.d2-coach-skeleton { display: block; border-radius: 9px; background: linear-gradient(100deg, var(--d2-surface-1) 20%, var(--d2-surface-2) 48%, var(--d2-surface-1) 76%); background-size: 230% 100%; animation: coach-skeleton-sweep 1.4s ease-in-out infinite; }
+.d2-coach-loading .d2-coach-welcome { min-height: 132px; }
+.d2-coach-loading .d2-coach-kpi { gap: 20px; }
+@keyframes coach-skeleton-sweep { to { background-position-x: -230%; } }
+@keyframes coach-coverage-reveal { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+@media (max-width: 1150px) {
+  .d2-coach-main-grid { grid-template-columns: minmax(0, 1fr); }
+  .d2-coach-side-stack { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 900px) {
+  .d2-coach-sidebar { position: static; width: auto; height: auto; padding: 16px 18px 0; border-right: 0; border-bottom: 1px solid var(--d2-border); }
+  .d2-coach-brand { padding: 0; font-size: 18px; }
+  .d2-coach-sidebar-caption, .d2-coach-back-app { display: none; }
+  .d2-coach-sidebar-nav { flex-direction: row; overflow-x: auto; gap: 4px; margin-top: 12px; padding-bottom: 10px; scrollbar-width: none; }
+  .d2-coach-sidebar-nav::-webkit-scrollbar { display: none; }
+  .d2-coach-nav-link { min-height: 39px; flex: none; padding-inline: 12px; }
+  .d2-coach-nav-arrow { display: none; }
+  .d2-coach-root .d2-page.d2-coach-page { width: 100%; max-width: 700px; min-height: 0; margin: 0 auto; padding: 23px 18px 52px; }
+  .d2-coach-root .d2-compose-head { margin-bottom: 19px; }
+  .d2-coach-root .d2-page-title { font-size: 23px; }
+}
+@media (max-width: 640px) {
+  .d2-coach-dashboard { gap: 13px; }
+  .d2-coach-welcome { flex-direction: column; align-items: stretch; gap: 18px; padding: 22px; }
+  .d2-coach-welcome-name { font-size: 21px; }
+  .d2-coach-primary-action { width: 100%; }
+  .d2-coach-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+  .d2-coach-kpi { min-height: 119px; padding: 16px; }
+  .d2-coach-kpi:last-child { grid-column: 1 / -1; min-height: 103px; }
+  .d2-coach-kpi > strong { font-size: 32px; }
+  .d2-coach-side-stack { display: flex; }
+  .d2-coach-panel { padding: 18px; }
+  .d2-coach-roster .d2-coach-linked-date { display: none; }
+  .d2-coach-root .d2-coach-page .d2-coach-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .d2-coach-root *, .d2-coach-root *::before, .d2-coach-root *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}

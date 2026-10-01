@@ -168,7 +168,7 @@ export default async function Home() {
             <span className="d2-setting-body"><span className="d2-setting-name">{profile?.isCoach || profile?.isAdmin ? "Mis alumnos" : "Tu profesor"}</span><span className="d2-setting-hint">{profile?.isCoach || profile?.isAdmin ? "Invitaciones y seguimiento" : "Vinculá tu cuenta desde Perfil"}</span></span>
             <span aria-hidden="true">↗</span>
           </Link>
-          {isAdminUser(user) && (
+          {isAdminUser(user, profile) && (
             <Link href="/admin" className="d2-setting">
               <span className="d2-setting-body"><span className="d2-setting-name">Administración</span><span className="d2-setting-hint">Usuarios, actividad y catálogo global</span></span>
               <span aria-hidden="true">↗</span>

@@ -32,7 +32,7 @@ export default async function DashboardPage() {
   if (profile?.isCoach || profile?.isAdmin) {
     links.push(["/dashboard/coach", "Profesores", "Alumnos, rutinas asignadas y seguimiento"]);
   }
-  if (isAdminUser(user)) {
+  if (isAdminUser(user, profile)) {
     links.push(["/admin", "Administración", "Usuarios, actividad y catálogo global"]);
   }
 
