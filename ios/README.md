@@ -14,24 +14,20 @@ rutinas.
 
 ## Bienvenida de tres pantallas
 
-En el primer arranque, antes del login, se muestran tres pantallas hechas
-solo de color, sin fotos: negro, una mancha de Brasa a naranja (`#FF3201` →
-`#FF7601`) vista a través de vidrio acanalado y grano fino, dibujada con un
-shader de **p5.js** (`ArteP5.swift`, boceto en
-`SiezaGym/Resources/ArteOnboarding/`) que calcula cada píxel real de la pantalla
-(3x en iPhone): vidrio acanalado, grano por píxel y dither, nítido y sin bandas.
-p5 (LGPL-2.1, `p5-license.txt`) va dentro de la app, no necesita conexión. Hasta
-el primer cuadro de p5 se ve un brillo nativo en el mismo lugar (`BrilloNativo`).
-Para iterar el boceto en el navegador:
-`python3 -m http.server 4799 --directory ios/SiezaGym/Resources/ArteOnboarding`
-y abrir `/onboarding-arte.html`. La mancha cambia de lugar
-en cada pantalla (`ArteOnboarding.mancha`). Abajo, el botón con el degradado de
-los dos naranjas y uno de borde ("Ya tengo cuenta" / "Volver"). Explican tres pasos
-reales de la app: armar rutinas, registrar series y consultar progreso; la
-tercera menciona Apple Salud solo como conexión opcional. Se puede avanzar,
-volver u omitir. El último botón y «Omitir» abren el login si no hay sesión, o
-la app directamente si ya la hay. No se crea ninguna cuenta ni se piden
-permisos de Salud desde estas pantallas.
+En el primer arranque, antes del login, se muestran tres pantallas con una
+foto de entrenamiento a pantalla completa, un rótulo, el titular y los
+controles (volver, Continuar/Empezar en Brasa y «Omitir»). Las fotos están en
+el repo en blanco y negro (`Onboarding*.imageset`, en Git LFS) y se muestran
+teñidas con los colores de la marca por `tonoMarca()`
+(`DesignSystem/TonoMarca.swift` + `TonoMarca.metal`): un shader de Metal que
+cambia la luz de cada píxel por un mapa negro → Brasa `#FF3201` → naranja
+`#FF7601` → durazno. Para ajustar el tono se tocan las paradas de
+`TonoMarca.paradas`, no las fotos. Explican tres pasos reales de la app: armar
+rutinas, registrar series y consultar progreso; la tercera menciona Apple
+Salud solo como conexión opcional. Se puede avanzar, volver u omitir. El último
+botón y «Omitir» abren el login si no hay sesión, o la app directamente si ya
+la hay. No se crea ninguna cuenta ni se piden permisos de Salud desde estas
+pantallas.
 
 La elección se guarda **una vez por instalación** en
 `sieza.onboarding.completed.v1` (UserDefaults). Cerrar la app a mitad del
@@ -40,16 +36,14 @@ en cada apertura. Para revisar el primer arranque, desinstalá la app del
 simulador y volvé a instalarla, o lanzala con
 `xcrun simctl launch booted com.siezagym.app -sieza.onboarding.completed.v1 NO`.
 
-Pruebas: `ios/SiezaGymTests/OnboardingFlowTests.swift` verifica orden, límites y
-navegación, que la mancha cambie de lugar, el comando que se manda a p5 y que
-el boceto esté empaquetado. `tests/ios-onboarding-arte.test.js` prueba la
-lógica del boceto (suavizado independiente de los fps, límites, posición inicial
-igual a la de Swift).
-`tests/ios-onboarding.eval.test.js` comprueba que no se usen fotos y que el
-recorrido siga conectado al
-inicio de sesión. Para revisión visual en iPhone chico/grande, comprobar que
-los títulos y botones no se corten, que la mancha no le quite contraste al texto, y que
-VoiceOver lea «Omitir», «Volver» y «Continuar/Empezar» en ese orden.
+Pruebas: `ios/SiezaGymTests/OnboardingFlowTests.swift` verifica orden, límites,
+navegación y el mapa de color (negro en la sombra, Brasa exacto en el medio
+tono, nunca más oscuro con más luz). `tests/ios-onboarding.eval.test.js`
+comprueba que las fotos sean locales, verticales y livianas, que estén en LFS,
+que se muestren teñidas y que el recorrido siga conectado al inicio de sesión.
+Para revisión visual en iPhone chico/grande, comprobar que los títulos y
+botones no se corten y que VoiceOver lea «Omitir», «Volver» y
+«Continuar/Empezar» en ese orden.
 
 ## Tema SIEZA
 
@@ -373,34 +367,33 @@ semana los desordena en vez de ayudar a encontrar algo.
 ## Perfil con el progreso adentro
 
 Distinto de la web: acá Perfil y Progreso son la misma pestaña. La barra de
-abajo bajó de cinco pestañas a cuatro (`Inicio`/`Rutinas`/`Historial`/`Perfil`)
-y `ProgressScreen.swift` ya no existe — sus cinco secciones se repartieron en
-cinco pantallas propias bajo `Features/Profile/` (`VolumeScreen`,
-`TrainedDaysScreen`, `MuscleVolumeScreen`, `PushPullScreen`,
-`ExerciseHistoryScreen`), con una grilla de accesos ("Tu progreso") en
-`ProfileScreen` que abre cada una — estilo Strong/Hevy, no el scroll único de
-`/progreso` en la web. La app entrenó dos metáforas seguidas en la misma
-sesión: primero widgets nuevos con espejos livianos porque `HomeMetrics` no
-cruza el límite de target, después esto, que sí puede usar `HomeMetrics`
-directo porque las cinco pantallas nuevas viven en el target de la app, igual
-que `ProgressMetrics`.
+abajo tiene cuatro pestañas (`Inicio`/`Rutinas`/`Historial`/`Perfil`).
 
-`VolumeScreen` de paso estrena dos cuentas que `HomeMetrics` ya tenía
-calculadas y ninguna pantalla mostraba: `volumeByWeekday` (por día de la
-semana) y `volumePerSession` (últimas sesiones). `store.weekdayVolume` y
-`store.volumeTrend` existían en `GymStore` desde antes, sin ningún lector.
+En el Perfil, **los días entrenados y los músculos se ven directo**, sin
+entrar a otra pantalla (`GrillaDiasEntrenados` y `RepartoMusculos`, en
+`Features/Profile/ProgresoEnPerfil.swift`; antes eran `TrainedDaysScreen` y
+`MuscleVolumeScreen`). Volumen, Empuje y tracción y Por ejercicio tienen más
+detalle y siguen como accesos a `VolumeScreen`, `PushPullScreen` y
+`ExerciseHistoryScreen`.
 
-**"Tus datos" y "Configuración" están ordenados en grupos, no en una sola
-lista.** Un separador corta Sexo/Experiencia de Peso/Altura, y la leyenda de
-para qué sirve el peso quedó pegada debajo del campo que explica en vez de
-suelta al final de la tarjeta. "Guardar" muestra "Guardando…" y se
-deshabilita mientras la escritura está en vuelo, para que tocarlo dos veces
-no dispare dos writes. Tema y Entrenador se unieron en una sola `GlassCard`
-con un separador adentro — antes eran dos tarjetas separadas y el segundo
-grupo quedaba corrido respecto al primero; la fila de Entrenador está armada
-a mano en vez de reusar `FilaLista`, porque ese componente trae su propio
-padding horizontal pensado para un `PanelLista` sin relleno, y duplicarlo
-encima del padding de esta tarjeta la desalineaba.
+**"Tus datos" y el tema son botones a pantallas propias.** La fila de Tus
+datos muestra un resumen (`BodyMetrics.resumen`: "78,5 kg · 180 cm ·
+Intermedio") y abre `DatosScreen`, con dos grupos: Cuerpo (sexo, peso, altura
+y el IMC calculado en vivo con las categorías de la OMS) y Entrenamiento
+(experiencia, meta semanal y cuánto llevás esta semana). Vacío, cero o texto se
+guardan como null, no como cero (`BodyMetrics.decimal`). "Guardar" muestra
+"Guardando…" y se deshabilita mientras escribe. La fila de Tema muestra el
+puesto y abre `TemasScreen`, con una vista previa grande de cada tema armada
+con sus propios colores; la obra de fondo (Pliegues, Eléctrico) va detrás de
+la tarjeta para que no la estire.
+
+`VolumeScreen` muestra dos cuentas que `HomeMetrics` ya tenía calculadas:
+`volumeByWeekday` (por día de la semana) y `volumePerSession` (últimas
+sesiones).
+
+Pruebas: `ios/SiezaGymTests/BodyMetricsTests.swift` (lectura de números, IMC,
+resumen) y `tests/ios-profile.eval.test.js` (gráficos a la vista, Tus datos y
+Tema como pantallas propias).
 
 ## Ejercicios propios
 
