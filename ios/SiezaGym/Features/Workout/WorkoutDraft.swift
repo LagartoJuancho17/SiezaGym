@@ -26,6 +26,9 @@ final class WorkoutDraft {
         /// Bloque de la rutina ("Fuerza", "Potencia"...). Vacío es sin grupo.
         let group: String
         let groupColor: String
+        let previousBestWeight: Double
+        let historicalRIR1Weight: Double?
+        let targetReps: Int
         var sets: [SetDraft]
 
         var completedCount: Int { sets.filter(\.done).count }
@@ -34,35 +37,71 @@ final class WorkoutDraft {
         /// series tiene 0 de 0, que **no** es estar terminado: sin esa guarda
         /// se pintaría de verde sin haber hecho nada.
         var estaCompleto: Bool { !sets.isEmpty && completedCount == sets.count }
+
+        /// Sólo una carga efectivamente completada puede superar el récord.
+        var newPBWeight: Double? {
+            guard previousBestWeight > 0 else { return nil }
+            return sets.filter { $0.done && !$0.failed && $0.weight > previousBestWeight }
+                .map(\.weight).max()
+        }
+
+        var suggestedRIR1Weight: Double? {
+            if let current = sets.last(where: { $0.done && !$0.failed }),
+               let rir = current.rir,
+               let estimate = WorkoutWeightInsights.rir1Weight(
+                   weight: current.weight, reps: current.reps, rir: rir, targetReps: targetReps
+               ) {
+                return estimate
+            }
+            return historicalRIR1Weight
+        }
     }
 
     let routine: Routine?
     let startedAt = Date()
     var exercises: [ExerciseDraft]
 
-    init(routine: Routine?, catalog: [String: Exercise]) {
+    init(routine: Routine?, catalog: [String: Exercise], sessions: [WorkoutSession] = []) {
         self.routine = routine
+        let previousSessions = sessions
+            .filter { $0.routineID == routine?.id }
+            .sorted { ($0.finishedAt ?? $0.startedAt ?? .distantPast) > ($1.finishedAt ?? $1.startedAt ?? .distantPast) }
         exercises = (routine?.exercises ?? []).map { item in
             let exercise = catalog[item.exerciseID]
+            let isTimeBased = exercise?.registrationType.isTimeBased ?? false
             // Si el coach prescribio series una por una se respetan; si no, se
             // arman targetSets series iguales con el objetivo del plan.
-            let sets: [SetDraft] = if let planned = item.sets, !planned.isEmpty {
+            var sets: [SetDraft] = if let planned = item.sets, !planned.isEmpty {
                 planned.map { SetDraft(weight: $0.weight ?? 0, reps: $0.reps, rir: $0.rir) }
             } else {
                 (0..<max(1, item.targetSets)).map { _ in
                     SetDraft(weight: item.targetWeight ?? 0, reps: item.targetReps, rir: item.targetRIR)
                 }
             }
+            if !isTimeBased {
+                for index in sets.indices {
+                    if let previousWeight = WorkoutWeightInsights.lastWeight(
+                        exerciseID: item.exerciseID, setIndex: index, sessions: previousSessions
+                    ) {
+                        sets[index].weight = previousWeight
+                    }
+                }
+            }
             return ExerciseDraft(
                 id: item.id,
                 exerciseID: item.exerciseID,
                 name: exercise?.nameEs ?? item.exerciseID,
-                isTimeBased: exercise?.registrationType.isTimeBased ?? false,
+                isTimeBased: isTimeBased,
                 mediaURL: exercise?.mediaURL,
                 videoURL: exercise?.videoURL,
                 description: exercise?.descriptionEs,
                 group: item.group,
                 groupColor: item.groupColor,
+                previousBestWeight: isTimeBased ? 0 : WorkoutWeightInsights.bestWeight(item.exerciseID, sessions: sessions),
+                historicalRIR1Weight: isTimeBased ? nil : WorkoutWeightInsights.rir1Weight(
+                    exerciseID: item.exerciseID, targetReps: item.targetReps, sessions: sessions
+                ),
+                targetReps: item.targetReps,
                 sets: sets
             )
         }
@@ -143,5 +182,47 @@ final class WorkoutDraft {
                 }
             )
         }
+    }
+}
+
+/// Lecturas del historial. Nunca escribe en la rutina: una prescripción del
+/// entrenador y el peso ejecutado por el alumno son datos distintos.
+nonisolated enum WorkoutWeightInsights {
+    static func lastWeight(exerciseID: String, setIndex: Int, sessions: [WorkoutSession]) -> Double? {
+        sessions.lazy.compactMap { session -> LoggedSet? in
+            guard let sets = session.exercises.first(where: { $0.exerciseID == exerciseID })?.sets,
+                  sets.indices.contains(setIndex) else { return nil }
+            return sets[setIndex]
+        }.first { !$0.failed && $0.weight > 0 }?.weight
+    }
+
+    static func bestWeight(_ exerciseID: String, sessions: [WorkoutSession]) -> Double {
+        sessions.flatMap(\.exercises)
+            .filter { $0.exerciseID == exerciseID }
+            .flatMap(\.sets)
+            .filter { !$0.failed && $0.weight > 0 }
+            .map(\.weight).max() ?? 0
+    }
+
+    /// Epley invertida: 1RM ~= kg × (1 + (reps + RIR)/30).
+    /// Es una referencia, no una indicación automática de subir la carga.
+    static func rir1Weight(exerciseID: String, targetReps: Int, sessions: [WorkoutSession]) -> Double? {
+        let reference = sessions.lazy.flatMap(\.exercises)
+            .filter { $0.exerciseID == exerciseID }
+            .flatMap(\.sets)
+            .first { set in
+                !set.failed && set.weight > 0 && (1...12).contains(set.reps)
+                    && set.rir.map { (0...5).contains($0) } == true
+            }
+        guard let reference, let rir = reference.rir else { return nil }
+        return rir1Weight(weight: reference.weight, reps: reference.reps, rir: rir, targetReps: targetReps)
+    }
+
+    static func rir1Weight(weight: Double, reps: Int, rir: Int, targetReps: Int) -> Double? {
+        guard weight > 0, (1...12).contains(reps + rir), (0...5).contains(rir),
+              (1...12).contains(targetReps) else { return nil }
+        let estimated1RM = Epley.estimatedOneRepMax(weight: weight, reps: reps + rir)
+        let estimatedWeight = estimated1RM / (1 + Double(targetReps + 1) / 30)
+        return floor(estimatedWeight / 2.5) * 2.5
     }
 }

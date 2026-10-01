@@ -29,7 +29,7 @@ struct WorkoutView: View {
         if let existingDraft {
             _draft = State(initialValue: existingDraft)
         } else {
-            _draft = State(initialValue: WorkoutDraft(routine: routine, catalog: store.catalog))
+            _draft = State(initialValue: WorkoutDraft(routine: routine, catalog: store.catalog, sessions: store.sessions))
         }
     }
 
@@ -421,6 +421,7 @@ private struct ExerciseCard: View {
     private var progreso: String {
         let total = exercise.sets.count
         let hechas = exercise.completedCount
+        if exercise.newPBWeight != nil { return "🏆 NUEVO PB · \(hechas) de \(total) series" }
         if completo { return "\(total) \(total == 1 ? "serie" : "series") · listo" }
         return "\(hechas) de \(total) \(total == 1 ? "serie" : "series")"
     }
@@ -444,12 +445,50 @@ private struct ExerciseCard: View {
                     .transition(.opacity)
             }
         }
+        .overlay {
+            if exercise.newPBWeight != nil {
+                RoundedRectangle(cornerRadius: 18)
+                    .strokeBorder(tema.solido, lineWidth: 2)
+                    .allowsHitTesting(false)
+            }
+        }
         .animation(.snappy(duration: 0.22), value: abierto)
+        .animation(.spring(duration: 0.45), value: exercise.newPBWeight)
         .accessibilityHint(abierto ? "Tocá para plegar" : "Tocá para ver las series")
     }
 
     private var detalle: some View {
         VStack(alignment: .leading, spacing: 8) {
+            if let pb = exercise.newPBWeight {
+                HStack(spacing: 10) {
+                    Image(systemName: "trophy.fill")
+                        .font(.system(size: 22, weight: .bold))
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("NUEVO PB")
+                            .font(.system(size: 16, weight: .black))
+                            .tracking(1)
+                        Text("\(pb.formatted()) kg · antes \(exercise.previousBestWeight.formatted()) kg")
+                            .font(.system(size: 12, weight: .medium))
+                    }
+                    Spacer()
+                }
+                .foregroundStyle(tema.sobreSolido)
+                .padding(12)
+                .background(tema.solido, in: .rect(cornerRadius: 12))
+                .transition(.scale(scale: 0.9).combined(with: .opacity))
+                .accessibilityLabel("Nuevo récord personal: \(pb.formatted()) kilos")
+            }
+
+            if let sugerido = exercise.suggestedRIR1Weight {
+                HStack(spacing: 7) {
+                    Image(systemName: "scope")
+                    Text("RIR 1 estimado: ~\(sugerido.formatted()) kg para \(exercise.targetReps) reps")
+                }
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(tema.texto2)
+                .accessibilityHint("Estimación basada en el RIR que registraste; ajustá el peso según cómo te sientas")
+            }
+
             ForEach($exercise.sets) { $set in
                 SetRow(
                     set: $set,
@@ -495,6 +534,20 @@ private struct SetRow: View {
                 weightStepper(value: $set.weight)
             }
             intField(value: $set.reps, unit: isTimeBased ? "s" : "reps")
+
+            if !isTimeBased {
+                TextField("RIR", text: Binding(
+                    get: { set.rir.map(String.init) ?? "" },
+                    set: { set.rir = Int($0).flatMap { (0...10).contains($0) ? $0 : nil } }
+                ))
+                .keyboardType(.numberPad)
+                .multilineTextAlignment(.center)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(tema.texto)
+                .frame(width: 28, height: 30)
+                .background(tema.vidrio(2), in: .rect(cornerRadius: 6))
+                .accessibilityLabel("Repeticiones en reserva")
+            }
 
             Spacer(minLength: 0)
 

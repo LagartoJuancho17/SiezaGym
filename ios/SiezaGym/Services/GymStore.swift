@@ -240,6 +240,7 @@ final class GymStore {
         do {
             try await repository.updateProfile(uid: uid, fields: fields)
             profile = try await repository.profile(uid: uid)
+            publicarWidget()
         } catch {
             log.error("perfil no se guardo: \(error.localizedDescription, privacy: .public)")
             loadError = "No se pudo guardar el perfil."

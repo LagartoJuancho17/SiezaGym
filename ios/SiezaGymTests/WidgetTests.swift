@@ -78,6 +78,25 @@ private func routine(_ ejercicios: [(String, Int)]) -> Routine {
 
 @Suite("Snapshot del widget")
 struct WidgetSnapshotTests {
+    @Test("el snapshot se guarda y se recupera del llavero")
+    func llaveroCompartido() {
+        let anterior = SnapshotStore.leer()
+        defer {
+            if let anterior {
+                _ = SnapshotStore.escribir(anterior)
+            } else {
+                SnapshotStore.borrar()
+            }
+        }
+
+        var snapshot = WidgetSnapshot.vacio
+        snapshot.themeID = "sieza"
+        snapshot.streak = 3
+
+        #expect(SnapshotStore.escribir(snapshot))
+        #expect(SnapshotStore.leer() == snapshot)
+    }
+
     @Test("sin datos el widget queda vacío, no en cero inventado")
     func vacio() {
         let snapshot = WidgetSnapshotBuilder.build(

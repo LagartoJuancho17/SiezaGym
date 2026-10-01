@@ -15,9 +15,6 @@ private nonisolated let log = Logger(subsystem: "com.siezagym.app", category: "w
 /// Con una cuenta paga esto se reemplaza por `UserDefaults(suiteName:)` y se
 /// borra el resto del archivo; el resto del widget no cambia.
 nonisolated enum SnapshotStore {
-    /// Tiene que coincidir con `keychain-access-groups` de los dos targets, sin
-    /// el prefijo del equipo (que iOS agrega solo).
-    static let accessGroup = "com.siezagym.compartido"
     private static let service = "com.siezagym.widget"
     private static let account = "snapshot"
 
@@ -32,19 +29,8 @@ nonisolated enum SnapshotStore {
         ]
     }
 
-    private static var query: [String: Any] {
-        var consulta = baseQuery
-        // El simulador firma ad-hoc y no lleva el entitlement, así que pedir el
-        // grupo devuelve -34018 (errSecMissingEntitlement) y no se guarda nada.
-        // Ahí no hace falta: todas las apps del simulador comparten un llavero.
-        #if !targetEnvironment(simulator)
-        consulta[kSecAttrAccessGroup as String] = accessGroup
-        #endif
-        return consulta
-    }
-
     static func leer() -> WidgetSnapshot? {
-        var consulta = query
+        var consulta = baseQuery
         consulta[kSecReturnData as String] = true
         consulta[kSecMatchLimit as String] = kSecMatchLimitOne
 
@@ -78,7 +64,10 @@ nonisolated enum SnapshotStore {
         // Crear siempre de cero es a prueba de esa cola.
         SecItemDelete(baseQuery as CFDictionary)
 
-        let creado = SecItemAdd(query.merging(atributos) { _, nuevo in nuevo } as CFDictionary, nil)
+        // Los dos targets firman con el mismo y único keychain-access-groups.
+        // Sin kSecAttrAccessGroup, iOS usa ese primer grupo completo, incluido
+        // el prefijo del equipo. Escribir el nombre sin prefijo da -34018.
+        let creado = SecItemAdd(baseQuery.merging(atributos) { _, nuevo in nuevo } as CFDictionary, nil)
         if creado != errSecSuccess {
             log.error("no se pudo crear el snapshot: \(creado, privacy: .public)")
         }

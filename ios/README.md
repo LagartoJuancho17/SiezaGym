@@ -17,12 +17,9 @@ rutinas.
 En el primer arranque, antes del login, se muestran tres pantallas con una
 foto de entrenamiento a pantalla completa, un rótulo, el titular y los
 controles (volver, Continuar/Empezar en Brasa y «Omitir»). Las fotos están en
-el repo en blanco y negro (`Onboarding*.imageset`, en Git LFS) y se muestran
-teñidas con los colores de la marca por `tonoMarca()`
-(`DesignSystem/TonoMarca.swift` + `TonoMarca.metal`): un shader de Metal que
-cambia la luz de cada píxel por un mapa negro → Brasa `#FF3201` → naranja
-`#FF7601` → durazno. Para ajustar el tono se tocan las paradas de
-`TonoMarca.paradas`, no las fotos. Explican tres pasos reales de la app: armar
+el repo en blanco y negro (`Onboarding*.imageset`, en Git LFS). La vista
+fuerza saturación cero y usa un degradado negro para mantener a las personas
+en blanco y negro sin teñirlas de naranja. Explican tres pasos reales de la app: armar
 rutinas, registrar series y consultar progreso; la tercera menciona Apple
 Salud solo como conexión opcional. Se puede avanzar, volver u omitir. El último
 botón y «Omitir» abren el login si no hay sesión, o la app directamente si ya
@@ -94,6 +91,32 @@ Perfil → Configuración → Tema. Los tokens se generan desde el bloque SIEZA 
 Las pruebas de contraste y sincronización están en
 `tests/ios-sieza-theme*.test.js`, y las del tema nativo en
 `ios/SiezaGymTests/WidgetTests.swift`.
+
+## Peso al repetir, RIR 1 y PB
+
+Al abrir una rutina ya entrenada, cada serie precarga el último **peso
+completado** para ese ejercicio y esa posición de serie en la misma rutina.
+Si no hay registro, conserva el peso planeado (o cero). No modifica el plan
+original ni una rutina asignada por el entrenador. Las series falladas no se
+usan como referencia.
+
+En cada serie con peso se puede anotar el RIR real (repeticiones que habrían
+quedado). Con una serie completada que tenga RIR entre 0 y 5, la app calcula
+una referencia para **RIR 1** a las repeticiones objetivo: primero estima 1RM
+con `peso × (1 + (reps + RIR)/30)` y luego invierte Epley para
+`reps objetivo + 1`. Se redondea hacia abajo a 2,5 kg. Sólo se muestra entre
+1 y 12 repeticiones, como aproximación para ajustar según sensaciones, no
+como instrucción de levantar ese peso. Sin RIR registrado no inventa el dato.
+
+Un **NUEVO PB** aparece al completar sin fallo una serie con más kilos que la
+mejor carga anterior de ese ejercicio en el historial cargado. Se destaca con
+Brasa y un trofeo incluso cuando el ejercicio está plegado. La primera carga
+registrada no se anuncia como récord nuevo. El historial se carga hasta el
+límite de sesiones del repositorio; no se afirma que sea un récord absoluto
+si hay entrenamientos fuera de ese historial.
+
+Pruebas: `WorkoutWeightTests` en `WorkoutControlsTests.swift`; evaluación
+visual y de comportamiento en `evals/ios-workout-weight-rir-pb.md`.
 
 ## Editar el diseño en vivo (previews de Xcode)
 

@@ -2,6 +2,103 @@ import Foundation
 import Testing
 @testable import SiezaGym
 
+@Suite("Peso, RIR y récord personal")
+@MainActor
+struct WorkoutWeightTests {
+    private func routine(weight: Double? = nil) -> Routine {
+        Routine(
+            id: "rutina-1", ownerID: "user", name: "Fuerza", note: "",
+            exercises: [RoutineExercise(
+                exerciseID: "press", source: .catalog, order: 0,
+                targetSets: 2, targetReps: 8, targetRIR: nil, targetWeight: weight,
+                techniqueNote: "", sets: nil, group: "", groupColor: ""
+            )],
+            showOnHome: true, lastUsedAt: nil, createdAt: nil, updatedAt: nil,
+            isAssigned: false, weekKey: nil
+        )
+    }
+
+    private var catalog: [String: Exercise] {
+        ["press": Exercise(
+            id: "press", nameEs: "Press", nameEn: "Press", equipment: nil, pattern: nil,
+            muscleWeights: [:], registrationType: .pesoReps, unilateral: false,
+            descriptionEs: "", mediaURL: nil, source: .catalog, videoURL: nil
+        )]
+    }
+
+    private func session(
+        routineID: String = "rutina-1",
+        sets: [LoggedSet],
+        date: Date = .now
+    ) -> WorkoutSession {
+        WorkoutSession(
+            id: UUID().uuidString, userID: "user", routineName: "Fuerza", routineID: routineID,
+            startedAt: date, finishedAt: date, durationSeconds: 1200,
+            exercises: [LoggedExercise(exerciseID: "press", sets: sets)],
+            totalVolumeKg: 0, totalSetsCompleted: sets.count
+        )
+    }
+
+    private func set(_ number: Int, _ weight: Double, rir: Int? = nil, failed: Bool = false) -> LoggedSet {
+        LoggedSet(setNumber: number, weight: weight, reps: 8, rir: rir, failed: failed)
+    }
+
+    @Test("al repetir usa los kilos hechos, aunque el plan no tenga peso")
+    func restoresWeights() {
+        let previous = session(sets: [set(1, 60), set(2, 65)])
+        let draft = WorkoutDraft(routine: routine(), catalog: catalog, sessions: [previous])
+        #expect(draft.exercises[0].sets.map(\.weight) == [60, 65])
+        #expect(draft.exercises[0].sets.allSatisfy { !$0.done })
+    }
+
+    @Test("lo ejecutado prevalece sobre el peso planeado sin editar la rutina")
+    func actualOverPlan() {
+        let plan = routine(weight: 50)
+        let draft = WorkoutDraft(routine: plan, catalog: catalog, sessions: [session(sets: [set(1, 55)])])
+        #expect(draft.exercises[0].sets.map(\.weight) == [55, 50])
+        #expect(plan.exercises[0].targetWeight == 50)
+    }
+
+    @Test("otra rutina y series falladas no precargan kilos")
+    func ignoresOtherAndFailed() {
+        let draft = WorkoutDraft(
+            routine: routine(), catalog: catalog,
+            sessions: [session(routineID: "otra", sets: [set(1, 100)]), session(sets: [set(1, 80, failed: true)])]
+        )
+        #expect(draft.exercises[0].sets.map(\.weight) == [0, 0])
+    }
+
+    @Test("PB sólo después de completar una carga mayor que el historial")
+    func pbAfterCompletedSet() {
+        let draft = WorkoutDraft(routine: routine(), catalog: catalog, sessions: [session(sets: [set(1, 60)])])
+        draft.exercises[0].sets[0].weight = 62.5
+        #expect(draft.exercises[0].newPBWeight == nil)
+        draft.exercises[0].sets[0].done = true
+        #expect(draft.exercises[0].newPBWeight == 62.5)
+        draft.exercises[0].sets[0].failed = true
+        #expect(draft.exercises[0].newPBWeight == nil)
+    }
+
+    @Test("RIR 1 se estima sólo con un RIR histórico registrado")
+    func rir1Estimate() {
+        let withRIR = WorkoutDraft(
+            routine: routine(), catalog: catalog, sessions: [session(sets: [set(1, 100, rir: 3)])]
+        )
+        let withoutRIR = WorkoutDraft(
+            routine: routine(), catalog: catalog, sessions: [session(sets: [set(1, 100)])]
+        )
+        #expect(withRIR.exercises[0].suggestedRIR1Weight == 105)
+        #expect(withoutRIR.exercises[0].suggestedRIR1Weight == nil)
+
+        withoutRIR.exercises[0].sets[0].weight = 100
+        withoutRIR.exercises[0].sets[0].rir = 3
+        withoutRIR.exercises[0].sets[0].done = true
+        #expect(withoutRIR.exercises[0].suggestedRIR1Weight == 105)
+        #expect(WorkoutWeightInsights.rir1Weight(weight: 100, reps: 1, rir: 0, targetReps: 1) == 92.5)
+        #expect(WorkoutWeightInsights.rir1Weight(weight: 100, reps: 12, rir: 5, targetReps: 8) == nil)
+    }
+}
+
 // MARK: - Descanso
 
 @Suite("Descanso entre series")

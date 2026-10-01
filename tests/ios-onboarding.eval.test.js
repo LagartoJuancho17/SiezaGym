@@ -38,17 +38,12 @@ describe("Evaluación de recursos y recorrido del onboarding", () => {
     expect(onboarding).toContain('flow.isLastPage ? "Empezar" : "Continuar"');
   });
 
-  it("muestra las fotos teñidas con los naranjas de la marca, no en gris", () => {
+  it("mantiene las personas en blanco y negro y deja Brasa sólo en los controles", () => {
     const onboarding = readFileSync(new URL("../ios/SiezaGym/Features/Onboarding/OnboardingView.swift", import.meta.url), "utf8");
-    const tono = readFileSync(new URL("../ios/SiezaGym/DesignSystem/TonoMarca.swift", import.meta.url), "utf8");
-    const shader = readFileSync(new URL("../ios/SiezaGym/DesignSystem/TonoMarca.metal", import.meta.url), "utf8");
 
-    expect(onboarding).toMatch(/Image\(flow\.page\.imageName\)[\s\S]*?\.tonoMarca\(\)/);
-    // Brasa #FF3201 y naranja #FF7601 son paradas del mapa.
-    expect(tono).toContain("(1.000, 50.0 / 255, 1.0 / 255)");
-    expect(tono).toContain("(1.000, 118.0 / 255, 1.0 / 255)");
-    expect(shader).toContain("[[ stitchable ]] half4 tonoMarca");
-    // El botón principal es Brasa en todas las pantallas, no gris.
+    expect(onboarding).toMatch(/Image\(flow\.page\.imageName\)[\s\S]*?\.saturation\(0\)/);
+    expect(onboarding).not.toContain(".tonoMarca()");
+    expect(onboarding).toContain(".init(color: .black, location: 1)");
     expect(onboarding).not.toContain("brand.bordeFuerte, in: .capsule");
   });
 });
