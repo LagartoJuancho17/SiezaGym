@@ -228,7 +228,7 @@ struct HomeScreen: View {
                     .font(.system(size: 20))
                     .foregroundStyle(tema.sobreSolido)
                     .frame(width: 56, height: 56)
-                    .background(tema.degradado, in: .circle)
+                    .background(tema.solido, in: .circle)
             }
             .accessibilityLabel("Empezar entrenamiento")
         }

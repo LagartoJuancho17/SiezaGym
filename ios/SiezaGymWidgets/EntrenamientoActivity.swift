@@ -112,7 +112,7 @@ private struct PantallaBloqueada: View {
                     .font(.system(size: 12, weight: .bold))
                     .foregroundStyle(tema.sobreSolido)
                     .frame(maxWidth: .infinity, minHeight: 32)
-                    .background(tema.degradado, in: .capsule)
+                    .background(tema.solido, in: .capsule)
                 }
                 .buttonStyle(.plain)
                 .padding(.top, 2)

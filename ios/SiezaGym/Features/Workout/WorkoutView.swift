@@ -689,7 +689,7 @@ private struct ExerciseMediaSheet: View {
                             .font(.system(size: 14, weight: .bold))
                             .foregroundStyle(tema.sobreSolido)
                             .frame(maxWidth: .infinity, minHeight: 44)
-                            .background(tema.degradado, in: .capsule)
+                            .background(tema.solido, in: .capsule)
                     }
                 }
 

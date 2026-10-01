@@ -54,7 +54,7 @@ struct SemanaCard: View {
                                 .foregroundStyle(color(dia))
                                 .frame(width: 34, height: 34)
                                 .background {
-                                    if dia.entrenado { Circle().fill(tema.degradado) }
+                                    if dia.entrenado { Circle().fill(tema.solido) }
                                 }
                                 .overlay {
                                     if dia.esHoy { Circle().strokeBorder(tema.texto, lineWidth: dia.entrenado ? 2 : 1) }

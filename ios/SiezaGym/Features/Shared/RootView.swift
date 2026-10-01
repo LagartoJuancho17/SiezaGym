@@ -134,7 +134,7 @@ private struct ActiveWorkoutMiniBar: View {
                 .foregroundStyle(tema.sobreSolido)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
-                .background(tema.degradado, in: .capsule)
+                .background(tema.solido, in: .capsule)
 
             Button(action: onDiscard) {
                 Image(systemName: "xmark")

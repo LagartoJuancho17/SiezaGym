@@ -53,7 +53,6 @@ con títulos en negrita y números tabulares donde los datos lo requieren.
 | Texto secundario / Plata | `#858A91` |
 | Bordes y estado inactivo / Plata oscura | `#63666E` |
 | Acción / Brasa | `#FF3201` |
-| Degradados (segundo naranja) | `#FF7601` |
 
 Las elecciones previas de tema se conservan. El usuario puede cambiarlo en
 Perfil → Configuración → Tema. Los tokens se generan desde el bloque SIEZA de

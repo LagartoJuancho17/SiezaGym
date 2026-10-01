@@ -30,7 +30,7 @@ struct VolumeScreen: View {
                     HStack(alignment: .bottom, spacing: 4) {
                         ForEach(barras) { barra in
                             RoundedRectangle(cornerRadius: 4)
-                                .fill(barra.isEmpty ? AnyShapeStyle(tema.texto3.opacity(0.35)) : AnyShapeStyle(tema.degradadoVertical))
+                                .fill(barra.isEmpty ? tema.texto3.opacity(0.35) : tema.solido)
                                 .frame(height: max(4, 96 * barra.height))
                                 .frame(maxWidth: .infinity)
                         }
@@ -67,7 +67,7 @@ struct VolumeScreen: View {
                         ForEach(porDia) { dia in
                             VStack(spacing: 6) {
                                 RoundedRectangle(cornerRadius: 3)
-                                    .fill(dia.kg > 0 ? AnyShapeStyle(tema.degradadoVertical) : AnyShapeStyle(tema.texto3.opacity(0.35)))
+                                    .fill(dia.kg > 0 ? tema.solido : tema.texto3.opacity(0.35))
                                     .frame(height: max(4, 72 * dia.pct))
                                 Text(dia.label)
                                     .font(.system(size: 9, weight: .medium))
@@ -100,7 +100,7 @@ struct VolumeScreen: View {
                     HStack(alignment: .bottom, spacing: 6) {
                         ForEach(Array(tendencia.points.enumerated()), id: \.offset) { _, kg in
                             RoundedRectangle(cornerRadius: 3)
-                                .fill(kg > 0 ? AnyShapeStyle(tema.degradadoVertical) : AnyShapeStyle(tema.texto3.opacity(0.35)))
+                                .fill(kg > 0 ? tema.solido : tema.texto3.opacity(0.35))
                                 .frame(height: maximo > 0 ? max(4, 72 * Double(kg) / Double(maximo)) : 4)
                                 .frame(maxWidth: .infinity)
                         }

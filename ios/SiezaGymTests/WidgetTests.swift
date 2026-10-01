@@ -241,15 +241,7 @@ struct BrandThemeTests {
         #expect(tema.vidrio(2) == superficie2)
         #expect(tema.vidrio(3) == superficie3)
         #expect(tema.solido == Color(r: 255, g: 50, b: 1, a: 1))
-        #expect(tema.solido2 == Color(r: 255, g: 118, b: 1, a: 1))
         #expect(tema.sobreSolido == Color(r: 11, g: 12, b: 14, a: 1))
-    }
-
-    @Test("los temas que no son SIEZA no tienen degradado: el segundo color es el sólido")
-    func sinDegradadoFueraDeSieza() {
-        for tema in Theme.todos where tema.id != "sieza" {
-            #expect(tema.solido2 == tema.solido, "\(tema.id)")
-        }
     }
 
     @Test("los temas antiguos siguen usando vidrio")

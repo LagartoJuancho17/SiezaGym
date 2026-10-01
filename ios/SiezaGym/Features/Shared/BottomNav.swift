@@ -48,7 +48,7 @@ struct BottomNav: View {
                         .padding(4)
                         .foregroundStyle(tema.sobreSolido)
                         .frame(maxWidth: .infinity, minHeight: 44)
-                        .background(tema.degradado, in: .rect(cornerRadius: tema.plano ? 12 : 26))
+                        .background(tema.solido, in: .rect(cornerRadius: tema.plano ? 12 : 26))
                         .contentShape(.rect)
                     } else {
                         NavIcon(tab: tab, color: tema.texto)
