@@ -21,12 +21,19 @@ nonisolated enum SnapshotStore {
     private static let service = "com.siezagym.widget"
     private static let account = "snapshot"
 
-    private static var query: [String: Any] {
-        var consulta: [String: Any] = [
+    /// Sin el grupo: sirve para encontrar y borrar un ítem viejo escrito antes
+    /// de tener el grupo compartido bien armado (o por una versión anterior de
+    /// la app), que si no un alta filtrada por grupo nunca lo ve.
+    private static var baseQuery: [String: Any] {
+        [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
             kSecAttrAccount as String: account,
         ]
+    }
+
+    private static var query: [String: Any] {
+        var consulta = baseQuery
         // El simulador firma ad-hoc y no lleva el entitlement, así que pedir el
         // grupo devuelve -34018 (errSecMissingEntitlement) y no se guarda nada.
         // Ahí no hace falta: todas las apps del simulador comparten un llavero.
@@ -63,13 +70,13 @@ nonisolated enum SnapshotStore {
             kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
         ]
 
-        let actualizado = SecItemUpdate(query as CFDictionary, atributos as CFDictionary)
-        if actualizado == errSecSuccess { return true }
-
-        guard actualizado == errSecItemNotFound else {
-            log.error("no se pudo actualizar el snapshot: \(actualizado, privacy: .public)")
-            return false
-        }
+        // Borra cualquier ítem viejo primero, sin filtrar por grupo: un
+        // `SecItemUpdate` filtrado por grupo no encuentra un ítem escrito antes
+        // de tener el grupo compartido bien armado (o por una versión anterior
+        // de la app), y el alta siguiente choca con errSecDuplicateItem contra
+        // ese ítem fantasma — el widget se queda leyendo vacío para siempre.
+        // Crear siempre de cero es a prueba de esa cola.
+        SecItemDelete(baseQuery as CFDictionary)
 
         let creado = SecItemAdd(query.merging(atributos) { _, nuevo in nuevo } as CFDictionary, nil)
         if creado != errSecSuccess {
@@ -79,8 +86,10 @@ nonisolated enum SnapshotStore {
     }
 
     /// Al cerrar sesión: el widget no puede seguir mostrando los datos del
-    /// usuario anterior.
+    /// usuario anterior. Sin filtrar por grupo, por la misma cola que
+    /// `escribir`: tiene que borrar cualquier ítem que haya, esté en el grupo
+    /// que esté.
     static func borrar() {
-        SecItemDelete(query as CFDictionary)
+        SecItemDelete(baseQuery as CFDictionary)
     }
 }

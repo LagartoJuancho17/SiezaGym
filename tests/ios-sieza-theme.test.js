@@ -20,7 +20,14 @@ describe("SIEZA en iOS", () => {
     });
     expect(tokens).toContain('id: "sieza"');
     expect(tokens).toContain("plano: true");
-    expect(tokens).toContain("solido: Color(r: 255, g: 87, b: 51, a: 1)");
+    expect(tokens).toContain("solido: Color(r: 255, g: 50, b: 1, a: 1)");
+  });
+
+  it("el naranja de la marca es #FF3201, sin degradado", () => {
+    const block = themeBlock("sieza");
+    expect(block).toContain("--d2-ink: #ff3201;");
+    expect(block).toContain("--d2-ring-fill: #ff3201;");
+    expect(css).not.toContain("--d2-ink-grad");
   });
 
   it("el tema no usa blur, grano, manchas ni superficies translúcidas", () => {

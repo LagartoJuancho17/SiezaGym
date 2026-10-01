@@ -16,7 +16,8 @@ private func session(
     id: String = "s1",
     finishedAt: Date?,
     volume: Double = 0,
-    sets: Int = 0
+    sets: Int = 0,
+    _ exercises: [LoggedExercise] = []
 ) -> WorkoutSession {
     WorkoutSession(
         id: id,
@@ -26,9 +27,21 @@ private func session(
         startedAt: nil,
         finishedAt: finishedAt,
         durationSeconds: 0,
-        exercises: [],
+        exercises: exercises,
         totalVolumeKg: volume,
         totalSetsCompleted: sets
+    )
+}
+
+private func loggedSet(_ weight: Double, _ reps: Int, failed: Bool = false) -> LoggedSet {
+    LoggedSet(setNumber: 1, weight: weight, reps: reps, rir: nil, failed: failed)
+}
+
+private func catalogExercise(_ id: String, muscles: [MuscleGroup: Double] = [:]) -> Exercise {
+    Exercise(
+        id: id, nameEs: id, nameEn: id, equipment: nil, pattern: nil,
+        muscleWeights: muscles, registrationType: .pesoReps, unilateral: false,
+        descriptionEs: "", mediaURL: nil, source: .catalog, videoURL: nil
     )
 }
 
@@ -48,14 +61,16 @@ private func routine(_ ejercicios: [(String, Int)]) -> Routine {
                 targetRIR: nil,
                 targetWeight: nil,
                 techniqueNote: "",
-                sets: nil
+                sets: nil,
+                group: "",
+                groupColor: ""
             )
         },
         showOnHome: true,
         lastUsedAt: nil,
         createdAt: nil,
         updatedAt: nil,
-        isAssigned: false
+        isAssigned: false, weekKey: nil
     )
 }
 
@@ -134,6 +149,51 @@ struct WidgetSnapshotTests {
         #expect(snapshot.themeID == "brasa")
     }
 
+    /// El builder no recalcula esta matemática: la delega en `HomeMetrics`, que
+    /// ya la prueba a fondo. Acá solo importa que le llegue el perfil y las
+    /// sesiones correctas.
+    @Test("las calorías de la semana usan el peso y la meta del perfil")
+    func caloriasDelPerfil() {
+        let perfil = UserProfile(
+            id: "u1", email: nil, displayName: nil, photoURL: nil, isCoach: false,
+            sex: nil, bodyWeightKg: 80, heightCm: nil, weeklyCalorieGoalKcal: 1500, experienceLevel: nil
+        )
+        let snapshot = WidgetSnapshotBuilder.build(
+            themeID: "noche", sessions: [], routine: nil, catalog: [:], profile: perfil, now: lunes
+        )
+
+        #expect(snapshot.calorias.meta == 1500)
+        #expect(snapshot.calorias.pesoPorDefecto == false)
+    }
+
+    @Test("sin perfil, las calorías usan el peso y la meta por defecto")
+    func caloriasSinPerfil() {
+        let snapshot = WidgetSnapshotBuilder.build(
+            themeID: "noche", sessions: [], routine: nil, catalog: [:], now: lunes
+        )
+
+        #expect(snapshot.calorias.meta == Int(HomeMetrics.defaultWeeklyCalorieGoal))
+        #expect(snapshot.calorias.pesoPorDefecto == true)
+    }
+
+    @Test("las series completadas y el volumen muscular salen de las sesiones reales")
+    func seriesYMusculosDeLasSesiones() {
+        let sesiones = [
+            session(finishedAt: lunes, [
+                LoggedExercise(exerciseID: "press", sets: [loggedSet(100, 10), loggedSet(100, 10, failed: true)]),
+            ]),
+        ]
+        let catalogo = ["press": catalogExercise("press", muscles: [.pecho: 1.0])]
+        let snapshot = WidgetSnapshotBuilder.build(
+            themeID: "noche", sessions: sesiones, routine: nil, catalog: catalogo, now: lunes
+        )
+
+        #expect(snapshot.series.completadas == 1)
+        #expect(snapshot.series.totales == 2)
+        #expect(snapshot.musculos.filas.first?.musculo == "Pecho")
+        #expect(snapshot.musculos.hasData)
+    }
+
     @Test("sobrevive la ida y vuelta a JSON, que es como viaja al widget")
     func codable() throws {
         let original = WidgetSnapshotBuilder.build(
@@ -180,7 +240,7 @@ struct BrandThemeTests {
         #expect(tema.vidrio(1) == superficie1)
         #expect(tema.vidrio(2) == superficie2)
         #expect(tema.vidrio(3) == superficie3)
-        #expect(tema.solido == Color(r: 255, g: 87, b: 51, a: 1))
+        #expect(tema.solido == Color(r: 255, g: 50, b: 1, a: 1))
         #expect(tema.sobreSolido == Color(r: 11, g: 12, b: 14, a: 1))
     }
 

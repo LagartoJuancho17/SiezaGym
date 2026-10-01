@@ -11,6 +11,9 @@ struct RoutineDetailScreen: View {
 
     @State private var abierto: String?
     @State private var editando = false
+    @State private var cambiandoSemana = false
+    /// El ejercicio cuya técnica (GIF o video) está abierta.
+    @State private var tecnica: Exercise?
 
     /// La versión viva de la rutina. La que llegó por navegación es una copia
     /// del momento en que se tocó la fila: después de editar quedó vieja.
@@ -27,6 +30,15 @@ struct RoutineDetailScreen: View {
     }
     private var hayGifs: Bool {
         actual.exercises.contains { store.exercise($0.exerciseID)?.mediaURL != nil }
+    }
+
+    private var semanaActual: TrainingCalendar.Semana { store.semanaActual }
+    private var estaEnLaSemana: Bool { actual.weekKey == semanaActual.clave }
+
+    /// Los ejercicios consecutivos con el mismo grupo, juntos. Igual que
+    /// `sections` en `RoutineScreen.js`.
+    private var secciones: [RoutineSection<RoutineExercise>] {
+        RoutineGrouping.seccionar(actual.exercises, grupo: \.group, colorID: \.groupColor)
     }
 
     var body: some View {
@@ -61,7 +73,11 @@ struct RoutineDetailScreen: View {
                         .fill(tema.solido)
                         .frame(height: 4)
                         .padding(.horizontal, 28)
-                        .padding(.top, 21)
+                }
+
+                if sePuedeEditar {
+                    botonSemana
+                        .padding(.top, 14)
                 }
 
                 SectionLabel("Ejercicios · \(actual.exercises.count)")
@@ -74,20 +90,27 @@ struct RoutineDetailScreen: View {
                         accion: sePuedeEditar ? ("Agregar ejercicios", { editando = true }) : nil
                     )
                 } else {
-                    PanelLista {
-                        ForEach(Array(actual.exercises.enumerated()), id: \.offset) { indice, item in
-                            if indice > 0 {
-                                Rectangle().fill(tema.borde).frame(height: 1)
+                    VStack(spacing: 10) {
+                        ForEach(secciones) { seccion in
+                            if seccion.agrupada {
+                                EncabezadoDeGrupoLectura(seccion: seccion)
+                                    .padding(.top, 6)
                             }
-                            FilaEjercicio(
-                                item: item,
-                                ejercicio: store.exercise(item.exerciseID),
-                                nombre: store.name(of: item.exerciseID),
-                                abierto: abierto == clave(indice, item),
-                                alTocar: {
-                                    abierto = abierto == clave(indice, item) ? nil : clave(indice, item)
+
+                            ForEach(Array(actual.exercises.enumerated()), id: \.offset) { indice, item in
+                                if seccion.items.contains(where: { $0.id == item.id }) {
+                                    FilaEjercicio(
+                                        item: item,
+                                        ejercicio: store.exercise(item.exerciseID),
+                                        nombre: store.name(of: item.exerciseID),
+                                        abierto: abierto == clave(indice, item),
+                                        alTocar: {
+                                            abierto = abierto == clave(indice, item) ? nil : clave(indice, item)
+                                        },
+                                        alTocarMiniatura: { tecnica = store.exercise(item.exerciseID) }
+                                    )
                                 }
-                            )
+                            }
                         }
                     }
                 }
@@ -129,20 +152,83 @@ struct RoutineDetailScreen: View {
         .fullScreenCover(isPresented: $editando) {
             RoutineComposerScreen(store: store, routine: actual)
         }
+        .sheet(item: $tecnica) { ejercicio in
+            TecnicaSheet(
+                nombre: ejercicio.nameEs,
+                gif: ejercicio.mediaURL,
+                video: ejercicio.videoURL,
+                descripcion: ejercicio.descriptionEs
+            )
+        }
     }
 
     private func clave(_ indice: Int, _ item: RoutineExercise) -> String {
         "\(indice)-\(item.exerciseID)"
     }
 
+    /// Sumarla o sacarla de "Septiembre · Semana 4" en la Home. Sólo para las
+    /// propias: las del coach se organizan solas por cuándo te las asignaron.
+    private var botonSemana: some View {
+        Button {
+            Task {
+                cambiandoSemana = true
+                defer { cambiandoSemana = false }
+                try? await store.setWeekAssignment(actual, to: estaEnLaSemana ? nil : semanaActual.clave)
+            }
+        } label: {
+            Label(
+                estaEnLaSemana ? "En \(semanaActual.texto)" : "Agregar a \(semanaActual.texto)",
+                systemImage: estaEnLaSemana ? "checkmark.circle.fill" : "calendar.badge.plus"
+            )
+            .font(.system(size: 13, weight: .medium))
+            .foregroundStyle(estaEnLaSemana ? tema.sobreSolido : tema.texto)
+            .frame(maxWidth: .infinity, minHeight: 42)
+            .background(estaEnLaSemana ? AnyShapeStyle(tema.solido) : AnyShapeStyle(tema.vidrio(1)), in: .capsule)
+            .overlay {
+                Capsule().strokeBorder(estaEnLaSemana ? .clear : tema.borde, lineWidth: 1)
+            }
+            .opacity(cambiandoSemana ? 0.6 : 1)
+        }
+        .buttonStyle(.plain)
+        .disabled(cambiandoSemana)
+        .padding(.horizontal, 28)
+        .accessibilityHint(estaEnLaSemana ? "Sacar de esta semana" : "Agregar a esta semana")
+    }
+
     private var boton: some View {
         Button { onStart(actual) } label: {
             Label("Comenzar entrenamiento", systemImage: "play.fill")
         }
-        .buttonStyle(SolidButtonStyle())
+        .buttonStyle(BotonBrilloStyle())
         .disabled(actual.exercises.isEmpty)
         .padding(.horizontal, 18)
         .padding(.bottom, 12)
+    }
+}
+
+/// La franja de color con el nombre del bloque, de sólo lectura: acá no se
+/// edita, se edita desde el armador.
+private struct EncabezadoDeGrupoLectura: View {
+    @Environment(\.tema) private var tema
+    let seccion: RoutineSection<RoutineExercise>
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Circle().fill(seccion.color?.color ?? tema.texto3).frame(width: 7, height: 7)
+            Text(seccion.nombreGrupo)
+                .font(.system(size: 12, weight: .bold))
+                .tracking(0.4)
+                .textCase(.uppercase)
+            Spacer()
+            Text("\(seccion.items.count) \(seccion.items.count == 1 ? "ejercicio" : "ejercicios")")
+                .font(.system(size: 11))
+        }
+        .foregroundStyle(seccion.color?.color ?? tema.texto)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 8)
+        .frame(maxWidth: .infinity)
+        .background((seccion.color?.color ?? tema.texto3).opacity(0.14), in: .rect(cornerRadius: 12))
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -155,6 +241,9 @@ private struct FilaEjercicio: View {
     let nombre: String
     let abierto: Bool
     let alTocar: () -> Void
+    let alTocarMiniatura: () -> Void
+
+    private var tieneMedia: Bool { ejercicio?.mediaURL != nil || ejercicio?.videoURL != nil }
 
     /// Las series prescritas en una sola forma, vengan parejas o detalladas.
     private var series: [(numero: Int, reps: Int, peso: Double?, rir: Int?)] {
@@ -173,42 +262,21 @@ private struct FilaEjercicio: View {
     private var resumen: String {
         let reps = series.map(\.reps)
         let unidad = esDeTiempo ? "s" : ""
-        if Set(reps).count == 1 { return "\(reps.count) × \(reps[0])\(unidad)" }
-        return reps.map(String.init).joined(separator: " · ") + unidad
+        let sufijo = esDeTiempo ? "" : " reps"
+        if Set(reps).count == 1 { return "\(reps.count) × \(reps[0])\(unidad)\(sufijo)" }
+        return reps.map(String.init).joined(separator: " · ") + unidad + sufijo
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            Button(action: alTocar) {
-                HStack(spacing: 12) {
-                    Miniatura(url: ejercicio?.thumbnailURL, lado: 54)
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(nombre)
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(tema.texto)
-                            .lineLimit(1)
-                        Text(ejercicio?.primaryMuscle?.label ?? "Sin datos")
-                            .font(.system(size: 11))
-                            .foregroundStyle(tema.texto2)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                    Text(resumen)
-                        .font(.system(size: 12))
-                        .foregroundStyle(tema.texto2)
-                        .lineLimit(1)
-
-                    Image(systemName: "chevron.down")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(tema.texto3)
-                        .rotationEffect(.degrees(abierto ? 180 : 0))
-                }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 12)
-                .contentShape(.rect)
-            }
-            .buttonStyle(.plain)
-
+        TarjetaEjercicio(
+            miniatura: ejercicio?.thumbnailURL,
+            nombre: nombre,
+            detalle: resumen,
+            alTocar: alTocar,
+            alTocarMiniatura: tieneMedia ? alTocarMiniatura : nil
+        ) {
+            AccesorioTarjeta(abierto: abierto)
+        } contenido: {
             if abierto {
                 VStack(spacing: 6) {
                     HStack(spacing: 8) {
@@ -238,15 +306,7 @@ private struct FilaEjercicio: View {
                 }
                 .padding(.horizontal, 14)
                 .padding(.bottom, 14)
-            }
-        }
-        .background(abierto ? tema.solido.opacity(0.08) : .clear)
-        .overlay(alignment: .leading) {
-            if abierto {
-                RoundedRectangle(cornerRadius: 3)
-                    .fill(tema.solido)
-                    .frame(width: 3)
-                    .padding(.vertical, 10)
+                .transition(.opacity)
             }
         }
         .animation(.snappy(duration: 0.2), value: abierto)
@@ -261,3 +321,19 @@ private struct FilaEjercicio: View {
             .background(texto == nil ? tema.vidrio(1) : tema.solido.opacity(0.08), in: .rect(cornerRadius: 11))
     }
 }
+
+#if DEBUG
+#Preview("Detalle de rutina") {
+    NavigationStack {
+        RoutineDetailScreen(routine: PreviewData.routines[0], store: PreviewData.store()) { _ in }
+    }
+    .previewSieza()
+}
+
+#Preview("Detalle · rutina del coach") {
+    NavigationStack {
+        RoutineDetailScreen(routine: PreviewData.routines[3], store: PreviewData.store()) { _ in }
+    }
+    .previewSieza()
+}
+#endif

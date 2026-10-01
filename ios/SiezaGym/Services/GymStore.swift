@@ -31,9 +31,35 @@ final class GymStore {
         self.uid = uid
     }
 
+    #if DEBUG
+    /// Para los previews de Xcode: arranca con datos ya cargados y nunca va a
+    /// Firestore. `hasLoaded` queda en true, así `MainTabView` no dispara la
+    /// carga, y `load()` igual corta acá por las dudas.
+    private var esPreview = false
+
+    init(
+        preview uid: String,
+        profile: UserProfile?,
+        routines: [Routine],
+        sessions: [WorkoutSession],
+        catalog: [String: Exercise]
+    ) {
+        self.uid = uid
+        self.profile = profile
+        self.routines = routines
+        self.sessions = sessions
+        self.catalog = catalog
+        lastLoadedAt = Date()
+        esPreview = true
+    }
+    #endif
+
     var hasLoaded: Bool { lastLoadedAt != nil }
 
     func load() async {
+        #if DEBUG
+        if esPreview { return }
+        #endif
         guard !isLoading else { return }
         isLoading = true
         defer { isLoading = false }
@@ -66,7 +92,8 @@ final class GymStore {
                 themeID: ThemeStore.temaGuardado,
                 sessions: sessions,
                 routine: featuredRoutine,
-                catalog: catalog
+                catalog: catalog,
+                profile: profile
             )
         )
     }
@@ -91,6 +118,14 @@ final class GymStore {
     var weekSessions: [WorkoutSession] { HomeMetrics.sessionsInLastDays(sessions, days: 7) }
 
     var weeklyVolumeKg: Double { weekSessions.reduce(0) { $0 + $1.totalVolumeKg } }
+
+    /// "Septiembre · Semana 4", la semana en la que estás hoy.
+    var semanaActual: TrainingCalendar.Semana { TrainingCalendar.semana(de: .now) }
+
+    /// Las rutinas propias que asignaste a la semana en la que estás hoy.
+    var rutinasDeEstaSemana: [Routine] {
+        TrainingCalendar.delaSemana(routines, clave: semanaActual.clave, claveDe: \.weekKey)
+    }
 
     var muscleVolume: HomeMetrics.MuscleVolume {
         HomeMetrics.volumeByMuscleGroup(sessions, catalog: catalog)
@@ -132,6 +167,9 @@ final class GymStore {
         guard session.userID == uid else { return }
         try await repository.deleteSession(uid: uid, sessionID: session.id)
         sessions.removeAll { $0.id == session.id }
+        // Sin esto la racha y el volumen del widget quedaban con la sesión
+        // borrada adentro hasta la próxima carga completa (relanzar la app).
+        publicarWidget()
     }
 
     /// Crea una rutina y recarga, para que aparezca en la lista sin salir y
@@ -153,6 +191,40 @@ final class GymStore {
             exercises: exercises
         )
         await load()
+    }
+
+    /// Asigna o saca una rutina propia de una semana. Las del coach no se
+    /// tocan desde acá: se organizan solas por cuándo te las asignaron.
+    func setWeekAssignment(_ routine: Routine, to weekKey: String?) async throws {
+        guard !routine.isAssigned else { throw RoutineEditError.esDelCoach }
+        try await repository.setWeekAssignment(routineID: routine.id, weekKey: weekKey)
+        await load()
+    }
+
+    /// Muestra u oculta una rutina propia en la portada.
+    func setShowOnHome(_ routine: Routine, showOnHome: Bool) async throws {
+        guard !routine.isAssigned else { throw RoutineEditError.esDelCoach }
+        try await repository.setShowOnHome(routineID: routine.id, showOnHome: showOnHome)
+        await load()
+    }
+
+    /// Copia una rutina propia: mismo nombre con "(copia)", mismos ejercicios,
+    /// sin arrastrar cuándo se usó por última vez. Mismo criterio que
+    /// "Duplicar" en la web.
+    func duplicateRoutine(_ routine: Routine) async throws {
+        guard !routine.isAssigned else { throw RoutineEditError.esDelCoach }
+        let ejercicios = routine.exercises.map(RoutineDraftExercise.init)
+        try await createRoutine(name: "\(routine.name) (copia)", note: routine.note, exercises: ejercicios)
+    }
+
+    /// Borra una rutina propia. Nunca la del coach: esas se editan desde su
+    /// panel. Saca la rutina en memoria y avisa al widget de una, en vez de
+    /// recargar todo — la racha y el volumen no dependen de qué rutinas hay.
+    func deleteRoutine(_ routine: Routine) async throws {
+        guard !routine.isAssigned else { throw RoutineEditError.esDelCoach }
+        try await repository.deleteRoutine(routineID: routine.id)
+        routines.removeAll { $0.id == routine.id }
+        publicarWidget()
     }
 
     /// Crea un ejercicio propio y lo suma al catálogo en memoria, para que

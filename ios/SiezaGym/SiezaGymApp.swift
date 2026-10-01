@@ -23,14 +23,35 @@ struct SiezaGymApp: App {
         Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist") != nil
     }
 
+    #if DEBUG
+    /// `-sieza-preview` al lanzar: la app arranca con los datos de
+    /// `PreviewData`, sin login ni Firestore. Sirve para recorrer todas las
+    /// pantallas en el simulador con contenido:
+    ///
+    ///     xcrun simctl launch booted com.siezagym.app -sieza-preview
+    static var usaDatosDePrueba: Bool {
+        ProcessInfo.processInfo.arguments.contains("-sieza-preview")
+    }
+    #endif
+
     var body: some Scene {
         WindowGroup {
             Group {
+                #if DEBUG
+                if Self.usaDatosDePrueba {
+                    MainTabView(store: PreviewData.store()).previewSieza()
+                } else if let auth {
+                    RootView().environment(auth)
+                } else {
+                    MissingConfigView()
+                }
+                #else
                 if let auth {
                     RootView().environment(auth)
                 } else {
                     MissingConfigView()
                 }
+                #endif
             }
             // Google vuelve del navegador por el esquema de URL de la app.
             .onOpenURL { GIDSignIn.sharedInstance.handle($0) }

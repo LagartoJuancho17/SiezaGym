@@ -20,6 +20,7 @@ struct RoutineComposerScreen: View {
     @State private var error = ""
     @State private var guardando = false
     @State private var cargada = false
+    @State private var grupoModal: GroupModalState?
 
     /// Los mismos topes que los campos de la web: el nombre es un título de
     /// lista, no un párrafo.
@@ -31,6 +32,12 @@ struct RoutineComposerScreen: View {
 
     private var musculos: [RepartoMuscular] {
         Array(RoutineCompose.reparto(items, catalogo: store.catalog).prefix(5))
+    }
+
+    /// Los ejercicios consecutivos con el mismo grupo, juntos. Igual que
+    /// `sections` en `RoutineComposer.js`.
+    private var secciones: [RoutineSection<RoutineDraftExercise>] {
+        RoutineGrouping.seccionar(items, grupo: \.group, colorID: \.groupColor)
     }
 
     var body: some View {
@@ -81,6 +88,13 @@ struct RoutineComposerScreen: View {
                 eligiendo = false
             }
         }
+        .sheet(item: $grupoModal) { modal in
+            GroupAssignmentSheet(
+                modal: modal,
+                onApply: { nombre, color, aplicarLote in aplicarGrupo(nombre: nombre, color: color, aplicarLote: aplicarLote) },
+                onRemove: { quitarGrupo(indices: modal.targetIndices) }
+            )
+        }
     }
 
     // MARK: - Partes
@@ -125,26 +139,69 @@ struct RoutineComposerScreen: View {
 
     /// `ForEach` sobre `$items` y no sobre los índices: así cada fila recibe su
     /// binding directo y quitar el último ejercicio no deja un binding
-    /// apuntando a una posición que ya no existe.
+    /// apuntando a una posición que ya no existe. Se agrupa por encima de eso,
+    /// sin tocar los bindings: `secciones` sólo dice cómo repartir las mismas
+    /// filas en tandas.
     private var panelEjercicios: some View {
         PanelLista {
-            ForEach($items) { $item in
-                if item.exerciseID != items.first?.exerciseID {
-                    Rectangle().fill(tema.borde).frame(height: 1)
+            ForEach(secciones) { seccion in
+                if seccion.agrupada {
+                    encabezadoDeGrupo(seccion)
                 }
 
-                FilaPrescripcion(
-                    item: $item,
-                    ejercicio: store.exercise(item.exerciseID),
-                    nombre: store.name(of: item.exerciseID),
-                    abierto: abierto == item.exerciseID,
-                    alTocar: { abierto = abierto == item.exerciseID ? nil : item.exerciseID },
-                    alQuitar: { quitar(item.exerciseID) }
-                )
+                ForEach($items) { $item in
+                    if seccion.items.contains(where: { $0.exerciseID == item.exerciseID }) {
+                        if item.exerciseID != seccion.items.first?.exerciseID {
+                            Rectangle().fill(tema.borde).frame(height: 1)
+                        }
 
-                if items.count > 1 { reordenar(item) }
+                        FilaPrescripcion(
+                            item: $item,
+                            ejercicio: store.exercise(item.exerciseID),
+                            nombre: store.name(of: item.exerciseID),
+                            abierto: abierto == item.exerciseID,
+                            alTocar: { abierto = abierto == item.exerciseID ? nil : item.exerciseID },
+                            alQuitar: { quitar(item.exerciseID) },
+                            alAgrupar: { abrirModal(paraExerciseID: item.exerciseID) }
+                        )
+
+                        if items.count > 1 { reordenar(item) }
+                    }
+                }
             }
         }
+    }
+
+    /// La franja de color con el nombre del bloque y cuántos ejercicios lleva.
+    /// Tocarla abre el modal ya cargado con ese grupo, para editarlo o
+    /// sacárselo a todos los de la tanda de una.
+    private func encabezadoDeGrupo(_ seccion: RoutineSection<RoutineDraftExercise>) -> some View {
+        Button { abrirModal(paraSeccion: seccion) } label: {
+            HStack(spacing: 8) {
+                Circle().fill(seccion.color?.color ?? tema.texto3).frame(width: 7, height: 7)
+                Text(seccion.nombreGrupo)
+                    .font(.system(size: 12, weight: .bold))
+                    .tracking(0.4)
+                    .textCase(.uppercase)
+                Spacer()
+                Text("\(seccion.items.count)")
+                    .font(.system(size: 11))
+                Image(systemName: "pencil")
+                    .font(.system(size: 10, weight: .semibold))
+            }
+            .foregroundStyle(seccion.color?.color ?? tema.texto)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .frame(maxWidth: .infinity)
+            .background((seccion.color?.color ?? tema.texto3).opacity(0.12))
+            .contentShape(.rect)
+        }
+        .buttonStyle(.plain)
+        .overlay(alignment: .leading) {
+            Rectangle().fill(seccion.color?.color ?? tema.texto3).frame(width: 3)
+        }
+        .accessibilityLabel("Grupo \(seccion.nombreGrupo), \(seccion.items.count) ejercicios")
+        .accessibilityHint("Editar el grupo")
     }
 
     private func reordenar(_ item: RoutineDraftExercise) -> some View {
@@ -236,6 +293,77 @@ struct RoutineComposerScreen: View {
         if abierto == id { abierto = nil }
     }
 
+    // MARK: - Grupos
+
+    /// Igual que `openGroupModalForIndex` en la web: cuenta los ejercicios
+    /// siguientes que todavía no tienen grupo, para ofrecer "aplicar también a
+    /// los próximos N" con la casilla ya tildada si hay alguno.
+    private func abrirModal(paraExerciseID id: String) {
+        guard let indice = items.firstIndex(where: { $0.exerciseID == id }) else { return }
+        let item = items[indice]
+
+        var siguientesSinGrupo = 0
+        var i = indice + 1
+        while i < items.count, items[i].group.trimmingCharacters(in: .whitespaces).isEmpty {
+            siguientesSinGrupo += 1
+            i += 1
+        }
+
+        grupoModal = GroupModalState(
+            targetIndices: [indice],
+            groupName: item.group,
+            groupColor: GroupColor.resuelto(item.groupColor, nombre: item.group) ?? .teal,
+            batchCount: siguientesSinGrupo,
+            applyBatch: siguientesSinGrupo > 0,
+            hasExisting: !item.group.trimmingCharacters(in: .whitespaces).isEmpty
+        )
+    }
+
+    /// Igual que `openGroupModalForSection`: editar el encabezado apunta a
+    /// todos los de esa tanda, sin lote (ya están todos adentro).
+    private func abrirModal(paraSeccion seccion: RoutineSection<RoutineDraftExercise>) {
+        let ids = Set(seccion.items.map(\.exerciseID))
+        let indices = items.indices.filter { ids.contains(items[$0].exerciseID) }
+
+        grupoModal = GroupModalState(
+            targetIndices: indices,
+            groupName: seccion.nombreGrupo,
+            groupColor: seccion.color ?? .teal,
+            batchCount: 0,
+            applyBatch: false,
+            hasExisting: true
+        )
+    }
+
+    /// Igual que `saveGroupModal`: un nombre vacío es lo mismo que sacar el
+    /// grupo, para que "borrar todo el texto y aplicar" también funcione.
+    private func aplicarGrupo(nombre: String, color: GroupColor, aplicarLote: Bool) {
+        let limpio = nombre.trimmingCharacters(in: .whitespaces)
+        guard let modal = grupoModal else { return }
+        guard !limpio.isEmpty else { return quitarGrupo(indices: modal.targetIndices) }
+
+        var objetivo = Set(modal.targetIndices)
+        if aplicarLote, modal.batchCount > 0, modal.targetIndices.count == 1, let inicio = modal.targetIndices.first {
+            for i in (inicio + 1)...(inicio + modal.batchCount) where items.indices.contains(i) {
+                objetivo.insert(i)
+            }
+        }
+
+        for i in objetivo where items.indices.contains(i) {
+            items[i].group = limpio
+            items[i].groupColor = color.rawValue
+        }
+        grupoModal = nil
+    }
+
+    private func quitarGrupo(indices: [Int]) {
+        for i in indices where items.indices.contains(i) {
+            items[i].group = ""
+            items[i].groupColor = ""
+        }
+        grupoModal = nil
+    }
+
     private func guardar() async {
         error = ""
         do {
@@ -271,6 +399,7 @@ private struct FilaPrescripcion: View {
     let abierto: Bool
     let alTocar: () -> Void
     let alQuitar: () -> Void
+    let alAgrupar: () -> Void
 
     private var esDeTiempo: Bool { ejercicio?.registrationType.isTimeBased == true }
     /// El peso se pide solo donde tiene sentido: en peso corporal o en plancha no.
@@ -308,6 +437,18 @@ private struct FilaPrescripcion: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityHint(abierto ? "Cerrar la prescripción" : "Abrir la prescripción")
+
+                Button(action: alAgrupar) {
+                    Image(systemName: item.group.isEmpty ? "tag" : "tag.fill")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(
+                            item.group.isEmpty
+                                ? tema.texto3
+                                : (GroupColor.resuelto(item.groupColor, nombre: item.group)?.color ?? tema.texto3)
+                        )
+                        .frame(width: 30, height: 34)
+                }
+                .accessibilityLabel(item.group.isEmpty ? "Agrupar \(nombre)" : "Grupo de \(nombre): \(item.group)")
 
                 Button(action: alQuitar) {
                     Image(systemName: "xmark")
@@ -468,10 +609,10 @@ private struct FilaPrescripcion: View {
 /// Caja de número de la prescripción.
 ///
 /// Tiene texto propio y no lee el binding directo porque un `TextField` se
-/// queda con lo que tipeaste aunque el modelo lo haya recortado: escribís 43
-/// series, el tope son 12, y la caja seguía diciendo 43 mientras la rutina ya
-/// tenía 12. Igual que un input controlado de React, acá la caja vuelve a
-/// escribirse siempre con el valor que el modelo aceptó.
+/// queda con lo que tipeaste aunque el modelo lo haya recortado o rechazado
+/// (por ejemplo, letras pegadas por dictado). Igual que un input controlado
+/// de React, acá la caja vuelve a escribirse siempre con el valor que el
+/// modelo aceptó — nunca con lo que quedó tipeado si no coincide.
 private struct CampoNumero: View {
     @Environment(\.tema) private var tema
     @Binding var valor: Int
@@ -510,6 +651,180 @@ private struct CampoNumero: View {
     }
 }
 
+/// El estado con el que se abre el modal de grupo: a qué índices de `items`
+/// apunta, qué trae cargado y si hay que ofrecer el lote de los siguientes.
+/// Igual que el `groupModal` de `RoutineComposer.js`.
+nonisolated struct GroupModalState: Identifiable, Sendable {
+    let id = UUID()
+    let targetIndices: [Int]
+    let groupName: String
+    let groupColor: GroupColor
+    let batchCount: Int
+    let applyBatch: Bool
+    let hasExisting: Bool
+}
+
+/// El modal para nombrar y colorear un bloque de ejercicios: "Entrada en
+/// calor", "Fuerza", "Potencia". Puerto de la parte `groupModal.open` de
+/// `RoutineComposer.js`.
+private struct GroupAssignmentSheet: View {
+    @Environment(\.tema) private var tema
+    @Environment(\.dismiss) private var dismiss
+    let modal: GroupModalState
+    let onApply: (String, GroupColor, Bool) -> Void
+    let onRemove: () -> Void
+
+    @State private var nombre: String
+    @State private var color: GroupColor
+    @State private var aplicarLote: Bool
+
+    private static let maxNombre = 30
+
+    init(modal: GroupModalState, onApply: @escaping (String, GroupColor, Bool) -> Void, onRemove: @escaping () -> Void) {
+        self.modal = modal
+        self.onApply = onApply
+        self.onRemove = onRemove
+        _nombre = State(initialValue: modal.groupName)
+        _color = State(initialValue: modal.groupColor)
+        _aplicarLote = State(initialValue: modal.applyBatch)
+    }
+
+    var body: some View {
+        ZStack {
+            Backdrop()
+
+            VStack(spacing: 0) {
+                encabezado
+
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 20) {
+                        Text("Organizá tu rutina en bloques como Movilidad, Fuerza o Descanso.")
+                            .font(.system(size: 13))
+                            .foregroundStyle(tema.texto2)
+
+                        presets
+                        campoNombre
+                        selectorColor
+
+                        if modal.batchCount > 0 {
+                            Toggle(isOn: $aplicarLote) {
+                                Text("Aplicar también a los siguientes \(modal.batchCount) ejercicios")
+                                    .font(.system(size: 13))
+                                    .foregroundStyle(tema.texto)
+                            }
+                            .tint(tema.solido)
+                        }
+
+                        Button("Aplicar grupo") { onApply(nombre, color, aplicarLote) }
+                            .buttonStyle(AccentButtonStyle())
+                            .padding(.top, 4)
+
+                        if modal.hasExisting {
+                            Button("Quitar del grupo", action: onRemove)
+                                .buttonStyle(GhostButtonStyle())
+                                .frame(maxWidth: .infinity)
+                        }
+                    }
+                    .padding(20)
+                }
+            }
+        }
+        .tecladoConBotonListo()
+    }
+
+    private var encabezado: some View {
+        HStack(spacing: 12) {
+            Text(modal.hasExisting ? "Editar grupo" : "Agrupar ejercicios")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundStyle(tema.texto)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            Button { dismiss() } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(tema.texto)
+                    .frame(width: 44, height: 44)
+            }
+            .accessibilityLabel("Cerrar")
+        }
+        .padding(.leading, 18)
+        .padding(.trailing, 6)
+        .padding(.top, 12)
+    }
+
+    /// Los seis atajos. Elegir uno carga nombre y color juntos; el nombre
+    /// sigue siendo editable después.
+    private var presets: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(GroupPreset.todos) { preset in
+                    let seleccionado = nombre == preset.name
+                    Button {
+                        nombre = preset.name
+                        color = preset.color
+                    } label: {
+                        HStack(spacing: 6) {
+                            Circle().fill(preset.color.color).frame(width: 7, height: 7)
+                            Text(preset.name).font(.system(size: 13, weight: .medium))
+                        }
+                        .foregroundStyle(seleccionado ? preset.color.color : tema.texto2)
+                        .padding(.horizontal, 12)
+                        .frame(minHeight: 36)
+                        .background((seleccionado ? preset.color.color : tema.texto3).opacity(seleccionado ? 0.16 : 0.08), in: .capsule)
+                        .overlay {
+                            Capsule().strokeBorder(seleccionado ? preset.color.color : tema.borde, lineWidth: seleccionado ? 1.5 : 1)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+
+    private var campoNombre: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            SectionLabel("Nombre personalizado")
+            TextField(
+                "",
+                text: $nombre,
+                prompt: Text("Ej: Movilidad, Fuerza, Descanso...").foregroundStyle(tema.texto3)
+            )
+            .foregroundStyle(tema.texto)
+            .padding(.horizontal, 14)
+            .frame(height: 46)
+            .background(tema.vidrio(1), in: .rect(cornerRadius: 14))
+            .overlay { RoundedRectangle(cornerRadius: 14).strokeBorder(tema.borde, lineWidth: 1) }
+            .accessibilityLabel("Nombre del grupo")
+            .onChange(of: nombre) { _, nuevo in
+                if nuevo.count > Self.maxNombre { nombre = String(nuevo.prefix(Self.maxNombre)) }
+            }
+        }
+    }
+
+    private var selectorColor: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            SectionLabel("Color del bloque")
+            HStack(spacing: 14) {
+                ForEach(GroupColor.allCases) { opcion in
+                    Button { color = opcion } label: {
+                        Circle()
+                            .fill(opcion.color)
+                            .frame(width: 28, height: 28)
+                            .overlay {
+                                Circle()
+                                    .strokeBorder(tema.texto, lineWidth: color == opcion ? 2 : 0)
+                                    .padding(-3)
+                            }
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(opcion.label)
+                    .accessibilityAddTraits(color == opcion ? [.isSelected] : [])
+                }
+            }
+        }
+    }
+}
+
 /// Caja de peso. No tiene topes, así que no reescribe lo tipeado: hacerlo
 /// comería el punto de "60." antes de poder escribir "60.5".
 private struct CampoDecimal: View {
@@ -529,3 +844,15 @@ private struct CampoDecimal: View {
             .overlay { RoundedRectangle(cornerRadius: 12).strokeBorder(tema.borde, lineWidth: 1) }
     }
 }
+
+#if DEBUG
+#Preview("Nueva rutina") {
+    RoutineComposerScreen(store: PreviewData.store())
+        .previewSieza()
+}
+
+#Preview("Editar rutina") {
+    RoutineComposerScreen(store: PreviewData.store(), routine: PreviewData.routines[0])
+        .previewSieza()
+}
+#endif

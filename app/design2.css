@@ -352,12 +352,12 @@
   --d2-text: #f4f5f7;
   --d2-text-2: rgba(244, 245, 247, 0.76);
   --d2-text-3: #858a91;
-  --d2-ink: #ff5733;
+  --d2-ink: #ff3201;
   --d2-on-ink: #0b0c0e;
   --d2-ink-shadow: none;
 
   --d2-ring-track: #63666e;
-  --d2-ring-fill: #ff5733;
+  --d2-ring-fill: #ff3201;
   --d2-ring-core: #1a1d22;
   --d2-ring-core-border: #63666e;
 

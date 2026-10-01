@@ -21,8 +21,12 @@ sin migración, y la pantalla tiene que ser la misma que `/rutinas/nueva`:
   (`chosenExercises` en la web).
 - Cambiar series, reps/tiempo, peso, RIR y nota técnica: los valores quedan
   visibles y el resumen de la fila cerrada los refleja.
-- **Escribir 43 en Series: la caja queda en 12 y la rutina tiene 12 series.** El
-  tope es `MAX_SETS`; la caja no puede mostrar un número que el modelo no aceptó.
+- **Escribir 43 en Series: la caja queda en 43 y la rutina tiene 43 series.**
+  Sin tope de arriba — antes el tope era 12, ya no.
+- **Borrar el "2" de Series: el campo queda en blanco, no salta solo a "1".**
+  El piso de 1 se aplica recién al guardar (`RoutineDraftExercise.firestoreValue`
+  en iOS, `sanitizeExercises` en la web), nunca en caliente mientras se escribe
+  el número nuevo.
 - Tildar `Prescribir cada serie por separado`: aparece una fila por serie con el
   encabezado `Reps · Peso · RIR`. Cambiar la primera a 12 deja el resumen en
   `12 · 10 · 10`.

@@ -286,7 +286,7 @@ struct CustomExerciseSheet: View {
     }
 }
 
-// `Etiquetable` vive en ProfileScreen, donde nació para los chips del perfil.
+// `Etiquetable` vive en DatosScreen, donde nació para los chips del perfil.
 extension Equipment: Etiquetable {}
 extension MovementPattern: Etiquetable {}
 extension RegistrationType: Etiquetable {}
