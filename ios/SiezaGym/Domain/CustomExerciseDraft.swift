@@ -63,6 +63,44 @@ nonisolated enum YouTubeLink {
     static func miniatura(paraID id: String) -> URL? {
         URL(string: "https://img.youtube.com/vi/\(id)/mqdefault.jpg")
     }
+
+    /// El origen con el que se carga el reproductor: el dominio de la web de
+    /// SiezaGym. YouTube corta el embed ("Error 153") si la página que lo
+    /// contiene no manda un origen https.
+    static let origenReproductor = "https://sieza-gym.vercel.app"
+
+    /// El reproductor embebido, mismo criterio que `getYouTubeEmbedUrl` en la
+    /// web: youtube-nocookie, `playsinline=1` para que se vea dentro de la hoja
+    /// y no salte a pantalla completa, `rel=0` para no sugerir videos de otros
+    /// canales al terminar.
+    static func embedURL(paraID id: String) -> URL? {
+        guard esID(id) else { return nil }
+        var partes = URLComponents(string: "https://www.youtube-nocookie.com/embed/\(id)")
+        partes?.queryItems = [
+            URLQueryItem(name: "playsinline", value: "1"),
+            URLQueryItem(name: "rel", value: "0"),
+            URLQueryItem(name: "origin", value: origenReproductor),
+        ]
+        return partes?.url
+    }
+
+    /// La página mínima que envuelve al iframe: ocupa toda la vista, fondo
+    /// negro y sin márgenes. El id se valida antes de escribirlo en el HTML.
+    static func embedHTML(paraID id: String) -> String? {
+        guard let url = embedURL(paraID: id) else { return nil }
+        return """
+        <!doctype html>
+        <html><head>
+        <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+        <style>html,body{margin:0;height:100%;background:#000;overflow:hidden}\
+        iframe{position:absolute;inset:0;width:100%;height:100%;border:0}</style>
+        </head><body>
+        <iframe src="\(url.absoluteString)" title="Video del ejercicio"
+          allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+          referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        </body></html>
+        """
+    }
 }
 
 /// Un ejercicio propio mientras se carga, antes de guardarlo.

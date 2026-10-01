@@ -23,6 +23,16 @@ enum PreviewData {
             ejercicio("press-militar", "Press militar con mancuernas", .mancuerna, .empujeVertical, ["deltoideAnterior": 0.6, "deltoideLateral": 0.2, "triceps": 0.2]),
             ejercicio("dominadas", "Dominadas", .pesoCorporal, .traccionVertical, ["dorsal": 0.65, "biceps": 0.35], tipo: .reps, gif: "0652-lBDjFxJ.gif"),
             ejercicio("curl-biceps", "Curl de bíceps con mancuernas", .mancuerna, .aislamiento, ["biceps": 0.85, "antebrazo": 0.15]),
+            // Un ejercicio propio con video de YouTube: el preview de la hoja
+            // de técnica muestra el reproductor embebido.
+            Exercise(id: "custom-video", data: [
+                "nameEs": "Face pull con banda",
+                "equipment": Equipment.banda.rawValue,
+                "pattern": MovementPattern.traccionHorizontal.rawValue,
+                "registrationType": RegistrationType.pesoReps.rawValue,
+                "muscleWeights": ["deltoidePosterior": 0.6, "espaldaAltaTrapecio": 0.4],
+                "videoUrl": "https://www.youtube.com/watch?v=SZC3B7vEjV0",
+            ], source: .custom),
             ejercicio("plancha", "Plancha abdominal", .pesoCorporal, .core, ["abdomen": 0.8, "lumbar": 0.2], tipo: .tiempo),
         ].map { ($0.id, $0) }
     )
@@ -76,6 +86,7 @@ enum PreviewData {
                 item("press-banca", sets: 4, reps: 8, peso: 70, grupo: "Fuerza", color: "amber", nota: "Pausa de 1 segundo en el pecho"),
                 item("press-militar", sets: 3, reps: 10, peso: 20, grupo: "Fuerza", color: "amber"),
                 item("curl-biceps", sets: 3, reps: 12, peso: 12, grupo: "Accesorios", color: "purple"),
+                item("custom-video", sets: 3, reps: 15, grupo: "Accesorios", color: "purple"),
                 item("plancha", sets: 3, reps: 45, grupo: "Core", color: "rose"),
             ],
         ]),

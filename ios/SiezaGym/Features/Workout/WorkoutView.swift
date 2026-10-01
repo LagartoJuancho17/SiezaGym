@@ -111,7 +111,12 @@ struct WorkoutView: View {
             completeNextSet()
         }
         .sheet(item: $previewExercise) { exercise in
-            ExerciseMediaSheet(exercise: exercise)
+            TecnicaSheet(
+                nombre: exercise.name,
+                gif: exercise.mediaURL,
+                video: exercise.videoURL,
+                descripcion: exercise.description
+            )
         }
         .background { Backdrop() }
         .confirmationDialog(
@@ -590,95 +595,6 @@ private struct SetRow: View {
         .padding(.horizontal, 6)
         .padding(.vertical, 6)
         .background(.black.opacity(0.05), in: .rect(cornerRadius: 8))
-    }
-}
-
-private struct ExerciseMediaSheet: View {
-    @Environment(\.tema) private var tema
-    @Environment(\.dismiss) private var dismiss
-    let exercise: WorkoutDraft.ExerciseDraft
-
-    var body: some View {
-        NavigationStack {
-            VStack(spacing: 16) {
-                if let mediaURL = exercise.mediaURL, mediaURL.pathExtension.lowercased() == "gif" {
-                    // Animado y entero: AsyncImage dejaba el primer cuadro quieto.
-                    GIFAnimado(url: mediaURL)
-                        .aspectRatio(1, contentMode: .fit)
-                        .frame(maxWidth: .infinity, maxHeight: 320)
-                        .background(Color.white, in: .rect(cornerRadius: 16))
-                        .clipShape(.rect(cornerRadius: 16))
-                } else if let mediaURL = exercise.mediaURL {
-                    AsyncImage(url: mediaURL) { phase in
-                        switch phase {
-                        case .empty:
-                            ProgressView().tint(tema.solido)
-                                .frame(maxWidth: .infinity, minHeight: 220)
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .scaledToFit()
-                                .frame(maxWidth: .infinity, maxHeight: 300)
-                                .clipShape(.rect(cornerRadius: 12))
-                                .overlay {
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .strokeBorder(tema.borde, lineWidth: 1)
-                                }
-                        case .failure:
-                            VStack(spacing: 8) {
-                                Image(systemName: "video.slash")
-                                    .font(.system(size: 32))
-                                    .foregroundStyle(tema.texto2)
-                                Text("No se pudo cargar la animación")
-                                    .font(.system(size: 13))
-                                    .foregroundStyle(tema.texto2)
-                            }
-                            .frame(maxWidth: .infinity, minHeight: 180)
-                        @unknown default:
-                            EmptyView()
-                        }
-                    }
-                }
-
-                if let videoURL = exercise.videoURL {
-                    Link(destination: videoURL) {
-                        Label("Ver video de técnica en YouTube", systemImage: "play.rectangle.fill")
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundStyle(tema.sobreSolido)
-                            .frame(maxWidth: .infinity, minHeight: 44)
-                            .background(tema.solido, in: .capsule)
-                    }
-                }
-
-                if let desc = exercise.description, !desc.isEmpty {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Instrucciones")
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundStyle(tema.texto2)
-                            .textCase(.uppercase)
-                        Text(desc)
-                            .font(.system(size: 14))
-                            .foregroundStyle(tema.texto)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(14)
-                    .background(tema.vidrio(2), in: .rect(cornerRadius: 12))
-                }
-
-                Spacer()
-            }
-            .padding(16)
-            .background { Backdrop() }
-            .navigationTitle(exercise.name)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cerrar") { dismiss() }
-                        .foregroundStyle(tema.texto)
-                }
-            }
-        }
-        .presentationDetents([.medium, .large])
     }
 }
 

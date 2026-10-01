@@ -12,6 +12,8 @@ struct RoutineDetailScreen: View {
     @State private var abierto: String?
     @State private var editando = false
     @State private var cambiandoSemana = false
+    /// El ejercicio cuya técnica (GIF o video) está abierta.
+    @State private var tecnica: Exercise?
 
     /// La versión viva de la rutina. La que llegó por navegación es una copia
     /// del momento en que se tocó la fila: después de editar quedó vieja.
@@ -104,7 +106,8 @@ struct RoutineDetailScreen: View {
                                         abierto: abierto == clave(indice, item),
                                         alTocar: {
                                             abierto = abierto == clave(indice, item) ? nil : clave(indice, item)
-                                        }
+                                        },
+                                        alTocarMiniatura: { tecnica = store.exercise(item.exerciseID) }
                                     )
                                 }
                             }
@@ -148,6 +151,14 @@ struct RoutineDetailScreen: View {
         .bottomNavInset()
         .fullScreenCover(isPresented: $editando) {
             RoutineComposerScreen(store: store, routine: actual)
+        }
+        .sheet(item: $tecnica) { ejercicio in
+            TecnicaSheet(
+                nombre: ejercicio.nameEs,
+                gif: ejercicio.mediaURL,
+                video: ejercicio.videoURL,
+                descripcion: ejercicio.descriptionEs
+            )
         }
     }
 
@@ -230,6 +241,9 @@ private struct FilaEjercicio: View {
     let nombre: String
     let abierto: Bool
     let alTocar: () -> Void
+    let alTocarMiniatura: () -> Void
+
+    private var tieneMedia: Bool { ejercicio?.mediaURL != nil || ejercicio?.videoURL != nil }
 
     /// Las series prescritas en una sola forma, vengan parejas o detalladas.
     private var series: [(numero: Int, reps: Int, peso: Double?, rir: Int?)] {
@@ -258,7 +272,8 @@ private struct FilaEjercicio: View {
             miniatura: ejercicio?.thumbnailURL,
             nombre: nombre,
             detalle: resumen,
-            alTocar: alTocar
+            alTocar: alTocar,
+            alTocarMiniatura: tieneMedia ? alTocarMiniatura : nil
         ) {
             AccesorioTarjeta(abierto: abierto)
         } contenido: {
