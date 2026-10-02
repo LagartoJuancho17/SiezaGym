@@ -12,7 +12,11 @@ import {
   setCount,
   toUniform,
 } from "@/lib/routines/prescription";
-import { CheckIcon, ChevronDownIcon, CloseIcon, WeightIcon } from "./Icons";
+import { CheckIcon, ChevronDownIcon, CloseIcon, NoteIcon, WeightIcon } from "./Icons";
+import { groupTone } from "@/lib/routines/groupColors";
+
+/** Igual que TECHNIQUE_NOTE_MAX en lib/routines/routines.js (el servidor recorta ahí). */
+const NOTE_MAX = 300;
 
 /** Campo numerico con su etiqueta. Vacio se guarda como null, no como cero. */
 function Field({ label, value, onChange, min = 0, max = 999, placeholder = "—" }) {
@@ -53,7 +57,8 @@ export default function ExerciseItem({ item, exercise, onChange, onRemove, onOpe
   const detailed = isDetailed(item);
   const count = setCount(item);
   const exerciseName = exercise?.nameEs || item.exerciseId;
-  const groupClass = item.groupColor ? `d2-grp-${item.groupColor}` : "";
+  const tone = item.group ? groupTone(item.groupColor) : null;
+  const noteId = useId();
 
   function setSeries(next) {
     // Igual que Reps/Peso/RIR: el vacío (`next === null`, lo que manda Field
@@ -81,7 +86,7 @@ export default function ExerciseItem({ item, exercise, onChange, onRemove, onOpe
   }
 
   return (
-    <div className={groupClass}>
+    <div className={tone?.className} style={tone?.style}>
       <div className="d2-ex-head">
         <button
           type="button"
@@ -101,6 +106,12 @@ export default function ExerciseItem({ item, exercise, onChange, onRemove, onOpe
           <span className="d2-ex-body">
             <span className="d2-ex-name">{exerciseName}</span>
             <span className="d2-ex-muscle">{primaryMuscleLabel(exercise) || "Sin datos"}</span>
+            {item.techniqueNote?.trim() && (
+              <span className="d2-ex-note-preview">
+                <NoteIcon size={12} width={1.8} />
+                <span>{item.techniqueNote.trim()}</span>
+              </span>
+            )}
           </span>
 
           <span className="d2-ex-summary">{prescriptionSummary(item, { timeBased })}</span>
@@ -227,6 +238,19 @@ export default function ExerciseItem({ item, exercise, onChange, onRemove, onOpe
               </div>
             </>
           )}
+
+          <label className="d2-form-field d2-ex-note-input" htmlFor={noteId}>
+            <span>Nota del ejercicio (opcional)</span>
+            <textarea
+              id={noteId}
+              className="d2-input d2-textarea"
+              rows={2}
+              maxLength={NOTE_MAX}
+              value={item.techniqueNote || ""}
+              placeholder="Ej: agarre cerrado, bajar en 3 segundos, pausa abajo"
+              onChange={(event) => onChange({ ...item, techniqueNote: event.target.value })}
+            />
+          </label>
         </div>
       )}
     </div>

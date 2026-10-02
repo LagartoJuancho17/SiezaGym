@@ -3,9 +3,23 @@
 import Image from "next/image";
 import "./routine-technique.css";
 import { useId, useState } from "react";
-import { CheckIcon, CheckRingIcon, ChevronDownIcon, CloseIcon, PlayIcon, WeightIcon } from "./Icons";
-import { playSetCompleteSound, triggerHaptic } from "@/lib/audio/workoutSound";
-import { getYouTubeEmbedUrl } from "@/lib/exercises/youtube";
+import {
+  CheckIcon,
+  CheckRingIcon,
+  ChevronDownIcon,
+  CloseIcon,
+  NoteIcon,
+  PlayIcon,
+  StopwatchIcon,
+  WeightIcon,
+} from "./Icons";
+import { playSetFeedback } from "@/lib/audio/workoutSound";
+import { completesExercise } from "@/lib/routines/workout";
+import { groupTone } from "@/lib/routines/groupColors";
+import { EXERCISE_NOTE_MAX } from "@/lib/sessions/notes";
+import StopwatchSheet from "./StopwatchSheet";
+import VideoEmbed from "./VideoEmbed";
+import ModalPortal from "./ModalPortal";
 
 /** La celda de un valor prescrito. Vacío se muestra como raya, no como cero. */
 function Cell({ value, unit = "" }) {
@@ -49,6 +63,62 @@ function Plan({ exercise }) {
 }
 
 /**
+ * Lo que dejó escrito la rutina y lo que anotaste la última vez, arriba de la
+ * planilla: es lo primero que hay que leer antes de la primera serie.
+ */
+function Notes({ techniqueNote, lastNote }) {
+  if (!techniqueNote && !lastNote) return null;
+  return (
+    <div className="d2-ex-notes">
+      {techniqueNote && (
+        <p className="d2-ex-note d2-ex-note-plan">
+          <span className="d2-ex-note-tag">Nota de la rutina</span>
+          {techniqueNote}
+        </p>
+      )}
+      {lastNote && (
+        <p className="d2-ex-note d2-ex-note-last">
+          <span className="d2-ex-note-tag">La última vez anotaste</span>
+          {lastNote.note}
+        </p>
+      )}
+    </div>
+  );
+}
+
+/** La nota de hoy: se abre con un toque y queda abierta si ya tiene texto. */
+function WorkoutNote({ exerciseName, note, onNoteChange }) {
+  const [editing, setEditing] = useState(false);
+  const id = useId();
+
+  if (!editing && !note) {
+    return (
+      <button type="button" className="d2-chip d2-note-add" onClick={() => setEditing(true)}>
+        <NoteIcon size={16} width={1.7} />
+        Agregar nota
+      </button>
+    );
+  }
+
+  return (
+    <div className="d2-note-field">
+      <label htmlFor={id}>Nota de hoy</label>
+      <textarea
+        id={id}
+        className="d2-input d2-textarea"
+        value={note || ""}
+        maxLength={EXERCISE_NOTE_MAX}
+        rows={2}
+        autoFocus={editing && !note}
+        placeholder="Cómo salió, qué cambiar la próxima…"
+        aria-label={`Nota de hoy para ${exerciseName}`}
+        onChange={(event) => onNoteChange(event.target.value)}
+      />
+    </div>
+  );
+}
+
+/**
  * La planilla del entrenamiento: lo prescrito como punto de partida, editable,
  * botones de ajuste de peso cómodos, y un tilde por serie con feedback auditivo y háptico.
  */
@@ -62,11 +132,23 @@ function Log({
   savingSet,
   allowFailed,
   onShowMedia,
+  note,
+  onNoteChange,
 }) {
   const repsLabel = exercise.timeBased ? "Tiempo (s)" : "Reps";
+  const [timing, setTiming] = useState(null); // índice de la serie con el cronómetro abierto
+
+  function toggle(index) {
+    if (!rows[index].done) {
+      playSetFeedback({ completesExercise: completesExercise(rows, index) });
+    }
+    onToggleDone(index);
+  }
 
   return (
     <>
+      <Notes techniqueNote={exercise.techniqueNote} lastNote={exercise.lastNote} />
+
       <div className="d2-log">
         <div className="d2-log-header-tools">
           <p className="d2-plan-row d2-log-labels">
@@ -76,15 +158,17 @@ function Log({
             <span className="d2-log-spacer" aria-hidden />
           </p>
 
-          {exercise.mediaUrl && (
+          {(exercise.mediaUrl || exercise.videoUrl) && (
             <button
               type="button"
               onClick={onShowMedia}
               className="d2-media-btn"
-              aria-label={`Ver técnica animada de ${exercise.name}`}
+              aria-label={
+                exercise.videoUrl ? `Ver video de ${exercise.name}` : `Ver técnica animada de ${exercise.name}`
+              }
             >
-              <PlayIcon size={12} width={1.8} />
-              <span>Ver GIF</span>
+              <PlayIcon size={13} width={1.8} />
+              <span>{exercise.videoUrl ? "Ver video" : "Ver GIF"}</span>
             </button>
           )}
         </div>
@@ -93,25 +177,36 @@ function Log({
           const saving = savingSet === index;
 
           return (
-            <div
-              key={index}
-              className={row.done ? "d2-log-row d2-log-row-done" : "d2-log-row"}
-            >
+            <div key={index} className={row.done ? "d2-log-row d2-log-row-done" : "d2-log-row"}>
               <span className="d2-log-n">{index + 1}</span>
 
-              <input
-                type="number"
-                inputMode="numeric"
-                min={1}
-                max={999}
-                placeholder="—"
-                aria-label={`${repsLabel}, serie ${index + 1} de ${exercise.name}`}
-                value={row.reps ?? ""}
-                onChange={(event) => {
-                  const raw = event.target.value;
-                  onRowChange(index, { reps: raw === "" ? null : Number(raw) });
-                }}
-              />
+              {exercise.timeBased ? (
+                <button
+                  type="button"
+                  className="d2-log-time"
+                  onClick={() => setTiming(index)}
+                  aria-label={`Tiempo, serie ${index + 1} de ${exercise.name}: ${
+                    row.reps ? `${row.reps} segundos` : "sin cargar"
+                  }. Abrir cronómetro`}
+                >
+                  <StopwatchIcon size={17} width={1.7} />
+                  <span>{row.reps ? `${row.reps} s` : "—"}</span>
+                </button>
+              ) : (
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min={1}
+                  max={999}
+                  placeholder="—"
+                  aria-label={`${repsLabel}, serie ${index + 1} de ${exercise.name}`}
+                  value={row.reps ?? ""}
+                  onChange={(event) => {
+                    const raw = event.target.value;
+                    onRowChange(index, { reps: raw === "" ? null : Number(raw) });
+                  }}
+                />
+              )}
 
               {exercise.showWeight && (
                 <div className="d2-weight-stepper">
@@ -125,7 +220,7 @@ function Log({
                       onRowChange(index, { weight: next === 0 && row.weight == null ? null : next });
                     }}
                   >
-                    -
+                    −
                   </button>
                   <input
                     type="number"
@@ -168,19 +263,13 @@ function Log({
               )}
               <button
                 type="button"
-                onClick={() => {
-                  if (!row.done) {
-                    playSetCompleteSound();
-                    triggerHaptic();
-                  }
-                  onToggleDone(index);
-                }}
+                onClick={() => toggle(index)}
                 disabled={saving}
                 aria-pressed={row.done}
                 aria-label={`Serie ${index + 1} hecha`}
                 className={row.done ? "d2-log-check d2-log-check-on" : "d2-log-check"}
               >
-                <CheckIcon size={15} width={2.2} />
+                <CheckIcon size={18} width={2.4} />
               </button>
             </div>
           );
@@ -195,8 +284,36 @@ function Log({
           Sacar la última
         </button>
       </div>
+
+      {onNoteChange && <WorkoutNote exerciseName={exercise.name} note={note} onNoteChange={onNoteChange} />}
+
+      {timing != null && rows[timing] && (
+        <StopwatchSheet
+          exerciseName={exercise.name}
+          setNumber={timing + 1}
+          targetSeconds={targetFor(exercise, timing)}
+          currentSeconds={rows[timing].reps}
+          onClose={() => setTiming(null)}
+          onSave={(seconds, { markDone }) => {
+            const index = timing;
+            onRowChange(index, { reps: seconds });
+            setTiming(null);
+            if (markDone && !rows[index].done) toggle(index);
+          }}
+        />
+      )}
     </>
   );
+}
+
+/**
+ * El tiempo prescrito de una serie. Una serie agregada entrenando no tiene
+ * prescripción propia: toma la de la última prescrita, igual que appendSet
+ * copia la última fila.
+ */
+function targetFor(exercise, index) {
+  const sets = exercise.sets || [];
+  return sets[index]?.reps ?? sets[sets.length - 1]?.reps ?? null;
 }
 
 /**
@@ -219,9 +336,13 @@ export default function RoutineExercise({
   onDropSet,
   savingSet = null,
   allowFailed = true,
+  note = "",
+  onNoteChange,
 }) {
   const detailId = useId();
   const [showMediaModal, setShowMediaModal] = useState(false);
+  const hasMedia = Boolean(exercise.mediaUrl || exercise.videoUrl);
+  const tone = exercise.group ? groupTone(exercise.groupColor) : null;
 
   return (
     <div>
@@ -236,17 +357,28 @@ export default function RoutineExercise({
           <span
             className="d2-ex-thumb"
             onClick={(e) => {
-              if (exercise.mediaUrl || exercise.videoUrl) {
+              if (hasMedia) {
                 e.stopPropagation();
                 setShowMediaModal(true);
               }
             }}
-            title={exercise.mediaUrl || exercise.videoUrl ? "Tocar para ver técnica o video" : undefined}
+            title={
+              exercise.videoUrl
+                ? "Tocar para ver el video"
+                : exercise.mediaUrl
+                  ? "Tocar para ampliar GIF de técnica"
+                  : undefined
+            }
           >
             {exercise.mediaUrl ? (
               <Image src={exercise.mediaUrl} alt="" width={54} height={54} unoptimized />
             ) : (
               <WeightIcon size={22} width={1.5} />
+            )}
+            {exercise.videoUrl && (
+              <span className="d2-ex-thumb-play" aria-hidden>
+                <PlayIcon size={12} width={2} />
+              </span>
             )}
           </span>
 
@@ -263,8 +395,8 @@ export default function RoutineExercise({
             <span className="d2-ex-summary">{exercise.summary}</span>
           )}
 
-          {exercise.group && (
-            <span className={`d2-group-pill d2-grp-${exercise.groupColor || "teal"}`} title={`Grupo: ${exercise.group}`}>
+          {tone && (
+            <span className={`d2-group-pill ${tone.className}`} style={tone.style} title={`Grupo: ${exercise.group}`}>
               <span className="d2-group-dot" />
               <span>{exercise.group}</span>
             </span>
@@ -287,58 +419,47 @@ export default function RoutineExercise({
               savingSet={savingSet}
               allowFailed={allowFailed}
               onShowMedia={() => setShowMediaModal(true)}
+              note={note}
+              onNoteChange={onNoteChange}
             />
           ) : (
             <>
               <Plan exercise={exercise} />
-              {(exercise.equipment || exercise.techniqueNote) && (
-                <p className="d2-ex-meta">
-                  {exercise.equipment}
-                  {exercise.equipment && exercise.techniqueNote ? " · " : ""}
-                  {exercise.techniqueNote}
-                </p>
-              )}
+              {exercise.equipment && <p className="d2-ex-meta">{exercise.equipment}</p>}
+              <Notes techniqueNote={exercise.techniqueNote} lastNote={exercise.lastNote} />
             </>
           )}
           <details className="d2-technique">
-            <summary>Ver técnica</summary>
+            <summary>{exercise.videoUrl ? "Ver técnica y video" : "Ver técnica"}</summary>
             {exercise.videoUrl ? (
-              <div className="my-3 aspect-video w-full max-w-[340px] overflow-hidden rounded-xl border border-[var(--d2-border)] bg-black/40">
-                <iframe
-                  src={getYouTubeEmbedUrl(exercise.videoUrl)}
-                  title={`Video de técnica de ${exercise.name}`}
-                  className="w-full h-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
+              <VideoEmbed
+                url={exercise.videoUrl}
+                title={`Video de técnica de ${exercise.name}`}
+                className="d2-technique-video"
+              />
+            ) : (
+              exercise.mediaUrl && (
+                <Image
+                  src={exercise.mediaUrl}
+                  alt={`Técnica de ${exercise.name}`}
+                  width={300}
+                  height={300}
+                  unoptimized
+                  className="d2-technique-image"
                 />
-              </div>
-            ) : null}
-            {exercise.mediaUrl && (
-              <Image src={exercise.mediaUrl} alt={`Técnica de ${exercise.name}`} width={300} height={300} unoptimized className="d2-technique-image" />
+              )
             )}
             <p>{exercise.description || "Todavía no hay una descripción de técnica para este ejercicio."}</p>
-            {exercise.techniqueNote && <p><strong>Nota de la rutina:</strong> {exercise.techniqueNote}</p>}
-            {exercise.videoUrl ? (
-              <p className="d2-technique-credit">
-                Video en{" "}
-                <a href={exercise.videoUrl} target="_blank" rel="noopener noreferrer">
-                  YouTube
-                </a>
-              </p>
-            ) : (
-              exercise.mediaUrl && <p className="d2-technique-credit">Animación © <a href="https://gymvisual.com/" target="_blank" rel="noopener noreferrer">Gym visual</a></p>
-            )}
+            <Credit exercise={exercise} />
           </details>
         </div>
       )}
 
-      {/* Modal flotante para ver GIF/video durante el entrenamiento */}
-      {showMediaModal && (exercise.mediaUrl || exercise.videoUrl) && (
+      {/* Modal flotante para ver el GIF o el video durante el entrenamiento */}
+      {showMediaModal && hasMedia && (
+        <ModalPortal>
         <div className="d2-modal" onClick={() => setShowMediaModal(false)}>
-          <div
-            className="d2-glass-strong d2-modal-card d2-media-modal-card"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="d2-glass-strong d2-modal-card d2-media-modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="d2-media-modal-head">
               <div>
                 <h3 className="d2-media-modal-title">{exercise.name}</h3>
@@ -356,68 +477,61 @@ export default function RoutineExercise({
 
             <div className="d2-media-modal-body">
               {exercise.videoUrl ? (
-                <div className="aspect-video w-full overflow-hidden rounded-xl border border-[var(--d2-border)] bg-black">
-                  <iframe
-                    src={getYouTubeEmbedUrl(exercise.videoUrl)}
-                    title={`Demostración de ${exercise.name}`}
-                    className="w-full h-full"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
+                <VideoEmbed url={exercise.videoUrl} title={`Demostración de ${exercise.name}`} />
+              ) : (
+                <div className="d2-media-modal-thumb">
+                  <Image
+                    src={exercise.mediaUrl}
+                    alt={`Demostración animada de ${exercise.name}`}
+                    width={340}
+                    height={340}
+                    unoptimized
+                    className="d2-media-modal-gif"
                   />
                 </div>
-              ) : (
-                exercise.mediaUrl && (
-                  <div className="d2-media-modal-thumb">
-                    <Image
-                      src={exercise.mediaUrl}
-                      alt={`Demostración animada de ${exercise.name}`}
-                      width={340}
-                      height={340}
-                      unoptimized
-                      className="d2-media-modal-gif"
-                    />
-                  </div>
-                )
               )}
 
-              {exercise.description && (
-                <p className="d2-media-modal-desc">{exercise.description}</p>
-              )}
+              {exercise.description && <p className="d2-media-modal-desc">{exercise.description}</p>}
               {exercise.techniqueNote && (
                 <p className="d2-media-modal-note">
-                  <strong>Nota del ejercicio:</strong> {exercise.techniqueNote}
+                  <strong>Nota de la rutina:</strong> {exercise.techniqueNote}
                 </p>
               )}
-              {exercise.videoUrl ? (
-                <p className="d2-technique-credit">
-                  Video en{" "}
-                  <a href={exercise.videoUrl} target="_blank" rel="noopener noreferrer">
-                    YouTube
-                  </a>
-                </p>
-              ) : (
-                <p className="d2-technique-credit">
-                  Animación ©{" "}
-                  <a href="https://gymvisual.com/" target="_blank" rel="noopener noreferrer">
-                    Gym visual
-                  </a>
-                </p>
-              )}
+              <Credit exercise={exercise} />
             </div>
 
             <div className="d2-modal-actions">
-              <button
-                type="button"
-                onClick={() => setShowMediaModal(false)}
-                className="d2-modal-primary"
-              >
+              <button type="button" onClick={() => setShowMediaModal(false)} className="d2-modal-primary">
                 Cerrar
               </button>
             </div>
           </div>
         </div>
+        </ModalPortal>
       )}
     </div>
   );
 }
 
+/** De quién es lo que se ve: el video es de YouTube, el GIF de Gym visual. */
+function Credit({ exercise }) {
+  if (exercise.videoUrl) {
+    return (
+      <p className="d2-technique-credit">
+        Video de{" "}
+        <a href={exercise.videoUrl} target="_blank" rel="noopener noreferrer">
+          YouTube
+        </a>
+      </p>
+    );
+  }
+  if (!exercise.mediaUrl) return null;
+  return (
+    <p className="d2-technique-credit">
+      Animación ©{" "}
+      <a href="https://gymvisual.com/" target="_blank" rel="noopener noreferrer">
+        Gym visual
+      </a>
+    </p>
+  );
+}

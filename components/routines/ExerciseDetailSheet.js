@@ -8,7 +8,7 @@ import {
   REGISTRATION_TYPE_LABELS,
 } from "@/lib/exercises/constants";
 import MediaAttribution from "@/components/routines/MediaAttribution";
-import { getYouTubeEmbedUrl } from "@/lib/exercises/youtube";
+import VideoEmbed from "@/components/design2/VideoEmbed";
 
 // Muscle → wger SVG (same map as ExercisePicker)
 const MUSCLE_IMG = {
@@ -101,17 +101,7 @@ export default function ExerciseDetailSheet({ exercise, onClose }) {
           {/* Exercise image or video */}
           <div className="flex flex-col items-center gap-2 sm:w-64 sm:shrink-0">
             {exercise.videoUrl ? (
-              <div
-                className="relative aspect-video w-full overflow-hidden rounded-2xl border border-[rgba(255,255,255,0.12)] bg-black"
-              >
-                <iframe
-                  src={getYouTubeEmbedUrl(exercise.videoUrl)}
-                  title={`Video de ${exercise.nameEs}`}
-                  className="h-full w-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              </div>
+              <VideoEmbed url={exercise.videoUrl} title={`Video de ${exercise.nameEs}`} className="w-full" />
             ) : (
               <div className="relative aspect-square w-40 overflow-hidden rounded-2xl sm:w-full" style={{ background: "#ffffff" }}>
                 {exercise.mediaUrl ? (

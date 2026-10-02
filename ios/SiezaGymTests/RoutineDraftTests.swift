@@ -52,12 +52,24 @@ struct RoutineDraftExerciseTests {
         #expect(draft(registro).targetReps == 30)
     }
 
-    @Test("la cantidad de series nunca baja de 1 ni pasa de 12",
-          arguments: [(-4, 1), (0, 1), (1, 1), (7, 7), (12, 12), (40, 12)])
-    func topes(pedido: Int, esperado: Int) {
+    /// Regresión: borrar el "2" del campo de Series pasaba por
+    /// `cambiarCantidad(0)`, que antes forzaba el piso a 1 en el acto — el
+    /// campo mostraba "1" solo, sin que el usuario haya tipeado nada. El piso
+    /// real vive en `firestoreValue`, no acá: en caliente, 0 es un valor
+    /// transitorio válido mientras se escribe el número nuevo.
+    @Test("borrar el campo (pedir 0) dejа la cantidad en 0, no salta a 1",
+          arguments: [(-4, 0), (0, 0), (1, 1), (7, 7)])
+    func cambiarCantidadNoFuerzaPiso(pedido: Int, esperado: Int) {
         var item = draft()
         item.cambiarCantidad(pedido)
         #expect(item.cantidadSeries == esperado)
+    }
+
+    @Test("no hay tope de arriba: se puede cargar cualquier cantidad de series")
+    func sinTopeDeArriba() {
+        var item = draft()
+        item.cambiarCantidad(40)
+        #expect(item.cantidadSeries == 40)
     }
 
     // MARK: Pareja <-> detallada
@@ -181,6 +193,7 @@ struct RoutineDraftExerciseTests {
         #expect(Set(valor.keys) == [
             "exerciseId", "exerciseSource", "order", "targetSets",
             "targetReps", "targetRIR", "targetWeight", "techniqueNote", "sets",
+            "group", "groupColor",
         ])
         #expect(valor["exerciseId"] as? String == "press-banca")
         #expect(valor["exerciseSource"] as? String == "catalog")
@@ -230,6 +243,27 @@ struct RoutineDraftExerciseTests {
         item.detallar()
 
         #expect(item.sets?.allSatisfy { $0.reps == 10 } == true)
+    }
+
+    /// El caso reportado: guardar justo con el campo de Series en blanco (el
+    /// usuario borró el número para escribir uno nuevo y tocó Guardar antes de
+    /// terminar) no puede mandar una rutina con 0 series a Firestore.
+    @Test("guardar con el campo de series en blanco (0) se guarda como 1, no como 0")
+    func seriesVaciasValen1AlGuardar() {
+        var item = draft()
+        item.cambiarCantidad(0)
+
+        #expect(item.cantidadSeries == 0) // en caliente, blanco de verdad
+        #expect(item.firestoreValue(order: 0)["targetSets"] as? Int == 1) // al guardar, nunca 0
+    }
+
+    @Test("pasar a detallada con el campo de series en blanco arranca en una fila, no en cero")
+    func detallarConSeriesVaciasArrancaEnUna() {
+        var item = draft()
+        item.cambiarCantidad(0)
+        item.detallar()
+
+        #expect(item.sets?.count == 1)
     }
 
     @Test("una serie detallada sin repeticiones también se guarda como 10")
@@ -463,7 +497,9 @@ struct RoutineEditTests {
         rir: Int? = 2,
         nota: String = "Espalda neutra",
         series: [PlannedSet]? = nil,
-        origen: RoutineExercise.Source = .catalog
+        origen: RoutineExercise.Source = .catalog,
+        grupo: String = "",
+        colorDeGrupo: String = ""
     ) -> RoutineExercise {
         RoutineExercise(
             exerciseID: id,
@@ -474,7 +510,9 @@ struct RoutineEditTests {
             targetRIR: rir,
             targetWeight: peso,
             techniqueNote: nota,
-            sets: series
+            sets: series,
+            group: grupo,
+            groupColor: colorDeGrupo
         )
     }
 
@@ -517,6 +555,29 @@ struct RoutineEditTests {
 
         #expect(borrador.source == .custom)
         #expect(borrador.firestoreValue(order: 0)["exerciseSource"] as? String == "custom")
+    }
+
+    /// Si abrir el editor perdiera el grupo, guardar sin tocar nada
+    /// desarmaría en silencio los bloques que ya tenías hechos.
+    @Test("abrir el editor no pierde el grupo del ejercicio")
+    func grupoSeConserva() {
+        let borrador = RoutineDraftExercise(guardado(grupo: "Potencia", colorDeGrupo: "rose"))
+
+        #expect(borrador.group == "Potencia")
+        #expect(borrador.groupColor == "rose")
+
+        let valor = borrador.firestoreValue(order: 0)
+        #expect(valor["group"] as? String == "Potencia")
+        #expect(valor["groupColor"] as? String == "rose")
+    }
+
+    @Test("un ejercicio sin grupo guarda los campos vacíos, no ausentes")
+    func sinGrupoGuardaVacio() {
+        let borrador = RoutineDraftExercise(guardado())
+        let valor = borrador.firestoreValue(order: 0)
+
+        #expect(valor["group"] as? String == "")
+        #expect(valor["groupColor"] as? String == "")
     }
 
     /// `sets: []` es lo que deja un documento viejo; tiene que leerse como

@@ -23,6 +23,9 @@ final class WorkoutDraft {
         let mediaURL: URL?
         let videoURL: URL?
         let description: String?
+        /// Bloque de la rutina ("Fuerza", "Potencia"...). Vacío es sin grupo.
+        let group: String
+        let groupColor: String
         var sets: [SetDraft]
 
         var completedCount: Int { sets.filter(\.done).count }
@@ -58,6 +61,8 @@ final class WorkoutDraft {
                 mediaURL: exercise?.mediaURL,
                 videoURL: exercise?.videoURL,
                 description: exercise?.descriptionEs,
+                group: item.group,
+                groupColor: item.groupColor,
                 sets: sets
             )
         }

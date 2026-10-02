@@ -190,7 +190,7 @@ extension Theme {
             texto: Color(r: 244, g: 245, b: 247, a: 1),
             texto2: Color(r: 244, g: 245, b: 247, a: 0.76),
             texto3: Color(r: 133, g: 138, b: 145, a: 1),
-            solido: Color(r: 255, g: 87, b: 51, a: 1),
+            solido: Color(r: 255, g: 50, b: 1, a: 1),
             sobreSolido: Color(r: 11, g: 12, b: 14, a: 1),
             luzA: Color(r: 11, g: 12, b: 14, a: 1),
             luzB: Color(r: 11, g: 12, b: 14, a: 1),

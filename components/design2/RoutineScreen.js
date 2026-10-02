@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { MUSCLE_GROUP_LABELS } from "@/lib/exercises/constants";
 import {
   appendSet,
+  completesExercise,
   doneCount,
   dropSet,
   elapsedSeconds,
@@ -49,9 +50,10 @@ import {
 } from "@/lib/workout/mediaSessionManager";
 import {
   playRestCompleteSound,
-  playSetCompleteSound,
+  playSetFeedback,
   triggerHaptic,
 } from "@/lib/audio/workoutSound";
+import { groupTone } from "@/lib/routines/groupColors";
 
 /**
  * Detalle de una rutina y entrenamiento en curso.
@@ -117,6 +119,12 @@ export default function RoutineScreen({ routine }) {
     if (active && active.routineId === routine.id && active.clock) return active.clock;
     return { startedAt: null, pausedMs: 0, pausedAt: null };
   });
+  // Notas escritas entrenando, por posición en la rutina (igual que la planilla).
+  const [notes, setNotes] = useState(() => {
+    const active = getActiveWorkout();
+    if (active && active.routineId === routine.id && active.notes) return active.notes;
+    return {};
+  });
   const [now, setNow] = useState(0);
   const [savingSet, setSavingSet] = useState(null); // `${exerciseId}-${index}`
   const [summary, setSummary] = useState(null);
@@ -139,11 +147,12 @@ export default function RoutineScreen({ routine }) {
       sheet,
       clock,
       openId,
+      notes,
       isAssigned: routine.isAssigned,
       assignmentId: routine.assignmentId,
       totalExercises: routine.exercises.length,
     });
-  }, [running, sheet, clock, openId, routine]);
+  }, [running, sheet, clock, openId, notes, routine]);
 
   // El cronómetro se lee del reloj del sistema en cada tick. Un contador que se
   // incrementa se atrasa y se frena con la pestaña en segundo plano, y el
@@ -213,9 +222,8 @@ export default function RoutineScreen({ routine }) {
         const rowsNow = sheet[currentEx.position] || [];
         const nextIdx = rowsNow.findIndex((r) => !r.done);
         if (nextIdx !== -1) {
+          playSetFeedback({ completesExercise: completesExercise(rowsNow, nextIdx) });
           toggleDoneRef.current(currentEx, nextIdx);
-          playSetCompleteSound();
-          triggerHaptic();
         } else {
           // Si el ejercicio actual ya terminó, pasar al siguiente incompleto
           const nextEx = routine.exercises.find((e) => !isExerciseDone(sheet, e.position));
@@ -224,9 +232,8 @@ export default function RoutineScreen({ routine }) {
             const nextRows = sheet[nextEx.position] || [];
             const targetIdx = nextRows.findIndex((r) => !r.done);
             if (targetIdx !== -1) {
+              playSetFeedback({ completesExercise: completesExercise(nextRows, targetIdx) });
               toggleDoneRef.current(nextEx, targetIdx);
-              playSetCompleteSound();
-              triggerHaptic();
             }
           }
         }
@@ -241,6 +248,7 @@ export default function RoutineScreen({ routine }) {
 
   function start() {
     setSheet(startSheet(routine.exercises));
+    setNotes({});
     setClock({ startedAt: Date.now(), pausedMs: 0, pausedAt: null });
     setNow(Date.now());
     setRunning(true);
@@ -269,6 +277,7 @@ export default function RoutineScreen({ routine }) {
     teardownMediaSession();
     setRunning(false);
     setSheet({});
+    setNotes({});
     setClock({ startedAt: null, pausedMs: 0, pausedAt: null });
     setRestSecondsLeft(null);
     setModal(null);
@@ -324,7 +333,7 @@ export default function RoutineScreen({ routine }) {
   toggleDoneRef.current = toggleDone;
 
   async function finish() {
-    const exercises = sessionExercises(routine.exercises, sheet);
+    const exercises = sessionExercises(routine.exercises, sheet, notes);
     if (exercises.length === 0) {
       setError("Marcá al menos una serie con el tilde para guardar el entrenamiento.");
       return;
@@ -341,7 +350,7 @@ export default function RoutineScreen({ routine }) {
       // En una asignación las series ya están guardadas de a una: la acción
       // arma la sesión con eso y no con lo que manda el navegador.
       const result = routine.isAssigned
-        ? await finishAssignmentWorkout({ assignmentId: routine.assignmentId, durationSeconds })
+        ? await finishAssignmentWorkout({ assignmentId: routine.assignmentId, durationSeconds, notes })
         : await finishRoutineWorkout({
             routineId: routine.id,
             routineName: routine.name,
@@ -374,6 +383,7 @@ export default function RoutineScreen({ routine }) {
     setModal(null);
     setSummary(null);
     setSheet({});
+    setNotes({});
     setClock({ startedAt: null, pausedMs: 0, pausedAt: null });
     setRestSecondsLeft(null);
     setOpenId(null);
@@ -445,6 +455,7 @@ export default function RoutineScreen({ routine }) {
                   sheet,
                   clock,
                   openId,
+                  notes,
                   isAssigned: routine.isAssigned,
                   assignmentId: routine.assignmentId,
                   totalExercises: routine.exercises.length,
@@ -593,7 +604,8 @@ export default function RoutineScreen({ routine }) {
               sections.map((section) => (
                 <div
                   key={section.id}
-                  className={`d2-panel ${section.groupName ? `d2-group-panel d2-grp-${section.groupColor || "teal"}` : ""}`}
+                  className={`d2-panel ${section.groupName ? `d2-group-panel ${groupTone(section.groupColor).className}` : ""}`}
+                  style={section.groupName ? groupTone(section.groupColor).style : undefined}
                 >
                   {section.groupName && (
                     <div className="d2-group-header">
@@ -616,6 +628,10 @@ export default function RoutineScreen({ routine }) {
                       }
                       running={running}
                       allowFailed={!routine.isAssigned}
+                      note={notes[exercise.position] || ""}
+                      onNoteChange={(text) =>
+                        setNotes((current) => ({ ...current, [exercise.position]: text }))
+                      }
                       rows={sheet[exercise.position] || []}
                       done={running && isExerciseDone(sheet, exercise.position)}
                       savingSet={

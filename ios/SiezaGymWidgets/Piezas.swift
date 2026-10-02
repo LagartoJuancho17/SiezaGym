@@ -69,6 +69,25 @@ struct Dato: View {
     }
 }
 
+/// Una barra de progreso simple: calorías, series y cada músculo la usan
+/// igual, solo cambia qué porcentaje le pasan.
+struct BarraProgreso: View {
+    let tema: Theme
+    let pct: Int
+
+    var body: some View {
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                Capsule().fill(tema.plano ? tema.bordeFuerte : Color.white.opacity(tema.glass2))
+                Capsule()
+                    .fill(tema.solido)
+                    .frame(width: geo.size.width * CGFloat(min(100, max(0, pct))) / 100)
+            }
+        }
+        .frame(height: 5)
+    }
+}
+
 extension WidgetSnapshot {
     var tema: Theme { Theme.conId(themeID) }
 

@@ -36,12 +36,13 @@ struct RootView: View {
 
 struct MainTabView: View {
     @Environment(\.scenePhase) private var scenePhase
-    /// Un solo store para las cinco pantallas. Si cada tab creara el suyo
+    /// Un solo store para las cuatro pantallas. Si cada tab creara el suyo
     /// pagariamos las mismas lecturas cinco veces y podrian mostrar numeros
     /// distintos entre si.
     @State private var store: GymStore
     @State private var tab: AppTab = .home
     @State private var resumingWorkout = false
+    @State private var conocerte = false
 
     init(store: GymStore) {
         _store = State(initialValue: store)
@@ -61,12 +62,16 @@ struct MainTabView: View {
             HistoryScreen(store: store)
                 .tag(AppTab.history)
                 .toolbar(.hidden, for: .tabBar)
-            ProgressScreen(store: store)
-                .tag(AppTab.progress)
-                .toolbar(.hidden, for: .tabBar)
             ProfileScreen(store: store)
                 .tag(AppTab.profile)
                 .toolbar(.hidden, for: .tabBar)
+        }
+        // "Conocerte": una vez por cuenta, si al perfil le falta objetivo y peso.
+        .fullScreenCover(isPresented: $conocerte) {
+            ConocerteView(store: store) {
+                UserDefaults.standard.set(true, forKey: Conocerte.claveVisto(uid: store.uid))
+                conocerte = false
+            }
         }
         .overlay(alignment: .bottom) {
             VStack(spacing: 8) {
@@ -90,6 +95,12 @@ struct MainTabView: View {
         .ignoresSafeArea(.keyboard, edges: .bottom)
         .task {
             if !store.hasLoaded { await store.load() }
+            let visto = UserDefaults.standard.bool(forKey: Conocerte.claveVisto(uid: store.uid))
+            conocerte = Conocerte.debeMostrar(perfil: store.profile, yaVisto: visto)
+            #if DEBUG
+            // Para revisarlo sin crear una cuenta: lanzar con -sieza-conocerte.
+            if ProcessInfo.processInfo.arguments.contains("-sieza-conocerte") { conocerte = true }
+            #endif
             await store.healthKit.refreshIfConnected()
         }
         .onChange(of: scenePhase) { _, phase in
@@ -157,3 +168,17 @@ private struct ActiveWorkoutMiniBar: View {
         .shadow(color: .black.opacity(tema.plano ? 0 : 0.12), radius: 8, y: 3)
     }
 }
+
+#if DEBUG
+// La app entera con la barra de abajo: tocá las pestañas en el canvas en modo
+// interactivo (el botón ▶︎ del preview) para recorrer todas las pantallas.
+#Preview("App completa") {
+    MainTabView(store: PreviewData.store())
+        .previewSieza()
+}
+
+#Preview("App completa · Plata") {
+    MainTabView(store: PreviewData.store())
+        .previewSieza(tema: "plata")
+}
+#endif

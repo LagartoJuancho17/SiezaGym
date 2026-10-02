@@ -83,8 +83,8 @@ describe("4. Feedback auditivo, háptico y visual de serie completada", () => {
   });
 
   it("RoutineExercise dispara sonido y háptica al completar una serie", () => {
-    expect(routineExerciseSource).toContain("playSetCompleteSound()");
-    expect(routineExerciseSource).toContain("triggerHaptic()");
+    // Un solo punto decide qué suena: la serie, o el arpegio si termina el ejercicio.
+    expect(routineExerciseSource).toContain("playSetFeedback({ completesExercise: completesExercise(rows, index) })");
   });
 
   it("design2.css incluye animación de pop y hover al tildar la serie", () => {
