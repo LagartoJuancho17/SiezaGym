@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/firebase/session";
 import { getUserProfile } from "@/lib/users/users";
@@ -20,16 +21,29 @@ import TrainingWeek from "@/components/design2/TrainingWeek";
 import HomeRoutines from "@/components/design2/HomeRoutines";
 import TabBar from "@/components/design2/TabBar";
 import { isAdminUser } from "@/lib/admin/access";
+import { shouldOpenCoachWorkspace } from "@/lib/coach/landing";
 
 export const dynamic = "force-dynamic";
 
-export default async function Home() {
+export default async function Home({ searchParams } = {}) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
-  const [profile, routines, assignments, trainedDates, sessions, catalogExercises, customExercises] =
+  const profile = await getUserProfile(user.uid);
+  if (profile?.isCoach || profile?.isAdmin) {
+    const [requestHeaders, params] = await Promise.all([headers(), searchParams]);
+    if (shouldOpenCoachWorkspace({
+      profile,
+      userAgent: requestHeaders.get("user-agent"),
+      mobileHint: requestHeaders.get("sec-ch-ua-mobile"),
+      requestedView: params?.view,
+    })) {
+      redirect("/dashboard/coach");
+    }
+  }
+
+  const [routines, assignments, trainedDates, sessions, catalogExercises, customExercises] =
     await Promise.all([
-      getUserProfile(user.uid),
       listUserRoutines(user.uid),
       listStudentAssignments(user.uid),
       listTrainedDates(user.uid),
@@ -168,7 +182,7 @@ export default async function Home() {
             <span className="d2-setting-body"><span className="d2-setting-name">{profile?.isCoach || profile?.isAdmin ? "Mis alumnos" : "Tu profesor"}</span><span className="d2-setting-hint">{profile?.isCoach || profile?.isAdmin ? "Invitaciones y seguimiento" : "Vinculá tu cuenta desde Perfil"}</span></span>
             <span aria-hidden="true">↗</span>
           </Link>
-          {isAdminUser(user) && (
+          {isAdminUser(user, profile) && (
             <Link href="/admin" className="d2-setting">
               <span className="d2-setting-body"><span className="d2-setting-name">Administración</span><span className="d2-setting-hint">Usuarios, actividad y catálogo global</span></span>
               <span aria-hidden="true">↗</span>

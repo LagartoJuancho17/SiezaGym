@@ -26,3 +26,76 @@
 .d2-coach-error { padding: 16px; border-radius: var(--d2-radius-sm); font-size: 13px; text-align: center; }
 .d2-coach-empty-title { margin-top: 12px; font-weight: 500; color: var(--d2-text); }
 @media (max-width: 360px) { .d2-coach-linked-date { display: none; } .d2-coach-row { gap: 6px; padding: 12px; } }
+
+/* --- Analytics & Multi-Chart Views --- */
+.d2-analytics-container { display: flex; flex-direction: column; gap: 14px; }
+.d2-chart-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.d2-chart-tabs { display: inline-flex; align-items: center; gap: 4px; padding: 4px; border-radius: var(--d2-radius-sm); background: rgba(var(--d2-glass-tint), var(--d2-glass-1)); border: 1px solid var(--d2-border); }
+.d2-chart-tab { padding: 6px 14px; border-radius: calc(var(--d2-radius-sm) - 4px); font-size: 12px; font-weight: 500; color: var(--d2-text-2); transition: all 0.16s ease; cursor: pointer; border: none; background: transparent; }
+.d2-chart-tab:hover { color: var(--d2-text); }
+.d2-chart-tab.active { background: rgba(var(--d2-glass-tint), var(--d2-glass-3)); color: var(--d2-text); font-weight: 600; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16); }
+
+.d2-chart-kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+@media (min-width: 600px) {
+  .d2-chart-kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+.d2-chart-kpi-item { padding: 12px 14px; border-radius: var(--d2-radius-sm); background: rgba(var(--d2-glass-tint), var(--d2-glass-1)); border: 1px solid var(--d2-border); transition: background 0.15s ease; }
+.d2-chart-kpi-label { font-size: 11px; font-weight: 500; color: var(--d2-text-3); text-transform: uppercase; letter-spacing: 0.05em; display: block; }
+.d2-chart-kpi-value { font-size: 20px; font-weight: 700; color: var(--d2-text); margin-top: 3px; font-variant-numeric: tabular-nums; }
+.d2-chart-kpi-sub { font-size: 11px; color: var(--d2-text-2); margin-top: 2px; }
+
+/* --- Muscle Breakdown Progress --- */
+.d2-muscle-list { display: flex; flex-direction: column; gap: 12px; padding: 4px 0; }
+.d2-muscle-item { display: flex; flex-direction: column; gap: 5px; }
+.d2-muscle-meta { display: flex; align-items: center; justify-content: space-between; font-size: 12px; }
+.d2-muscle-name { font-weight: 500; color: var(--d2-text); display: flex; align-items: center; gap: 6px; }
+.d2-muscle-stats { color: var(--d2-text-2); font-variant-numeric: tabular-nums; font-size: 11px; }
+.d2-muscle-track { width: 100%; height: 8px; border-radius: 9999px; background: rgba(var(--d2-glass-tint), var(--d2-glass-1)); border: 1px solid var(--d2-border); overflow: hidden; }
+.d2-muscle-fill { height: 100%; border-radius: 9999px; background: var(--d2-text); opacity: 0.85; transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+
+/* --- Session Card & Prolijo Exercises --- */
+.d2-history-session-card { padding: 20px; border-radius: var(--d2-radius); transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+.d2-history-session-card:hover { border-color: var(--d2-border-strong); }
+.d2-history-session-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; cursor: pointer; user-select: none; }
+.d2-history-session-title { font-size: 18px; font-weight: 600; color: var(--d2-text); letter-spacing: -0.015em; line-height: 1.25; }
+.d2-history-badges-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px; }
+.d2-history-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 9999px; font-size: 11px; font-weight: 500; background: rgba(var(--d2-glass-tint), var(--d2-glass-1)); border: 1px solid var(--d2-border); color: var(--d2-text-2); }
+.d2-history-volume-badge { font-size: 19px; font-weight: 700; color: var(--d2-text); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+
+.d2-history-toggle-btn { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 9999px; background: rgba(var(--d2-glass-tint), var(--d2-glass-1)); border: 1px solid var(--d2-border); color: var(--d2-text-2); transition: transform 0.2s ease, background 0.15s ease; flex: none; cursor: pointer; }
+.d2-history-toggle-btn:hover { background: rgba(var(--d2-glass-tint), var(--d2-glass-2)); color: var(--d2-text); }
+.d2-history-toggle-btn.expanded { transform: rotate(180deg); }
+
+/* --- Exercise Cards inside Session --- */
+.d2-history-exercises-list { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--d2-border); }
+.d2-history-exercise-card { padding: 14px 16px; border-radius: var(--d2-radius-sm); background: rgba(var(--d2-glass-tint), var(--d2-glass-1)); border: 1px solid var(--d2-border); transition: background 0.15s ease; }
+.d2-history-exercise-card:hover { background: rgba(var(--d2-glass-tint), var(--d2-glass-2)); }
+.d2-history-exercise-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.d2-history-exercise-thumb { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; overflow: hidden; flex: none; background: rgba(var(--d2-glass-tint), var(--d2-glass-2)); border: 1px solid var(--d2-border); color: var(--d2-text-2); }
+.d2-history-exercise-title { font-size: 14px; font-weight: 600; color: var(--d2-text); line-height: 1.25; }
+.d2-history-tag { font-size: 10.5px; padding: 2px 7px; border-radius: 6px; background: rgba(var(--d2-glass-tint), var(--d2-glass-2)); border: 1px solid var(--d2-border); color: var(--d2-text-2); font-weight: 500; }
+
+/* --- Set Pills / Badges --- */
+.d2-history-sets-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.d2-history-set-pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 8px; background: rgba(var(--d2-glass-tint), var(--d2-glass-2)); border: 1px solid var(--d2-border); font-size: 12px; color: var(--d2-text); transition: all 0.15s ease; }
+.d2-history-set-pill:hover { border-color: var(--d2-border-strong); transform: translateY(-1px); }
+.d2-history-set-pill.top-set { border-color: rgba(var(--d2-glass-tint), 0.45); background: rgba(var(--d2-glass-tint), 0.12); }
+.d2-history-set-pill.failed-set { border-color: rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.08); opacity: 0.85; }
+.d2-history-set-num { font-size: 10px; font-weight: 700; color: var(--d2-text-3); text-transform: uppercase; letter-spacing: 0.04em; }
+.d2-history-set-val { font-weight: 600; font-variant-numeric: tabular-nums; }
+.d2-history-set-estimate { font-size: 10px; color: var(--d2-text-3); font-variant-numeric: tabular-nums; }
+.d2-history-star { font-size: 11px; color: var(--d2-text); opacity: 0.9; }
+
+/* --- History Search & Filters --- */
+.d2-history-controls { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+@media (min-width: 640px) {
+  .d2-history-controls { flex-direction: row; align-items: center; justify-content: space-between; }
+}
+.d2-history-search-box { position: relative; flex: 1; max-width: 420px; }
+.d2-history-search-input { width: 100%; padding: 9px 12px 9px 36px; border-radius: var(--d2-radius-sm); font-size: 13px; color: var(--d2-text); background: rgba(var(--d2-glass-tint), var(--d2-glass-1)); border: 1px solid var(--d2-border); outline: none; transition: border-color 0.15s ease; }
+.d2-history-search-input:focus { border-color: var(--d2-border-strong); }
+.d2-history-search-icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--d2-text-3); }
+.d2-history-filters-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.d2-history-filter-pill { padding: 4px 11px; border-radius: 9999px; font-size: 11.5px; font-weight: 500; color: var(--d2-text-2); background: rgba(var(--d2-glass-tint), var(--d2-glass-1)); border: 1px solid var(--d2-border); cursor: pointer; transition: all 0.15s ease; }
+.d2-history-filter-pill:hover { color: var(--d2-text); border-color: var(--d2-border-strong); }
+.d2-history-filter-pill.active { background: rgba(var(--d2-glass-tint), var(--d2-glass-3)); color: var(--d2-text); font-weight: 600; border-color: var(--d2-border-strong); }

@@ -12,6 +12,34 @@ Login con email/contraseña **con segundo factor por mail**, o con Google. Entra
 con Google cae en la **misma cuenta de Firebase** que la web: mismo uid, mismas
 rutinas.
 
+## Acceso por email
+
+La pantalla de acceso tiene las pestañas «Iniciar sesión» y «Crear cuenta». El
+alta pide nombre, email, contraseña y su repetición; no envía el formulario si
+las contraseñas difieren. Google aparece como botón de ancho completo con su
+marca oficial. Para el acceso por email, iOS llama a `/api/mfa/start`, recibe
+un identificador de desafío y muestra un campo de seis dígitos. Sólo después
+de `/api/mfa/verify` inicia sesión con el token personalizado de Firebase. El
+código vence a los diez minutos, tiene cinco intentos y se consume una
+sola vez. «Enviar un código nuevo» vuelve a validar la contraseña; después de
+un alta usa el modo de inicio de sesión porque la cuenta ya existe.
+
+En producción el servidor necesita `RESEND_API_KEY` y `RESEND_FROM` de un
+dominio verificado, además de la configuración de Firebase usada por la web.
+Sin correo configurado, `/api/mfa/start` devuelve 503 antes de crear una
+cuenta. En desarrollo, el código puede imprimirse en el log del servidor.
+El endpoint `GET /api/mfa/start` informa `listo` y el tipo de transporte sin
+exponer claves.
+
+**Estado de seguridad:** el flujo de código en iOS no constituye todavía un
+segundo factor obligatorio. El SDK de Firebase permite iniciar sesión
+directamente con email/contraseña, y las reglas actuales aceptan ese token.
+Antes de presentarlo como 2FA hay que exigir una prueba ligada a la sesión en
+las reglas de Firestore y en las sesiones web, y migrar el login web al mismo
+flujo. Los escenarios adversariales están en `evals/ios-auth-2fa.md`. No
+habilitar el flujo en producción como medida de seguridad hasta cerrar esa
+brecha.
+
 ## Bienvenida de tres pantallas
 
 En el primer arranque, antes del login, se muestran tres pantallas con una

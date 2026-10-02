@@ -17,6 +17,7 @@
 # misc
 .DS_Store
 *.pem
+/tmp/
 
 # debug logs
 npm-debug.log*
@@ -50,3 +51,6 @@ ios/**/.DS_Store
 ios/SiezaGym/Resources/GoogleService-Info.plist
 ios/build-device/
 ios/Local.xcconfig
+
+# graphify
+graphify-out/

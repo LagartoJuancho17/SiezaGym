@@ -2,13 +2,46 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import PageShell from "@/components/design2/PageShell";
+import CoachPageShell from "@/components/coach/CoachPageShell";
 import Image from "next/image";
 import StudentVolumeChart from "@/components/coach/StudentVolumeChart";
+import { SearchIcon, WeightIcon, ChevronDownIcon } from "@/components/design2/Icons";
+import { estimatedOneRepMax, bestSetByEstimatedOneRepMax } from "@/lib/epley";
+import { EQUIPMENT_LABELS } from "@/lib/exercises/constants";
 import { assignRoutineToStudentAction, unassignRoutineAction } from "@/app/dashboard/coach/actions";
 import "./coach-design2.css";
 
+const SPANISH_MUSCLE_NAMES = {
+  pecho: "Pecho",
+  dorsal: "Dorsal",
+  espaldaAltaTrapecio: "Espalda alta",
+  deltoideAnterior: "Hombro ant.",
+  deltoideLateral: "Hombro lat.",
+  deltoidePosterior: "Hombro post.",
+  biceps: "Bíceps",
+  triceps: "Tríceps",
+  antebrazo: "Antebrazo",
+  cuadriceps: "Cuádriceps",
+  isquiotibiales: "Isquiotibiales",
+  gluteo: "Glúteos",
+  aductores: "Aductores",
+  gemelo: "Gemelos",
+  abdomen: "Abdomen",
+  lumbar: "Lumbar",
+};
+
+function getPrimaryMuscle(catalogExercise) {
+  if (!catalogExercise?.muscleWeights) return null;
+  const entries = Object.entries(catalogExercise.muscleWeights);
+  if (!entries.length) return null;
+  const sorted = entries.sort((a, b) => (Number(b[1]) || 0) - (Number(a[1]) || 0));
+  const top = sorted[0];
+  if (!top || !top[0]) return null;
+  return SPANISH_MUSCLE_NAMES[top[0]] || top[0];
+}
+
 function formatDateTime(iso) {
+  if (!iso) return "—";
   const formatted = new Intl.DateTimeFormat("es-AR", {
     weekday: "long",
     day: "numeric",
@@ -18,6 +51,7 @@ function formatDateTime(iso) {
 }
 
 function formatShortDate(iso) {
+  if (!iso) return "—";
   return new Intl.DateTimeFormat("es-AR", { day: "numeric", month: "short" }).format(
     new Date(iso),
   );
@@ -44,10 +78,68 @@ export default function StudentDetailView({
   const [error, setError] = useState("");
   const [unassigningId, setUnassigningId] = useState(null);
 
+  // Historial controls
+  const [historySearch, setHistorySearch] = useState("");
+  const [selectedRoutineFilter, setSelectedRoutineFilter] = useState("ALL");
+  const [expandedSessionIds, setExpandedSessionIds] = useState(() => {
+    return new Set((sessions || []).slice(0, 3).map((s) => s.id));
+  });
+
   const studentTargetId = studentProfile.studentId || studentProfile.uid || studentProfile.id;
   const exerciseLookup = new Map((catalogExercises || []).map((e) => [e.id, e]));
   const chartPoints = [...(sessions || [])].reverse();
   const initial = (studentProfile.displayName || "?").charAt(0).toUpperCase();
+
+  // Métricas acumuladas del alumno
+  const totalVolumeAll = (sessions || []).reduce((acc, s) => acc + (s.totalVolumeKg || 0), 0);
+  const totalSetsAll = (sessions || []).reduce(
+    (acc, s) => acc + (s.exercises || []).reduce((sum, e) => sum + (e.sets?.length || 0), 0),
+    0
+  );
+
+  // Rutinas únicas presentes en el historial
+  const uniqueRoutines = Array.from(
+    new Set((sessions || []).map((s) => s.routineName || "Sesión libre").filter(Boolean))
+  );
+
+  // Filtrado de sesiones del historial
+  const filteredSessions = (sessions || []).filter((session) => {
+    const routineName = session.routineName || "Sesión libre";
+    if (selectedRoutineFilter !== "ALL" && routineName !== selectedRoutineFilter) {
+      return false;
+    }
+    if (!historySearch.trim()) return true;
+    const q = historySearch.toLowerCase().trim();
+    if (routineName.toLowerCase().includes(q)) return true;
+    return (session.exercises || []).some((ex) => {
+      const cat = exerciseLookup.get(ex.exerciseId);
+      return (
+        cat?.nameEs?.toLowerCase().includes(q) ||
+        ex.exerciseId?.toLowerCase().includes(q)
+      );
+    });
+  });
+
+  function toggleSession(sessionId) {
+    setExpandedSessionIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(sessionId)) next.delete(sessionId);
+      else next.add(sessionId);
+      return next;
+    });
+  }
+
+  const allExpanded =
+    (sessions || []).length > 0 &&
+    (sessions || []).every((s) => expandedSessionIds.has(s.id));
+
+  function toggleExpandAll() {
+    if (allExpanded) {
+      setExpandedSessionIds(new Set());
+    } else {
+      setExpandedSessionIds(new Set((sessions || []).map((s) => s.id)));
+    }
+  }
 
   // Agrupar asignaciones por semana
   const assignmentsByWeek = new Map();
@@ -107,11 +199,11 @@ export default function StudentDetailView({
   }
 
   return (
-    <PageShell
+    <CoachPageShell
       title={studentProfile.displayName || "Sin nombre"}
-      eyebrow="Seguimiento del alumno"
       backHref="/dashboard/coach"
       backLabel="Volver a alumnos"
+      active="students"
     >
       <div className="d2-coach-stack">
         <header className="d2-glass d2-coach-row">
@@ -137,16 +229,40 @@ export default function StudentDetailView({
           </div>
         </header>
 
+        {/* Resumen Global del Alumno */}
         <div className="d2-coach-summary">
           <div className="d2-glass d2-coach-card">
             <p className="d2-coach-muted">Sesiones recientes</p>
             <p className="d2-coach-number">{sessions.length}</p>
           </div>
           <div className="d2-glass d2-coach-card">
+            <p className="d2-coach-muted">Volumen total</p>
+            <p className="d2-coach-number">
+              {totalVolumeAll >= 1000
+                ? `${(totalVolumeAll / 1000).toFixed(1)}t`
+                : `${totalVolumeAll}kg`}
+            </p>
+            <p className="d2-coach-muted font-mono-digit text-[11px] mt-0.5">
+              {totalVolumeAll.toLocaleString("es-AR")} kg acumulados
+            </p>
+          </div>
+          <div className="d2-glass d2-coach-card">
+            <p className="d2-coach-muted">Series completadas</p>
+            <p className="d2-coach-number">{totalSetsAll}</p>
+            <p className="d2-coach-muted text-[11px] mt-0.5">
+              en todo el historial
+            </p>
+          </div>
+          <div className="d2-glass d2-coach-card">
             <p className="d2-coach-muted">Última sesión</p>
             <p className="d2-student-name mt-2">
               {sessions[0] ? formatShortDate(sessions[0].finishedAt) : "—"}
             </p>
+            {sessions[0] && (
+              <p className="d2-coach-muted text-[11px] truncate mt-0.5">
+                {sessions[0].routineName || "Sesión libre"}
+              </p>
+            )}
           </div>
         </div>
 
@@ -232,58 +348,297 @@ export default function StudentDetailView({
           )}
         </section>
 
+        {/* Sección de Analíticas y Gráficos */}
         <section>
-          <p className="d2-coach-section-title">
-            Volumen por sesión
-          </p>
-          <StudentVolumeChart points={chartPoints} />
+          <div className="mb-2">
+            <p className="d2-coach-section-title mb-0">
+              Volumen por sesión y analíticas
+            </p>
+            <p className="d2-coach-muted">
+              Evolución de volumen, duración, series y distribución muscular
+            </p>
+          </div>
+          <StudentVolumeChart points={chartPoints} catalogExercises={catalogExercises} />
         </section>
 
+        {/* Sección de Historial por Fecha y Rutina */}
         <section>
-          <p className="d2-coach-section-title">
-            Historial por fecha y rutina
-          </p>
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+            <div>
+              <p className="d2-coach-section-title mb-0">
+                Historial por fecha y rutina
+              </p>
+              <p className="d2-coach-muted">
+                {sessions.length === 1
+                  ? "1 entrenamiento registrado"
+                  : `${sessions.length} entrenamientos registrados`}
+              </p>
+            </div>
+            {sessions.length > 0 && (
+              <button
+                type="button"
+                onClick={toggleExpandAll}
+                className="d2-seg text-xs cursor-pointer"
+              >
+                {allExpanded ? "Colapsar todo" : "Expandir todo"}
+              </button>
+            )}
+          </div>
+
           {sessions.length === 0 ? (
             <p className="d2-glass d2-empty">
               Todavía no entrenó.
             </p>
           ) : (
-            <div className="d2-coach-stack">
-              {sessions.map((session) => (
-                <div key={session.id} className="d2-glass d2-coach-card">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="d2-student-name">
-                        {session.routineName || "Sesión libre"}
-                      </p>
-                      <p className="d2-coach-muted mt-1">
-                        {formatDateTime(session.finishedAt)} · {formatDuration(session.durationSeconds)}
-                      </p>
-                    </div>
-                    <span className="d2-coach-value">
-                      {session.totalVolumeKg}kg
-                    </span>
-                  </div>
-                  <div className="d2-coach-sets">
-                    {session.exercises.map((exerciseInSession, i) => {
-                      const catalogExercise = exerciseLookup.get(exerciseInSession.exerciseId);
+            <>
+              {/* Buscador y Filtros de Rutina */}
+              <div className="d2-history-controls">
+                <div className="d2-history-search-box">
+                  <SearchIcon size={16} className="d2-history-search-icon" />
+                  <input
+                    type="text"
+                    value={historySearch}
+                    onChange={(e) => setHistorySearch(e.target.value)}
+                    placeholder="Buscar por rutina o ejercicio..."
+                    className="d2-history-search-input"
+                  />
+                  {historySearch && (
+                    <button
+                      type="button"
+                      onClick={() => setHistorySearch("")}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-muted hover:text-foreground cursor-pointer"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+
+                {uniqueRoutines.length > 1 && (
+                  <div className="d2-history-filters-row">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedRoutineFilter("ALL")}
+                      className={`d2-history-filter-pill ${selectedRoutineFilter === "ALL" ? "active" : ""}`}
+                    >
+                      Todas ({sessions.length})
+                    </button>
+                    {uniqueRoutines.map((rName) => {
+                      const count = sessions.filter(
+                        (s) => (s.routineName || "Sesión libre") === rName
+                      ).length;
                       return (
-                        <div key={i} className="flex flex-wrap items-baseline gap-x-2 text-xs">
-                          <span className="font-medium">
-                            {catalogExercise?.nameEs || "Ejercicio"}
-                          </span>
-                          <span className="d2-coach-muted">
-                            {(exerciseInSession.sets || [])
-                              .map((s) => `${s.weight}kg×${s.reps}`)
-                              .join(", ")}
-                          </span>
-                        </div>
+                        <button
+                          key={rName}
+                          type="button"
+                          onClick={() => setSelectedRoutineFilter(rName)}
+                          className={`d2-history-filter-pill ${selectedRoutineFilter === rName ? "active" : ""}`}
+                        >
+                          {rName} ({count})
+                        </button>
                       );
                     })}
                   </div>
+                )}
+              </div>
+
+              {filteredSessions.length === 0 ? (
+                <div className="d2-glass d2-empty">
+                  <p className="d2-coach-muted">
+                    No se encontraron entrenamientos con &ldquo;{historySearch}&rdquo;.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setHistorySearch("");
+                      setSelectedRoutineFilter("ALL");
+                    }}
+                    className="d2-empty-action"
+                  >
+                    Limpiar filtros
+                  </button>
                 </div>
-              ))}
-            </div>
+              ) : (
+                <div className="d2-coach-stack">
+                  {filteredSessions.map((session) => {
+                    const isExpanded = expandedSessionIds.has(session.id);
+                    const totalSetsInSession = (session.exercises || []).reduce(
+                      (acc, ex) => acc + (ex.sets?.length || 0),
+                      0
+                    );
+
+                    return (
+                      <div key={session.id} className="d2-glass d2-history-session-card">
+                        <div
+                          className="d2-history-session-head"
+                          onClick={() => toggleSession(session.id)}
+                          role="button"
+                          tabIndex={0}
+                          aria-expanded={isExpanded}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              toggleSession(session.id);
+                            }
+                          }}
+                        >
+                          <div className="min-w-0 flex-1">
+                            <p className="d2-history-session-title">
+                              {session.routineName || "Sesión libre"}
+                            </p>
+                            <p className="d2-coach-muted mt-1">
+                              {formatDateTime(session.finishedAt)}
+                            </p>
+                            <div className="d2-history-badges-row">
+                              <span className="d2-history-badge">
+                                ⏱️ {formatDuration(session.durationSeconds)}
+                              </span>
+                              <span className="d2-history-badge">
+                                📋 {session.exercises?.length || 0}{" "}
+                                {session.exercises?.length === 1 ? "ejercicio" : "ejercicios"}
+                              </span>
+                              <span className="d2-history-badge">
+                                🔢 {totalSetsInSession}{" "}
+                                {totalSetsInSession === 1 ? "serie" : "series"}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-3 shrink-0">
+                            <div className="text-right">
+                              <span className="d2-history-volume-badge">
+                                {session.totalVolumeKg}kg
+                              </span>
+                              <span className="d2-coach-muted block text-[10px] uppercase tracking-wider">
+                                volumen
+                              </span>
+                            </div>
+                            <span
+                              className={`d2-history-toggle-btn ${isExpanded ? "expanded" : ""}`}
+                              aria-hidden="true"
+                            >
+                              <ChevronDownIcon size={16} />
+                            </span>
+                          </div>
+                        </div>
+
+                        {isExpanded && (
+                          <div className="d2-history-exercises-list">
+                            {(session.exercises || []).map((exerciseInSession, i) => {
+                              const catalogExercise = exerciseLookup.get(exerciseInSession.exerciseId);
+                              const sets = exerciseInSession.sets || [];
+                              const exerciseVolume = sets.reduce(
+                                (acc, s) =>
+                                  acc +
+                                  (s.failed
+                                    ? 0
+                                    : (Number(s.weight) || 0) * (Number(s.reps) || 0)),
+                                0
+                              );
+                              const bestSet = bestSetByEstimatedOneRepMax(sets);
+                              const primaryMuscle = getPrimaryMuscle(catalogExercise);
+                              const eqLabel =
+                                EQUIPMENT_LABELS[catalogExercise?.equipment] ||
+                                catalogExercise?.equipment;
+
+                              return (
+                                <div key={i} className="d2-history-exercise-card">
+                                  <div className="d2-history-exercise-header">
+                                    <div className="flex items-center gap-2.5 min-w-0">
+                                      <div className="d2-history-exercise-thumb">
+                                        {catalogExercise?.mediaUrl ? (
+                                          <Image
+                                            src={catalogExercise.mediaUrl}
+                                            alt=""
+                                            width={36}
+                                            height={36}
+                                            className="h-full w-full object-cover"
+                                            unoptimized
+                                          />
+                                        ) : (
+                                          <WeightIcon size={18} />
+                                        )}
+                                      </div>
+                                      <div className="min-w-0">
+                                        <p className="d2-history-exercise-title truncate">
+                                          {catalogExercise?.nameEs || "Ejercicio"}
+                                        </p>
+                                        <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+                                          {eqLabel && (
+                                            <span className="d2-history-tag">{eqLabel}</span>
+                                          )}
+                                          {primaryMuscle && (
+                                            <span className="d2-history-tag">{primaryMuscle}</span>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div className="text-right shrink-0">
+                                      <span className="d2-coach-muted font-mono-digit text-xs block">
+                                        {sets.length} {sets.length === 1 ? "serie" : "series"}
+                                      </span>
+                                      {exerciseVolume > 0 && (
+                                        <span className="d2-coach-muted font-mono-digit text-[11px] block">
+                                          {exerciseVolume} kg
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  <div className="d2-history-sets-grid">
+                                    {sets.map((s, setIdx) => {
+                                      const e1rm = estimatedOneRepMax(s.weight, s.reps);
+                                      const isBest =
+                                        bestSet &&
+                                        !s.failed &&
+                                        s.weight === bestSet.weight &&
+                                        s.reps === bestSet.reps;
+
+                                      return (
+                                        <div
+                                          key={setIdx}
+                                          className={`d2-history-set-pill ${isBest ? "top-set" : ""} ${s.failed ? "failed-set" : ""}`}
+                                        >
+                                          <span className="d2-history-set-num">
+                                            S{s.setNumber || setIdx + 1}
+                                          </span>
+                                          <span className="d2-history-set-val">
+                                            {s.weight}kg×{s.reps}
+                                          </span>
+                                          {e1rm > 0 && !s.failed && (
+                                            <span className="d2-history-set-estimate">
+                                              ~{Math.round(e1rm)}kg
+                                            </span>
+                                          )}
+                                          {isBest && !s.failed && (
+                                            <span className="d2-history-star" title="Mejor marca">
+                                              ★
+                                            </span>
+                                          )}
+                                          {s.failed && (
+                                            <span
+                                              className="text-[10px] font-semibold"
+                                              style={{
+                                                color: "var(--d2-error, rgba(239, 68, 68, 0.9))",
+                                              }}
+                                            >
+                                              fallada
+                                            </span>
+                                          )}
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </>
           )}
         </section>
       </div>
@@ -374,6 +729,6 @@ export default function StudentDetailView({
           </div>
         </div>
       )}
-    </PageShell>
+    </CoachPageShell>
   );
 }

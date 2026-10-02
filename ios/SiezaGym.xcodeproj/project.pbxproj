@@ -49,7 +49,6 @@
 		6F07E98E52F1BB3440BC16EF /* RoutineDraftTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02298DDC76F85B66411B44D2 /* RoutineDraftTests.swift */; };
 		6FC6B1C252DFDE5B567B085D /* TarjetaEjercicio.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4688301D2ACB1319ABFD1E7A /* TarjetaEjercicio.swift */; };
 		717725D42A3B222CB7F97728 /* WorkoutTarget.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF605D479E084C61AD3550D8 /* WorkoutTarget.swift */; };
-		71B55B68CDDE96E4D0457893 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = B25E860F7C4AE7A29211C87F /* GoogleService-Info.plist */; };
 		71C9E7F0023CABFF92CA4557 /* SnapshotStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FCB09C4AAFE60F78F355E02 /* SnapshotStore.swift */; };
 		721BE8F99880C16D784852C1 /* RoutineSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCA4F2347BCE2A9D4BDB6CF /* RoutineSummary.swift */; };
 		765B33F0C6E2CA822388FC44 /* Epley.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DA99ABA4DD2DEF013186323 /* Epley.swift */; };
@@ -202,7 +201,6 @@
 		AE7997B5960418F748BF7C38 /* RestTimer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestTimer.swift; sourceTree = "<group>"; };
 		AE88FE15304FF74783052D63 /* LiveActivityController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityController.swift; sourceTree = "<group>"; };
 		B00831C4B5DF350BB44E6270 /* GymStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GymStore.swift; sourceTree = "<group>"; };
-		B25E860F7C4AE7A29211C87F /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		B4A27BD74C0AEECA1F3DF543 /* BodyMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyMetrics.swift; sourceTree = "<group>"; };
 		B92BB837D8D7672404D81095 /* ProgresoEnPerfil.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgresoEnPerfil.swift; sourceTree = "<group>"; };
 		BC7E72D67809BEF015BE4090 /* PreviewDataTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewDataTests.swift; sourceTree = "<group>"; };
@@ -239,7 +237,7 @@
 		F9F497722DB4661FFF746FD1 /* TrainingCalendar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainingCalendar.swift; sourceTree = "<group>"; };
 		F9F6A2EBFC13CEDC7984B640 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		FD8ADFF2CAA687963AB3D3AA /* Piezas.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Piezas.swift; sourceTree = "<group>"; };
-		"TEMP_E83ABB2C-7DFA-4FC2-BBE7-A31864174412" /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
+		"TEMP_3514B126-C7FD-45C6-AFA7-64FF4F8EE2C0" /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -368,7 +366,6 @@
 			isa = PBXGroup;
 			children = (
 				3BF9C538E6A757304EFC3144 /* Assets.xcassets */,
-				B25E860F7C4AE7A29211C87F /* GoogleService-Info.plist */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -520,10 +517,10 @@
 			path = Auth;
 			sourceTree = "<group>";
 		};
-		"TEMP_AC9DDBDD-92D9-4E81-BE15-4174592532A9" /* ios */ = {
+		"TEMP_14D2C726-CE98-45D2-AFA6-E099020F6785" /* ios */ = {
 			isa = PBXGroup;
 			children = (
-				"TEMP_E83ABB2C-7DFA-4FC2-BBE7-A31864174412" /* Signing.xcconfig */,
+				"TEMP_3514B126-C7FD-45C6-AFA7-64FF4F8EE2C0" /* Signing.xcconfig */,
 			);
 			path = ios;
 			sourceTree = "<group>";
@@ -645,7 +642,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				106C3B5F379773A98FB4C5C5 /* Assets.xcassets in Resources */,
-				71B55B68CDDE96E4D0457893 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -805,7 +801,7 @@
 		};
 		04764DE4336904985F4049C2 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_E83ABB2C-7DFA-4FC2-BBE7-A31864174412" /* Signing.xcconfig */;
+			baseConfigurationReference = "TEMP_3514B126-C7FD-45C6-AFA7-64FF4F8EE2C0" /* Signing.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -964,7 +960,7 @@
 		};
 		FC6682134BF5D75535C2BAE4 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_E83ABB2C-7DFA-4FC2-BBE7-A31864174412" /* Signing.xcconfig */;
+			baseConfigurationReference = "TEMP_3514B126-C7FD-45C6-AFA7-64FF4F8EE2C0" /* Signing.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
