@@ -1,324 +1,328 @@
 import SwiftUI
-import UIKit
 
+/// Entrar o crear la cuenta.
+///
+/// La misma pantalla para las dos cosas, con las pestañas de arriba decidiendo
+/// cuál: es la estructura de `LoginForm.js` en la web, con las mismas palabras.
+/// Mandar a otra pantalla para agregar dos campos obliga a escribir el email de
+/// nuevo.
 struct LoginView: View {
     @Environment(\.tema) private var tema
     @Environment(AuthService.self) private var auth
 
-    @State private var form = EmailAuthForm()
-    @State private var challenge: PendingEmailChallenge?
-    @State private var code = ""
-    @State private var passwordVisible = false
-    @FocusState private var focus: Field?
+    @State private var form = AuthForm()
+    @State private var verContrasena = false
+    @State private var desafio: MFAService.Desafio?
+    @FocusState private var campo: Campo?
 
-    private enum Field { case name, email, password, repeatedPassword, code }
+    private enum Campo { case nombre, email, password, repetir }
+
+    private var creando: Bool { form.modo == .crear }
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 22) {
-                header
-                if let challenge {
-                    verification(challenge)
-                } else {
-                    credentials
+            VStack(alignment: .leading, spacing: 18) {
+                encabezado
+                pestanas
+
+                GlassCard(padding: 18, radius: Theme.radius) {
+                    VStack(spacing: 16) {
+                        botonGoogle
+                        separador
+                        formulario
+                    }
                 }
+
+                pie
             }
-            .frame(maxWidth: 440)
-            .frame(maxWidth: .infinity)
             .padding(24)
         }
         .scrollDismissesKeyboard(.interactively)
         .tecladoConBotonListo()
         .animation(.smooth(duration: 0.25), value: auth.errorMessage)
-        .animation(.smooth(duration: 0.25), value: challenge != nil)
-    }
-
-    private var credentials: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            HStack(spacing: 4) {
-                modeTab("Iniciar sesión", mode: .signIn)
-                modeTab("Crear cuenta", mode: .signUp)
+        .animation(.smooth(duration: 0.25), value: form.modo)
+        .sheet(isPresented: hayDesafio) {
+            if let desafio {
+                CodigoView(
+                    desafio: desafio,
+                    email: form.emailNormalizado,
+                    reenviar: { await auth.pedirCodigo(form) },
+                    cerrar: { self.desafio = nil }
+                )
             }
-            .padding(4)
-            .background(tema.vidrio(1), in: .rect(cornerRadius: 15))
-            .overlay { RoundedRectangle(cornerRadius: 15).strokeBorder(tema.borde, lineWidth: 1) }
-
-            VStack(spacing: 11) {
-                if form.mode == .signUp {
-                    field("Nombre", text: $form.displayName, field: .name)
-                        .textContentType(.name)
-                }
-                field("Email", text: $form.email, field: .email)
-                    .textContentType(.emailAddress)
-                    .keyboardType(.emailAddress)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                passwordField("Contraseña", text: $form.password, field: .password)
-                    .textContentType(form.mode == .signIn ? .password : .newPassword)
-                if form.mode == .signUp {
-                    passwordField("Repetir contraseña", text: $form.repeatedPassword, field: .repeatedPassword)
-                        .textContentType(.newPassword)
-                    if form.passwordMismatch {
-                        Text("Las dos contraseñas no coinciden.")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundStyle(tema.solido)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                }
-            }
-
-            Button(passwordVisible ? "Ocultar contraseña" : "Mostrar contraseña") {
-                passwordVisible.toggle()
-            }
-            .font(.system(size: 13, weight: .semibold))
-            .foregroundStyle(tema.texto2)
-
-            errorLabel
-
-            Button(form.mode == .signIn ? "Iniciar sesión" : "Crear cuenta", action: start)
-                .buttonStyle(AccentButtonStyle())
-                .disabled(!form.canSubmit || auth.isWorking)
-                .opacity(form.canSubmit && !auth.isWorking ? 1 : 0.48)
-                .overlay { if auth.isWorking { ProgressView().tint(tema.sobreSolido) } }
-
-            separator
-
-            // El ícono oficial viene del bundle del SDK. El contenedor es una
-            // superficie plana SIEZA: mismo ancho y radio que el CTA principal.
-            Button {
-                focus = nil
-                Task { await auth.signInWithGoogle() }
-            } label: {
-                HStack(spacing: 12) {
-                    if let googleLogo {
-                        Image(uiImage: googleLogo)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 22, height: 22)
-                    }
-                    Text(form.mode == .signUp ? "Crear cuenta con Google" : "Continuar con Google")
-                        .font(.system(size: 15, weight: .semibold))
-                }
-                .foregroundStyle(Color(red: 0.12, green: 0.13, blue: 0.15))
-                .frame(maxWidth: .infinity, minHeight: 54)
-                .background(.white, in: .rect(cornerRadius: tema.plano ? 14 : Theme.radius))
-            }
-            .buttonStyle(.plain)
-            .disabled(auth.isWorking)
         }
     }
 
-    private func modeTab(_ title: String, mode: EmailAuthMode) -> some View {
-        Button {
-            focus = nil
-            form.changeMode(to: mode)
-            auth.clearError()
+    /// El sheet se cierra solo cuando se borra el desafío, y arrastrarlo hacia
+    /// abajo tiene que hacer lo mismo: cancelar y volver al formulario.
+    private var hayDesafio: Binding<Bool> {
+        Binding(get: { desafio != nil }, set: { if !$0 { desafio = nil } })
+    }
+
+    // MARK: - Encabezado y pestañas
+
+    private var encabezado: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("SIEZAGYM")
+                .font(.system(size: 13))
+                .tracking(1.8)
+                .foregroundStyle(tema.texto2)
+            Text(form.modo.titulo)
+                .font(.system(size: 30, weight: tema.plano ? .bold : .heavy))
+                .tracking(-0.7)
+                .foregroundStyle(tema.texto)
+                .contentTransition(.numericText())
+        }
+        .padding(.top, 50)
+    }
+
+    /// Las dos pestañas, mitad y mitad: el `.d2-segs` de la web.
+    ///
+    /// El radio sigue la misma regla que `BottomNav`: 26 en los temas
+    /// clásicos, 12 en SIEZA (plano). Es el mismo par de valores, no
+    /// `Theme.radius`, para que la pestaña activa y la barra de abajo se vean
+    /// como la misma familia de control.
+    private var pestanas: some View {
+        HStack(spacing: 8) {
+            ForEach(AuthMode.allCases, id: \.self) { modo in
+                let activa = form.modo == modo
+                let radio: CGFloat = tema.plano ? 12 : 26
+                Button {
+                    withAnimation(.smooth(duration: 0.25)) {
+                        form.cambiarA(modo)
+                        auth.clearError()
+                    }
+                    campo = nil
+                } label: {
+                    Text(modo.pestana)
+                        .font(.system(size: 13))
+                        .foregroundStyle(activa ? tema.sobreSolido : tema.texto2)
+                        .frame(maxWidth: .infinity, minHeight: 38)
+                        .background(activa ? AnyShapeStyle(tema.solido) : AnyShapeStyle(tema.vidrio(1)), in: .rect(cornerRadius: radio))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: radio)
+                                .strokeBorder(activa ? .clear : tema.borde, lineWidth: 1)
+                        }
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+
+    // MARK: - Google
+
+    /// El botón de Google, dibujado como el de la web: a todo lo ancho, con la
+    /// misma altura y forma que el botón principal.
+    ///
+    /// Antes usaba `GoogleSignInButton` del SDK, que se plantaba en su ancho y
+    /// venía con su fondo blanco: sobre los temas oscuros parecía pegoteado de
+    /// otra app. La G sigue siendo el logo oficial sin recolorear, que es lo que
+    /// piden las guías de marca; lo que no exigen es usar su botón.
+    ///
+    /// El radio es el mismo 14/26 de `SolidButtonStyle`, no `Theme.radius`: es
+    /// justamente el botón que tiene que verse igual que el principal.
+    private var botonGoogle: some View {
+        let radio: CGFloat = tema.plano ? 14 : 26
+        return Button {
+            campo = nil
+            Task { await auth.signInWithGoogle() }
         } label: {
-            Text(title)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(form.mode == mode ? tema.texto : tema.texto2)
-                .frame(maxWidth: .infinity, minHeight: 42)
-                .background(form.mode == mode ? tema.vidrio(3) : .clear,
-                            in: .rect(cornerRadius: 11))
+            HStack(spacing: 10) {
+                Image("GoogleG")
+                    .resizable()
+                    .frame(width: 18, height: 18)
+                Text(form.modo.conGoogle)
+                    .font(.system(size: 14, weight: .medium))
+            }
+            .foregroundStyle(tema.texto)
+            .frame(maxWidth: .infinity, minHeight: 50)
+            .background(tema.vidrio(2), in: .rect(cornerRadius: radio))
+            .overlay {
+                RoundedRectangle(cornerRadius: radio).strokeBorder(tema.bordeFuerte, lineWidth: 1)
+            }
         }
         .buttonStyle(.plain)
-        .accessibilityAddTraits(form.mode == mode ? .isSelected : [])
+        .disabled(auth.isWorking)
+        .opacity(auth.isWorking ? 0.5 : 1)
     }
 
-    private var googleLogo: UIImage? {
-        guard let bundleURL = Bundle.main.url(forResource: "GoogleSignIn_GoogleSignIn", withExtension: "bundle"),
-              let bundle = Bundle(url: bundleURL),
-              let imageURL = bundle.url(forResource: "google@3x", withExtension: "png") else {
-            return nil
-        }
-        return UIImage(contentsOfFile: imageURL.path)
-    }
-
-    /// "o" entre el login por email y el de Google.
-    private var separator: some View {
+    private var separador: some View {
         HStack(spacing: 12) {
-            line
-            Text("o")
-                .font(.system(size: 12, weight: .semibold))
+            linea
+            Text("o con tu email")
+                .font(.system(size: 11))
                 .foregroundStyle(tema.texto3)
-            line
+            linea
         }
-        .padding(.vertical, 2)
     }
 
-    private var line: some View {
-        Rectangle()
-            .fill(tema.borde)
-            .frame(height: 1)
+    private var linea: some View {
+        Rectangle().fill(tema.borde).frame(height: 1)
     }
 
-    private var header: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("SIEZA / ACCESO")
-                .font(.system(size: 11, weight: .bold))
-                .tracking(1.6)
-                .foregroundStyle(tema.solido)
-            Text(challenge == nil
-                 ? (form.mode == .signIn ? "Bienvenido de nuevo" : "Creá tu cuenta")
-                 : "Revisá tu correo")
-                .font(.system(size: 34, weight: .bold))
-                .tracking(-1.1)
-                .foregroundStyle(tema.texto)
-            Text(challenge == nil
-                 ? "Tus entrenamientos, en un solo lugar."
-                 : "Ingresá el código para completar el acceso.")
-                .font(.system(size: 15))
-                .foregroundStyle(tema.texto2)
-        }
-        .padding(.top, 60)
-        .padding(.bottom, 6)
-    }
+    // MARK: - Formulario
 
-    private func field(_ label: String, text: Binding<String>, field: Field) -> some View {
-        TextField("", text: text, prompt: Text(label).foregroundStyle(tema.texto3))
-            .focused($focus, equals: field)
-            .textFieldStyle(.plain)
-            .foregroundStyle(tema.texto)
-            .padding(.horizontal, 16)
-            .frame(height: 52)
-            .background(tema.vidrio(1), in: .rect(cornerRadius: tema.plano ? 14 : Theme.radius))
-            .overlay {
-                RoundedRectangle(cornerRadius: tema.plano ? 14 : Theme.radius)
-                    .strokeBorder(focus == field ? tema.solido : tema.borde, lineWidth: 1)
+    @ViewBuilder
+    private var formulario: some View {
+        VStack(spacing: 16) {
+            if creando {
+                campoTexto("Nombre", "Como querés que te llamemos", texto: $form.nombre, campo: .nombre)
+                    .textContentType(.name)
             }
-            .animation(.snappy(duration: 0.15), value: focus)
-    }
 
-    private func passwordField(_ title: String, text: Binding<String>, field: Field) -> some View {
-        Group {
-            if passwordVisible {
-                TextField("", text: text, prompt: Text(title).foregroundStyle(tema.texto3))
-            } else {
-                SecureField("", text: text, prompt: Text(title).foregroundStyle(tema.texto3))
-            }
-        }
-            .focused($focus, equals: field)
-            .textFieldStyle(.plain)
-            .foregroundStyle(tema.texto)
-            .padding(.horizontal, 16)
-            .frame(height: 52)
-            .background(tema.vidrio(1), in: .rect(cornerRadius: tema.plano ? 14 : Theme.radius))
-            .overlay {
-                RoundedRectangle(cornerRadius: tema.plano ? 14 : Theme.radius)
-                    .strokeBorder(focus == field ? tema.solido : tema.borde, lineWidth: 1)
-            }
-            .onSubmit(start)
-            .animation(.snappy(duration: 0.15), value: focus)
-    }
+            campoTexto("Email", "tu@email.com", texto: $form.email, campo: .email)
+                .textContentType(.emailAddress)
+                .keyboardType(.emailAddress)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
 
-    private var errorLabel: some View {
-        Group {
-            if let message = auth.errorMessage {
-                Label(message, systemImage: "exclamationmark.triangle.fill")
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(alignment: .firstTextBaseline) {
+                    etiqueta("Contraseña")
+                    Spacer()
+                    // Texto y no un ojo, igual que en la web: "Mostrar" dice lo
+                    // que hace y anuncia el estado sin depender del icono.
+                    Button(verContrasena ? "Ocultar" : "Mostrar") {
+                        verContrasena.toggle()
+                    }
+                    .font(.system(size: 11))
+                    .foregroundStyle(tema.texto2)
+                }
+                caja(
+                    marcador: creando ? "Al menos 6 caracteres" : "Tu contraseña",
+                    texto: $form.password,
+                    campo: .password,
+                    contenido: creando ? .newPassword : .password
+                )
+            }
+
+            if creando {
+                VStack(alignment: .leading, spacing: 8) {
+                    etiqueta("Repetir contraseña")
+                    caja(
+                        marcador: "La misma de arriba",
+                        texto: $form.repetir,
+                        campo: .repetir,
+                        contenido: .newPassword
+                    )
+                }
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+
+            if let aviso = form.problema ?? auth.errorMessage {
+                Label(aviso, systemImage: "exclamationmark.triangle.fill")
                     .font(.system(size: 13, weight: .medium))
                     .foregroundStyle(tema.texto)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .accessibilityAddTraits(.updatesFrequently)
-            }
-        }
-    }
-
-    private func verification(_ pending: PendingEmailChallenge) -> some View {
-        VStack(alignment: .leading, spacing: 22) {
-            Button {
-                focus = nil
-                code = ""
-                challenge = nil
-                form.password = ""
-                auth.clearError()
-            } label: {
-                Label("Volver", systemImage: "arrow.left")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(tema.texto2)
-            }
-            .buttonStyle(.plain)
-
-            Text("Mandamos un código de 6 dígitos a \(pending.email).")
-                .font(.system(size: 15))
-                .foregroundStyle(tema.texto2)
-                .fixedSize(horizontal: false, vertical: true)
-
-            if pending.deliveredToConsole {
-                Label("Modo desarrollo: el código está en el log del servidor.", systemImage: "hammer")
-                    .font(.system(size: 13))
-                    .foregroundStyle(tema.texto2)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .transition(.move(edge: .top).combined(with: .opacity))
             }
 
-            TextField("000000", text: $code)
-                .focused($focus, equals: .code)
-                .keyboardType(.numberPad)
-                .textContentType(.oneTimeCode)
-                .font(.system(size: 30, weight: .semibold, design: .monospaced))
-                .tracking(8)
-                .foregroundStyle(tema.texto)
-                .padding(.horizontal, 18)
-                .frame(height: 64)
-                .background(tema.vidrio(1), in: .rect(cornerRadius: 14))
-                .overlay {
-                    RoundedRectangle(cornerRadius: 14)
-                        .strokeBorder(focus == .code ? tema.solido : tema.borde, lineWidth: 1)
-                }
-                .onChange(of: code) { _, value in
-                    code = String(value.filter { $0 >= "0" && $0 <= "9" }.prefix(6))
-                }
-                .accessibilityLabel("Código de seis dígitos")
-
-            TimelineView(.periodic(from: .now, by: 1)) { context in
-                let remaining = max(0, Int(ceil(pending.expiresAt.timeIntervalSince(context.date))))
-                Text(remaining > 0
-                     ? String(format: "Vence en %02d:%02d", remaining / 60, remaining % 60)
-                     : "El código venció. Pedí uno nuevo.")
-                    .font(.system(size: 12, design: .monospaced))
-                    .foregroundStyle(tema.texto2)
-            }
-
-            errorLabel
-
-            TimelineView(.periodic(from: .now, by: 1)) { context in
-                let valid = code.count == 6 && !auth.isWorking && pending.expiresAt > context.date
-                Button("Verificar y entrar") {
-                    focus = nil
-                    Task { await auth.verifyEmail(challengeID: pending.id, code: code) }
-                }
+            Button(form.modo.accion, action: enviar)
                 .buttonStyle(AccentButtonStyle())
-                .disabled(!valid)
-                .opacity(valid ? 1 : 0.48)
-                .overlay { if auth.isWorking { ProgressView().tint(tema.sobreSolido) } }
-            }
-
-            Button("Enviar un código nuevo") {
-                focus = nil
-                code = ""
-                Task {
-                    var retry = form
-                    // Tras el alta la cuenta ya existe, aunque aún no tenga sesión.
-                    retry.mode = .signIn
-                    if let renewed = await auth.startEmail(form: retry) {
-                        challenge = renewed
-                    }
+                .disabled(!puedeEnviar)
+                .opacity(puedeEnviar ? 1 : 0.55)
+                .overlay {
+                    if auth.isWorking { ProgressView().tint(tema.sobreSolido) }
                 }
-            }
-            .font(.system(size: 14, weight: .semibold))
-            .foregroundStyle(tema.texto2)
-            .frame(maxWidth: .infinity)
-            .disabled(auth.isWorking)
         }
     }
 
-    private func start() {
-        guard form.canSubmit, !auth.isWorking else { return }
-        focus = nil
-        Task {
-            if let pending = await auth.startEmail(form: form) {
-                code = ""
-                challenge = pending
-                focus = .code
+    private var puedeEnviar: Bool { form.puedeEnviar && !auth.isWorking }
+
+    private func etiqueta(_ texto: String) -> some View {
+        Text(texto)
+            .font(.system(size: 12))
+            .foregroundStyle(tema.texto2)
+    }
+
+    private func campoTexto(
+        _ label: String,
+        _ marcador: String,
+        texto: Binding<String>,
+        campo cual: Campo
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            etiqueta(label)
+            caja(marcador: marcador, texto: texto, campo: cual, contenido: nil)
+        }
+    }
+
+    /// La caja de un campo. Un solo lugar decide el alto, el radio y el borde
+    /// enfocado, así ningún campo queda distinto de los otros.
+    @ViewBuilder
+    private func caja(
+        marcador: String,
+        texto: Binding<String>,
+        campo cual: Campo,
+        contenido: UITextContentType?
+    ) -> some View {
+        let esPassword = cual == .password || cual == .repetir
+        let prompt = Text(marcador).foregroundStyle(tema.texto3)
+        // 14 en SIEZA (plano), Theme.radiusSmall en los temas clásicos: la
+        // misma regla 14/base que el resto de los controles del tema plano.
+        let radio: CGFloat = tema.plano ? 14 : Theme.radiusSmall
+
+        Group {
+            if esPassword, !verContrasena {
+                SecureField("", text: texto, prompt: prompt)
+            } else {
+                TextField("", text: texto, prompt: prompt)
             }
+        }
+        .textContentType(contenido)
+        .focused($campo, equals: cual)
+        .textFieldStyle(.plain)
+        .foregroundStyle(tema.texto)
+        .submitLabel(cual == .repetir || (cual == .password && !creando) ? .go : .next)
+        .onSubmit(siguienteCampo)
+        .padding(.horizontal, 16)
+        .frame(height: 52)
+        .background(tema.vidrio(1), in: .rect(cornerRadius: radio))
+        .overlay {
+            RoundedRectangle(cornerRadius: radio)
+                .strokeBorder(campo == cual ? tema.solido : tema.borde, lineWidth: 1)
+        }
+        .animation(.snappy(duration: 0.15), value: campo)
+    }
+
+    private var pie: some View {
+        HStack(spacing: 6) {
+            Text(creando ? "¿Ya tenés cuenta?" : "¿Todavía no tenés cuenta?")
+                .foregroundStyle(tema.texto2)
+            Button(creando ? "Iniciá sesión" : "Creá una gratis") {
+                withAnimation(.smooth(duration: 0.25)) {
+                    form.cambiarA(creando ? .entrar : .crear)
+                    auth.clearError()
+                }
+            }
+            .foregroundStyle(tema.texto)
+            .underline()
+        }
+        .font(.system(size: 13))
+        .frame(maxWidth: .infinity)
+        .padding(.top, 4)
+    }
+
+    // MARK: - Acciones
+
+    /// Enter salta al campo que sigue, y en el último envía.
+    private func siguienteCampo() {
+        switch campo {
+        case .nombre: campo = .email
+        case .email: campo = .password
+        case .password: campo = creando ? .repetir : nil
+        default: campo = nil
+        }
+        if campo == nil { enviar() }
+    }
+
+    private func enviar() {
+        guard puedeEnviar else { return }
+        campo = nil
+        Task {
+            // Esto no abre ninguna sesión: sólo hace que salga el mail. La
+            // sesión llega cuando el código vuelve bien, en CodigoView.
+            desafio = await auth.pedirCodigo(form)
         }
     }
 }

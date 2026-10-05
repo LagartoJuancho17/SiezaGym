@@ -18,7 +18,18 @@ struct EntradaSiezaGym: TimelineEntry {
             routineSets: 18,
             routineMinutes: 52,
             lastSessionAt: .now,
-            updatedAt: .now
+            updatedAt: .now,
+            calorias: ResumenCalorias(kcal: 1840, meta: 2000, pct: 92, etiqueta: "Casi", pesoPorDefecto: false, hasData: true),
+            series: ResumenSeries(pct: 94, completadas: 51, totales: 54, etiqueta: "Bien", hasData: true),
+            musculos: ResumenMusculos(
+                filas: [
+                    FilaMusculo(musculo: "Pecho", kg: 420, pct: 0.35),
+                    FilaMusculo(musculo: "Dorsal", kg: 360, pct: 0.30),
+                    FilaMusculo(musculo: "Cuádriceps", kg: 250, pct: 0.21),
+                ],
+                totalKg: 1200,
+                hasData: true
+            )
         )
     )
 }

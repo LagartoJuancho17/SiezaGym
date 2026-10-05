@@ -59,4 +59,79 @@ nonisolated enum TrainingCalendar {
         guard (1...12).contains(month) else { return "\(year)" }
         return "\(names[month - 1]) \(year)"
     }
+
+    private static func soloMes(_ month: Int) -> String {
+        let names = [
+            "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+            "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
+        ]
+        return (1...12).contains(month) ? names[month - 1] : ""
+    }
+
+    /// La semana a la que pertenece una fecha, para asignarle rutinas: "en qué
+    /// semana de qué mes de qué año". Año y mes en el resultado son los de
+    /// Argentina, iguales a los de `dayKey`, no los del huso del teléfono.
+    struct Semana: Equatable, Sendable {
+        let anio: Int
+        let mes: Int
+        let numero: Int
+
+        /// Para guardar y comparar: "2026-09-4". No es para mostrar.
+        var clave: String { String(format: "%04d-%02d-%d", anio, mes, numero) }
+
+        /// Para mostrar: "Septiembre · Semana 4".
+        var texto: String { "\(soloMes(mes)) · Semana \(numero)" }
+    }
+
+    static func semana(de fecha: Date) -> Semana {
+        let partes = calendar.dateComponents([.year, .month, .day], from: fecha)
+        let dia = partes.day ?? 1
+        return Semana(anio: partes.year ?? 0, mes: partes.month ?? 1, numero: weekOfMonth(day: dia))
+    }
+
+    /// Las rutinas propias asignadas a esa semana. Función aparte y no un
+    /// filtro escrito en el `GymStore` para que se pueda probar sin Firebase,
+    /// igual que el resto de `Domain/`.
+    static func delaSemana<Item>(_ items: [Item], clave objetivo: String, claveDe: (Item) -> String?) -> [Item] {
+        items.filter { claveDe($0) == objetivo }
+    }
+
+    /// Una tanda de items que caen en la misma semana, para la pantalla de
+    /// Rutinas. Puerto de `groupByMonthAndWeek` + `weekSections` en
+    /// `lib/routines/schedule.js` y `lib/routines/filter.js`.
+    nonisolated struct SeccionSemana<Item>: Identifiable {
+        let id: String
+        /// "Septiembre · Semana 4", o "Sin fecha" para los que no tienen.
+        let texto: String
+        let items: [Item]
+    }
+
+    /// Agrupa por semana del mes usando la fecha de cada item. Los meses van
+    /// del más nuevo al más viejo; dentro de un mes, las semanas de la 1 en
+    /// adelante -- mismo orden que la web. Los que no tienen fecha quedan en
+    /// una sola tanda al final, en vez de desaparecer.
+    static func seccionesPorSemana<Item>(_ items: [Item], fechaDe: (Item) -> Date?) -> [SeccionSemana<Item>] {
+        var porClave: [String: (semana: Semana, items: [Item])] = [:]
+        var sinFecha: [Item] = []
+
+        for item in items {
+            guard let fecha = fechaDe(item) else {
+                sinFecha.append(item)
+                continue
+            }
+            let sem = semana(de: fecha)
+            porClave[sem.clave, default: (sem, [])].items.append(item)
+        }
+
+        let conFecha = porClave.values
+            .sorted { izquierda, derecha in
+                if izquierda.semana.anio != derecha.semana.anio { return izquierda.semana.anio > derecha.semana.anio }
+                if izquierda.semana.mes != derecha.semana.mes { return izquierda.semana.mes > derecha.semana.mes }
+                return izquierda.semana.numero < derecha.semana.numero
+            }
+            .map { SeccionSemana(id: $0.semana.clave, texto: $0.semana.texto, items: $0.items) }
+
+        guard !sinFecha.isEmpty else { return conFecha }
+        return conFecha + [SeccionSemana(id: "sin-fecha", texto: "Sin fecha", items: sinFecha)]
+    }
 }

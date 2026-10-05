@@ -1,8 +1,9 @@
 import { notFound, redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/firebase/session";
-import { getUserRoutine } from "@/lib/routines/routines";
 import { listExercises } from "@/lib/exercises/exercises";
 import { listCustomExercises } from "@/lib/customExercises/customExercises";
+import { getUserRoutine, listUserRoutines } from "@/lib/routines/routines";
+import { savedGroupPresets } from "@/lib/routines/groupColors";
 import ThemeRoot from "@/components/design2/ThemeRoot";
 import Backdrop from "@/components/design2/Backdrop";
 import RoutineComposer from "@/components/design2/RoutineComposer";
@@ -21,10 +22,11 @@ export default async function EditarRutinaPage({ params }) {
   if (!user) redirect("/login");
 
   const { id } = await params;
-  const [routine, catalogExercises, customExercises] = await Promise.all([
+  const [routine, catalogExercises, customExercises, routines] = await Promise.all([
     getUserRoutine(user.uid, id),
     listExercises(),
     listCustomExercises(user.uid),
+    listUserRoutines(user.uid),
   ]);
 
   if (!routine) notFound();
@@ -37,6 +39,7 @@ export default async function EditarRutinaPage({ params }) {
     nameEn: exercise.nameEn,
     equipment: exercise.equipment || "peso_corporal",
     mediaUrl: exercise.mediaUrl || null,
+    videoUrl: exercise.videoUrl || null,
     muscleWeights: exercise.muscleWeights || {},
     registrationType: exercise.registrationType,
     source: exercise.source,
@@ -48,6 +51,7 @@ export default async function EditarRutinaPage({ params }) {
       <div className="d2-page d2-page-full">
         <RoutineComposer
           exercises={exercises}
+          savedGroups={savedGroupPresets(routines.filter((other) => other.id !== routine.id))}
           routine={{
             id: routine.id,
             name: routine.name,

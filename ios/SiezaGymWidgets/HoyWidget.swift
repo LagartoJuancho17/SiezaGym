@@ -81,6 +81,9 @@ struct SiezaGymWidgets: WidgetBundle {
     var body: some Widget {
         RachaWidget()
         HoyWidget()
+        CaloriasWidget()
+        SeriesWidget()
+        MusculosWidget()
         EntrenamientoActivity()
     }
 }

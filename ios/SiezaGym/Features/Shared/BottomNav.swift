@@ -1,8 +1,9 @@
 import SwiftUI
 
-/// Las cinco secciones de la app.
+/// Las cuatro secciones de la app. Progreso vivía acá como quinta pestaña;
+/// ahora es una grilla de accesos dentro de Perfil (ver `ProfileScreen`).
 enum AppTab: Hashable, CaseIterable {
-    case home, routines, history, progress, profile
+    case home, routines, history, profile
 }
 
 /// Barra inferior, con una superficie opaca en SIEZA o vidrio en los temas
@@ -63,9 +64,9 @@ struct BottomNav: View {
             }
         }
         .padding(4)
-        // 340 y no 296: con cinco destinos, en 296 la etiqueta más larga
+        // 300 y no 296: con cuatro destinos, en 296 la etiqueta más larga
         // ("Historial") no entra y se corta.
-        .frame(maxWidth: 340)
+        .frame(maxWidth: 300)
         .frame(height: Self.height)
         .background {
             if tema.plano {
@@ -102,7 +103,6 @@ extension AppTab {
         case .home: "Inicio"
         case .routines: "Rutinas"
         case .history: "Historial"
-        case .progress: "Progreso"
         case .profile: "Perfil"
         }
     }
@@ -128,7 +128,6 @@ private struct NavIcon: View {
         case .home: Self.bento
         case .routines: Self.dumbbell
         case .history: Self.clipboard
-        case .progress: Self.calendar
         case .profile: Self.dots
         }
     }
@@ -168,31 +167,6 @@ private struct NavIcon: View {
         path.addRoundedRect(in: CGRect(x: 4.5, y: 5, width: 15, height: 17), cornerSize: .init(width: 2.5, height: 2.5))
         path.addRoundedRect(in: CGRect(x: 9, y: 9.5, width: 6, height: 2), cornerSize: .init(width: 1, height: 1))
         path.addRoundedRect(in: CGRect(x: 9, y: 13.5, width: 6, height: 2), cornerSize: .init(width: 1, height: 1))
-        return path
-    }
-
-    /// Calendario de pared: dos anillos arriba, cuerpo, la hoja calada y tres
-    /// puntos que vuelven a pintarse dentro del calado.
-    private static var calendar: Path {
-        var path = Path()
-        path.addRoundedRect(in: CGRect(x: 7.5, y: 2.5, width: 2, height: 3.5), cornerSize: .init(width: 1, height: 1))
-        path.addRoundedRect(in: CGRect(x: 14.5, y: 2.5, width: 2, height: 3.5), cornerSize: .init(width: 1, height: 1))
-        path.addRoundedRect(in: CGRect(x: 4.5, y: 5, width: 15, height: 17), cornerSize: .init(width: 2.5, height: 2.5))
-
-        // Hoja: esquinas de abajo redondeadas, las de arriba rectas.
-        var sheet = Path()
-        sheet.move(to: CGPoint(x: 7, y: 9.5))
-        sheet.addLine(to: CGPoint(x: 17, y: 9.5))
-        sheet.addLine(to: CGPoint(x: 17, y: 18))
-        sheet.addQuadCurve(to: CGPoint(x: 15.5, y: 19.5), control: CGPoint(x: 17, y: 19.5))
-        sheet.addLine(to: CGPoint(x: 8.5, y: 19.5))
-        sheet.addQuadCurve(to: CGPoint(x: 7, y: 18), control: CGPoint(x: 7, y: 19.5))
-        sheet.closeSubpath()
-        path.addPath(sheet)
-
-        for x in [9.5, 13.0, 16.5] {
-            path.addEllipse(in: CGRect(x: x - 1, y: 12.5, width: 2, height: 2))
-        }
         return path
     }
 

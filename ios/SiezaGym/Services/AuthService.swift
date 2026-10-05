@@ -21,7 +21,6 @@ final class AuthService {
     private(set) var state: State = .loading
     private(set) var errorMessage: String?
     private(set) var isWorking = false
-    private let emailClient = EmailAuthClient()
 
     // Se escribe una sola vez en `init` y se lee una sola vez en `deinit`,
     // cuando ya no queda ninguna otra referencia viva. No hay carrera posible,
@@ -48,24 +47,34 @@ final class AuthService {
         if let listener { Auth.auth().removeStateDidChangeListener(listener) }
     }
 
-    func startEmail(form: EmailAuthForm) async -> PendingEmailChallenge? {
-        isWorking = true
-        errorMessage = nil
-        defer { isWorking = false }
-        do {
-            return try await emailClient.start(form: form)
-        } catch {
-            log.error("mfa/start fallo: \(error.localizedDescription, privacy: .public)")
-            errorMessage = Self.readableMessage(for: error)
-            return nil
-        }
+    // MARK: - Email y contraseña, con el código del mail
+
+    /// El proveedor del segundo factor. Se puede cambiar en los tests.
+    var mfa = MFAService()
+
+    /// Paso 1: comprueba la contraseña contra el servidor y hace que salga el
+    /// mail con el código.
+    ///
+    /// No crea ninguna sesión, y eso es el punto: `Auth.auth()` no se toca acá.
+    /// Con la contraseña correcta y sin el código, la app sigue afuera.
+    ///
+    /// Devuelve `nil` si algo falló; el motivo queda en `errorMessage`.
+    func pedirCodigo(_ form: AuthForm) async -> MFAService.Desafio? {
+        await run { try await mfa.iniciar(form) }
     }
 
-    func verifyEmail(challengeID: String, code: String) async {
-        await run {
-            let token = try await emailClient.verify(challengeID: challengeID, code: code)
+    /// Paso 2: canjea el código por la sesión.
+    ///
+    /// El servidor devuelve un custom token y recién con eso Firebase abre la
+    /// sesión. El listener de `init` se encarga del resto.
+    @discardableResult
+    func entrarConCodigo(desafio: String, codigo: CodigoMFA) async -> Bool {
+        let entro = await run { () -> Bool in
+            let token = try await mfa.verificar(desafio: desafio, codigo: codigo)
             try await Auth.auth().signIn(withCustomToken: token)
+            return true
         }
+        return entro ?? false
     }
 
     /// Login con Google. Termina en la misma cuenta de Firebase que usa la web:
@@ -152,20 +161,24 @@ final class AuthService {
 
     func clearError() { errorMessage = nil }
 
-    private func run(_ operation: () async throws -> Void) async {
+    /// Envuelve una operación de login: prende la ruedita, limpia el error de
+    /// antes y traduce lo que falle. Devuelve `nil` si hubo error.
+    @discardableResult
+    private func run<T>(_ operation: () async throws -> T) async -> T? {
         isWorking = true
         errorMessage = nil
         defer { isWorking = false }
         do {
-            try await operation()
+            return try await operation()
         } catch let error as NSError
             where error.domain == kGIDSignInErrorDomain
             && error.code == GIDSignInError.canceled.rawValue {
             // El usuario cerro la ventana de Google a proposito.
-            return
+            return nil
         } catch {
             log.error("auth fallo: \(error.localizedDescription, privacy: .public)")
             errorMessage = Self.readableMessage(for: error)
+            return nil
         }
     }
 
@@ -174,11 +187,10 @@ final class AuthService {
         if let signInError = error as? SignInError {
             return signInError.localizedDescription
         }
-        if let emailError = error as? EmailAuthClient.Failure {
-            return emailError.localizedDescription
-        }
-        if let urlError = error as? URLError, urlError.code == .notConnectedToInternet {
-            return "Sin conexión. Revisá internet."
+        // El servidor del segundo factor ya redacta el mensaje: sabe si el
+        // codigo vencio, si esta mal o cuantos intentos quedan.
+        if let mfaError = error as? MFAError {
+            return mfaError.mensaje
         }
         guard (error as NSError).domain == AuthErrorDomain,
               let code = AuthErrorCode(rawValue: (error as NSError).code) else {

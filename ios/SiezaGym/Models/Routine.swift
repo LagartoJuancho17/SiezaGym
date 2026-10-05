@@ -21,6 +21,10 @@ nonisolated struct RoutineExercise: Sendable, Hashable, Identifiable {
     let techniqueNote: String
     /// Series individuales cuando el coach las prescribio una por una.
     let sets: [PlannedSet]?
+    /// Bloque al que pertenece ("Entrada en calor", "Fuerza"...). Vacío es sin
+    /// grupo. Igual que `group`/`groupColor` en lib/routines/routines.js.
+    let group: String
+    let groupColor: String
 
     var id: String { "\(order)-\(exerciseID)" }
 
@@ -41,6 +45,9 @@ nonisolated struct Routine: Identifiable, Sendable, Hashable {
     let updatedAt: Date?
     /// Las rutinas asignadas por un coach no se editan desde la app del alumno.
     let isAssigned: Bool
+    /// A qué semana la asignaste vos ("2026-09-4"). `nil` es "ninguna". No
+    /// tiene equivalente en la web todavía: es sólo del teléfono.
+    let weekKey: String?
 
     var totalSets: Int {
         exercises.reduce(0) { $0 + $1.targetSets }
@@ -63,6 +70,8 @@ nonisolated extension RoutineExercise {
         targetRIR = FirestoreValue.int(data["targetRIR"])
         targetWeight = FirestoreValue.double(data["targetWeight"])
         techniqueNote = data["techniqueNote"] as? String ?? ""
+        group = data["group"] as? String ?? ""
+        groupColor = data["groupColor"] as? String ?? ""
 
         if let raw = data["sets"] as? [[String: Any]] {
             sets = raw.enumerated().map { index, set in
@@ -92,6 +101,7 @@ nonisolated extension Routine {
         // por cuando se creo. Mismo criterio que lib/routines/schedule.js.
         createdAt = FirestoreValue.date(data["assignedAt"]) ?? FirestoreValue.date(data["createdAt"])
         updatedAt = FirestoreValue.date(data["updatedAt"])
+        weekKey = data["weekKey"] as? String
         exercises = (data["exercises"] as? [[String: Any]] ?? [])
             .enumerated()
             .map { RoutineExercise(order: $0.offset, data: $0.element) }

@@ -8,6 +8,9 @@ struct RoutinesScreen: View {
     @State private var busqueda = ""
     @State private var workout: WorkoutTarget?
     @State private var creando = false
+    @State private var editando: Routine?
+    @State private var confirmandoBorrado: Routine?
+    @State private var error: String?
 
     private var visibles: [Routine] {
         let termino = busqueda.trimmingCharacters(in: .whitespaces).folding(
@@ -17,6 +20,16 @@ struct RoutinesScreen: View {
             $0.name.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
                 .contains(termino)
         }
+    }
+
+    /// Los meses son un rótulo y no un acordeón, igual que en la web: llegar a
+    /// una rutina no puede costar dos clics en dos niveles desplegables. Con
+    /// una búsqueda en curso se esconden: cortar tres resultados en secciones
+    /// por semana los desordena en vez de ayudarlos a encontrar.
+    private var agrupar: Bool { busqueda.trimmingCharacters(in: .whitespaces).isEmpty }
+
+    private var secciones: [TrainingCalendar.SeccionSemana<Routine>] {
+        TrainingCalendar.seccionesPorSemana(visibles, fechaDe: \.referenceDate)
     }
 
     var body: some View {
@@ -40,27 +53,16 @@ struct RoutinesScreen: View {
                 } else if visibles.isEmpty {
                     Vacio(texto: "Ninguna rutina coincide.")
                         .padding(.top, 24)
-                } else {
-                    PanelLista {
-                        ForEach(Array(visibles.enumerated()), id: \.element.id) { indice, rutina in
-                            if indice > 0 {
-                                Rectangle().fill(tema.borde).frame(height: 1)
-                            }
-                            NavigationLink {
-                                RoutineDetailScreen(routine: rutina, store: store) { elegida in
-                                    workout = WorkoutTarget(routine: elegida)
-                                }
-                            } label: {
-                                FilaLista(
-                                    nombre: rutina.name,
-                                    detalle: detalle(rutina),
-                                    etiqueta: rutina.isAssigned ? "Del coach" : nil
-                                )
-                            }
-                            .buttonStyle(.plain)
-                        }
+                } else if agrupar {
+                    ForEach(secciones) { seccion in
+                        SectionLabel(seccion.texto)
+                            .padding(.top, 24)
+                            .padding(.bottom, 10)
+                        panel(seccion.items)
                     }
-                    .padding(.top, 24)
+                } else {
+                    panel(visibles)
+                        .padding(.top, 24)
                 }
             }
             .bottomNavInset()
@@ -74,7 +76,97 @@ struct RoutinesScreen: View {
             .fullScreenCover(isPresented: $creando) {
                 RoutineComposerScreen(store: store)
             }
+            .fullScreenCover(item: $editando) { rutina in
+                RoutineComposerScreen(store: store, routine: rutina)
+            }
+            .confirmationDialog(
+                "¿Eliminar \(confirmandoBorrado?.name ?? "esta rutina")?",
+                isPresented: Binding(
+                    get: { confirmandoBorrado != nil },
+                    set: { if !$0 { confirmandoBorrado = nil } }
+                ),
+                titleVisibility: .visible
+            ) {
+                Button("Eliminar", role: .destructive) {
+                    if let rutina = confirmandoBorrado { Task { await borrar(rutina) } }
+                }
+                Button("Cancelar", role: .cancel) {}
+            } message: {
+                Text("No se puede deshacer. Los entrenamientos que ya hiciste con ella quedan en el historial.")
+            }
+            .alert(
+                "No se pudo hacer",
+                isPresented: Binding(get: { error != nil }, set: { if !$0 { error = nil } })
+            ) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(error ?? "")
+            }
         }
+    }
+
+    private func panel(_ rutinas: [Routine]) -> some View {
+        PanelLista {
+            ForEach(Array(rutinas.enumerated()), id: \.element.id) { indice, rutina in
+                if indice > 0 {
+                    Rectangle().fill(tema.borde).frame(height: 1)
+                }
+                fila(rutina)
+            }
+        }
+    }
+
+    @ViewBuilder private func fila(_ rutina: Routine) -> some View {
+        let enlace = NavigationLink {
+            RoutineDetailScreen(routine: rutina, store: store) { elegida in
+                workout = WorkoutTarget(routine: elegida)
+            }
+        } label: {
+            FilaLista(
+                nombre: rutina.name,
+                detalle: detalle(rutina),
+                etiqueta: rutina.isAssigned ? "Del coach" : nil
+            )
+        }
+        .buttonStyle(.plain)
+
+        // Igual que `routineMenuActions` en la web: una rutina del coach no
+        // ofrece nada al mantenerla presionada, ni editar ni borrar — esa se
+        // maneja desde su panel.
+        if rutina.isAssigned {
+            enlace
+        } else {
+            enlace.contextMenu {
+                Button { editando = rutina } label: {
+                    Label("Editar", systemImage: "pencil")
+                }
+                Button { Task { await alternarPortada(rutina) } } label: {
+                    Label(
+                        rutina.showOnHome ? "Quitar de la portada" : "Mostrar en la portada",
+                        systemImage: rutina.showOnHome ? "house.slash" : "house"
+                    )
+                }
+                Button { Task { await duplicar(rutina) } } label: {
+                    Label("Duplicar", systemImage: "doc.on.doc")
+                }
+                Button(role: .destructive) { confirmandoBorrado = rutina } label: {
+                    Label("Eliminar", systemImage: "trash")
+                }
+            }
+        }
+    }
+
+    private func borrar(_ rutina: Routine) async {
+        do { try await store.deleteRoutine(rutina) } catch { self.error = error.localizedDescription }
+    }
+
+    private func duplicar(_ rutina: Routine) async {
+        do { try await store.duplicateRoutine(rutina) } catch { self.error = error.localizedDescription }
+    }
+
+    private func alternarPortada(_ rutina: Routine) async {
+        do { try await store.setShowOnHome(rutina, showOnHome: !rutina.showOnHome) }
+        catch { self.error = error.localizedDescription }
     }
 
     private var buscador: some View {
@@ -101,3 +193,15 @@ struct RoutinesScreen: View {
         return "\(ejercicios) \(ejercicios == 1 ? "ejercicio" : "ejercicios") · \(series) \(series == 1 ? "serie" : "series") · \(minutos) min"
     }
 }
+
+#if DEBUG
+#Preview("Rutinas") {
+    RoutinesScreen(store: PreviewData.store())
+        .previewSieza()
+}
+
+#Preview("Rutinas · vacío") {
+    RoutinesScreen(store: PreviewData.storeVacio())
+        .previewSieza()
+}
+#endif

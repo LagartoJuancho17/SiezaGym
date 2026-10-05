@@ -46,19 +46,29 @@ struct WorkoutView: View {
                             .transition(.move(edge: .top).combined(with: .opacity))
                     }
 
-                    ForEach($draft.exercises) { $exercise in
-                        ExerciseCard(
-                            exercise: $exercise,
-                            draft: draft,
-                            abierto: abierto == exercise.id,
-                            alTocar: {
-                                withAnimation(.snappy(duration: 0.22)) {
-                                    abierto = abierto == exercise.id ? nil : exercise.id
+                    ForEach(secciones) { seccion in
+                        VStack(spacing: 10) {
+                            if seccion.agrupada {
+                                EncabezadoDeGrupoEntrenamiento(seccion: seccion)
+                            }
+
+                            ForEach($draft.exercises) { $exercise in
+                                if seccion.items.contains(where: { $0.id == exercise.id }) {
+                                    ExerciseCard(
+                                        exercise: $exercise,
+                                        draft: draft,
+                                        abierto: abierto == exercise.id,
+                                        alTocar: {
+                                            withAnimation(.snappy(duration: 0.22)) {
+                                                abierto = abierto == exercise.id ? nil : exercise.id
+                                            }
+                                        },
+                                        onSetCompleted: { handleSetCompleted(en: exercise.id) },
+                                        onShowMedia: { previewExercise = exercise }
+                                    )
                                 }
-                            },
-                            onSetCompleted: { handleSetCompleted(en: exercise.id) },
-                            onShowMedia: { previewExercise = exercise }
-                        )
+                            }
+                        }
                     }
 
                     if let saveError {
@@ -101,7 +111,12 @@ struct WorkoutView: View {
             completeNextSet()
         }
         .sheet(item: $previewExercise) { exercise in
-            ExerciseMediaSheet(exercise: exercise)
+            TecnicaSheet(
+                nombre: exercise.name,
+                gif: exercise.mediaURL,
+                video: exercise.videoURL,
+                descripcion: exercise.description
+            )
         }
         .background { Backdrop() }
         .confirmationDialog(
@@ -179,6 +194,12 @@ struct WorkoutView: View {
     private func requestExit() {
         store.activeWorkout = draft
         dismiss()
+    }
+
+    /// Los ejercicios consecutivos con el mismo grupo, juntos. Igual que
+    /// `sections` en `RoutineScreen.js`.
+    private var secciones: [RoutineSection<WorkoutDraft.ExerciseDraft>] {
+        RoutineGrouping.seccionar(draft.exercises, grupo: \.group, colorID: \.groupColor)
     }
 
     /// Una serie marcada: sonido, vibración y descanso.
@@ -345,6 +366,33 @@ struct WorkoutView: View {
     }
 }
 
+/// La franja de color con el nombre del bloque durante el entrenamiento
+/// ("Entrada en calor", "Fuerza", "Potencia"). De sólo lectura: el grupo se
+/// arma en el editor, no acá.
+private struct EncabezadoDeGrupoEntrenamiento: View {
+    @Environment(\.tema) private var tema
+    let seccion: RoutineSection<WorkoutDraft.ExerciseDraft>
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Circle().fill(seccion.color?.color ?? tema.texto3).frame(width: 7, height: 7)
+            Text(seccion.nombreGrupo)
+                .font(.system(size: 12, weight: .bold))
+                .tracking(0.4)
+                .textCase(.uppercase)
+            Spacer()
+            Text("\(seccion.items.count) \(seccion.items.count == 1 ? "ejercicio" : "ejercicios")")
+                .font(.system(size: 11))
+        }
+        .foregroundStyle(seccion.color?.color ?? tema.texto)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 8)
+        .frame(maxWidth: .infinity)
+        .background((seccion.color?.color ?? tema.texto3).opacity(0.14), in: .rect(cornerRadius: 12))
+        .accessibilityElement(children: .combine)
+    }
+}
+
 /// Un ejercicio del entrenamiento.
 ///
 /// Plegado por defecto: una rutina de ocho ejercicios con todas las series
@@ -361,93 +409,43 @@ private struct ExerciseCard: View {
 
     private var completo: Bool { exercise.estaCompleto }
 
+    /// El GIF del catálogo, o la portada del video de YouTube en los propios.
+    private var miniatura: URL? {
+        if let mediaURL = exercise.mediaURL { return mediaURL }
+        guard let videoURL = exercise.videoURL, let id = YouTubeLink.id(de: videoURL.absoluteString) else { return nil }
+        return YouTubeLink.miniatura(paraID: id)
+    }
+
+    private var tieneMedia: Bool { exercise.mediaURL != nil || exercise.videoURL != nil }
+
+    private var progreso: String {
+        let total = exercise.sets.count
+        let hechas = exercise.completedCount
+        if completo { return "\(total) \(total == 1 ? "serie" : "series") · listo" }
+        return "\(hechas) de \(total) \(total == 1 ? "serie" : "series")"
+    }
+
     var body: some View {
-        SurfaceCard(padding: 12) {
-            VStack(alignment: .leading, spacing: 8) {
-                encabezado
-                if abierto { detalle }
+        TarjetaEjercicio(
+            miniatura: miniatura,
+            nombre: exercise.name,
+            detalle: progreso,
+            completo: completo,
+            alTocar: alTocar,
+            // Tocar la miniatura abre el GIF o el video, igual que en la web.
+            alTocarMiniatura: tieneMedia ? onShowMedia : nil
+        ) {
+            AccesorioTarjeta(abierto: abierto)
+        } contenido: {
+            if abierto {
+                detalle
+                    .padding(.horizontal, 12)
+                    .padding(.bottom, 12)
+                    .transition(.opacity)
             }
         }
-        .overlay(alignment: .leading) {
-            RoundedRectangle(cornerRadius: 3)
-                .fill(completo ? Theme.hecho : (exercise.completedCount > 0 ? tema.solido : tema.borde))
-                .frame(width: 3)
-                .padding(.vertical, 14)
-        }
-        // El borde verde es lo que se ve de reojo al scrollear la lista.
-        .overlay {
-            RoundedRectangle(cornerRadius: Theme.radius)
-                .strokeBorder(Theme.hecho.opacity(completo ? 0.55 : 0), lineWidth: 1.5)
-        }
-        .animation(.snappy(duration: 0.25), value: completo)
         .animation(.snappy(duration: 0.22), value: abierto)
-    }
-
-    private var encabezado: some View {
-        Button(action: alTocar) {
-            HStack(spacing: 8) {
-                // El nombre queda en el color del tema aunque esté terminado:
-                // el verde sobre el vidrio claro de Plata no se lee. El estado
-                // lo dicen el borde, la barra y el contador, que son tres
-                // señales y ninguna tapa el texto.
-                Text(exercise.name)
-                    .font(.system(size: 15, weight: .bold))
-                    .foregroundStyle(tema.texto)
-                    .lineLimit(1)
-
-                if exercise.mediaURL != nil || exercise.videoURL != nil {
-                    // Fuera del botón de plegar: abre la media, no despliega.
-                    Button(action: onShowMedia) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "play.circle.fill")
-                            Text(exercise.mediaURL != nil ? "GIF" : "Video")
-                        }
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundStyle(tema.solido)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(tema.vidrio(2), in: .capsule)
-                        .overlay { Capsule().strokeBorder(tema.borde, lineWidth: 1) }
-                    }
-                    .buttonStyle(.plain)
-                }
-
-                Spacer(minLength: 4)
-
-                contador
-
-                Image(systemName: "chevron.down")
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(tema.texto3)
-                    .rotationEffect(.degrees(abierto ? 180 : 0))
-            }
-            .contentShape(.rect)
-        }
-        .buttonStyle(.plain)
         .accessibilityHint(abierto ? "Tocá para plegar" : "Tocá para ver las series")
-    }
-
-    private var contador: some View {
-        HStack(spacing: 4) {
-            if completo {
-                Image(systemName: "checkmark")
-                    .font(.system(size: 10, weight: .black))
-                    .transition(.scale.combined(with: .opacity))
-            }
-            Text("\(exercise.completedCount)/\(exercise.sets.count)")
-                .font(.system(size: 12, weight: .bold))
-                .monospacedDigit()
-        }
-        .foregroundStyle(completo ? .white : tema.texto2)
-        .padding(.horizontal, completo ? 8 : 0)
-        .padding(.vertical, completo ? 3 : 0)
-        .background(completo ? Theme.hecho : .clear, in: .capsule)
-        // El pulso al terminar: mínimo, una sola vez, sin animación en loop.
-        .scaleEffect(completo ? 1.08 : 1)
-        .animation(.spring(duration: 0.35, bounce: 0.5), value: completo)
-        .accessibilityLabel(completo
-                            ? "Ejercicio terminado, \(exercise.sets.count) series"
-                            : "\(exercise.completedCount) de \(exercise.sets.count) series")
     }
 
     private var detalle: some View {
@@ -600,84 +598,9 @@ private struct SetRow: View {
     }
 }
 
-private struct ExerciseMediaSheet: View {
-    @Environment(\.tema) private var tema
-    @Environment(\.dismiss) private var dismiss
-    let exercise: WorkoutDraft.ExerciseDraft
-
-    var body: some View {
-        NavigationStack {
-            VStack(spacing: 16) {
-                if let mediaURL = exercise.mediaURL {
-                    AsyncImage(url: mediaURL) { phase in
-                        switch phase {
-                        case .empty:
-                            ProgressView().tint(tema.solido)
-                                .frame(maxWidth: .infinity, minHeight: 220)
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .scaledToFit()
-                                .frame(maxWidth: .infinity, maxHeight: 300)
-                                .clipShape(.rect(cornerRadius: 12))
-                                .overlay {
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .strokeBorder(tema.borde, lineWidth: 1)
-                                }
-                        case .failure:
-                            VStack(spacing: 8) {
-                                Image(systemName: "video.slash")
-                                    .font(.system(size: 32))
-                                    .foregroundStyle(tema.texto2)
-                                Text("No se pudo cargar la animación")
-                                    .font(.system(size: 13))
-                                    .foregroundStyle(tema.texto2)
-                            }
-                            .frame(maxWidth: .infinity, minHeight: 180)
-                        @unknown default:
-                            EmptyView()
-                        }
-                    }
-                }
-
-                if let videoURL = exercise.videoURL {
-                    Link(destination: videoURL) {
-                        Label("Ver video de técnica en YouTube", systemImage: "play.rectangle.fill")
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundStyle(tema.sobreSolido)
-                            .frame(maxWidth: .infinity, minHeight: 44)
-                            .background(tema.solido, in: .capsule)
-                    }
-                }
-
-                if let desc = exercise.description, !desc.isEmpty {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("Instrucciones")
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundStyle(tema.texto2)
-                            .textCase(.uppercase)
-                        Text(desc)
-                            .font(.system(size: 14))
-                            .foregroundStyle(tema.texto)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(14)
-                    .background(tema.vidrio(2), in: .rect(cornerRadius: 12))
-                }
-
-                Spacer()
-            }
-            .padding(16)
-            .background { Backdrop() }
-            .navigationTitle(exercise.name)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cerrar") { dismiss() }
-                        .foregroundStyle(tema.texto)
-                }
-            }
-        }
-        .presentationDetents([.medium, .large])
-    }
+#if DEBUG
+#Preview("Entrenamiento") {
+    WorkoutView(store: PreviewData.store(), routine: PreviewData.routines[0])
+        .previewSieza()
 }
+#endif

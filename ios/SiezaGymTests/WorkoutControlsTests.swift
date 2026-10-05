@@ -141,10 +141,10 @@ struct NextSetTests {
                 RoutineExercise(
                     exerciseID: "e\(indice)", source: .catalog, order: indice,
                     targetSets: series, targetReps: 10, targetRIR: nil, targetWeight: nil,
-                    techniqueNote: "", sets: nil
+                    techniqueNote: "", sets: nil, group: "", groupColor: ""
                 )
             },
-            showOnHome: true, lastUsedAt: nil, createdAt: nil, updatedAt: nil, isAssigned: false
+            showOnHome: true, lastUsedAt: nil, createdAt: nil, updatedAt: nil, isAssigned: false, weekKey: nil
         )
         return WorkoutDraft(routine: rutina, catalog: catalogo)
     }
@@ -236,10 +236,10 @@ struct ExerciseCompletionTests {
                 RoutineExercise(
                     exerciseID: "e\(indice)", source: .catalog, order: indice,
                     targetSets: series, targetReps: 10, targetRIR: nil, targetWeight: nil,
-                    techniqueNote: "", sets: nil
+                    techniqueNote: "", sets: nil, group: "", groupColor: ""
                 )
             },
-            showOnHome: true, lastUsedAt: nil, createdAt: nil, updatedAt: nil, isAssigned: false
+            showOnHome: true, lastUsedAt: nil, createdAt: nil, updatedAt: nil, isAssigned: false, weekKey: nil
         )
         return WorkoutDraft(routine: rutina, catalog: catalogo)
     }

@@ -10,25 +10,33 @@ import { ArrowLeftIcon, PlusIcon } from "./Icons";
 import ExerciseItem from "./ExerciseItem";
 import ExercisePicker from "./ExercisePicker";
 import { moveExercise } from "@/lib/routines/compose";
+import {
+  DEFAULT_GROUP_COLOR,
+  GROUP_COLORS,
+  PRESET_GROUPS,
+  groupColorHex,
+  groupTone,
+  isCustomColor,
+} from "@/lib/routines/groupColors";
 
-const PRESET_GROUPS = [
-  { name: "Movilidad", color: "teal" },
-  { name: "Fuerza", color: "amber" },
-  { name: "Descanso", color: "blue" },
-  { name: "Calentamiento", color: "emerald" },
-  { name: "Core", color: "purple" },
-  { name: "Cardio", color: "rose" },
-];
+/** Los atajos de la barra de arriba: los tuyos primero, después los fijos. */
+function quickGroups(savedGroups) {
+  const seen = new Set();
+  return [...savedGroups, ...PRESET_GROUPS.filter((preset) => ["Calentamiento", "Fuerza", "Movilidad"].includes(preset.name))]
+    .filter((group) => {
+      const key = group.name.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, 5);
+}
 
-const GROUP_COLORS = [
-  { id: "teal", label: "Verde azulado" },
-  { id: "amber", label: "Ámbar / Naranja" },
-  { id: "blue", label: "Celeste / Azul" },
-  { id: "purple", label: "Violeta" },
-  { id: "rose", label: "Rosa / Carmín" },
-  { id: "emerald", label: "Verde esmeralda" },
-  { id: "indigo", label: "Índigo" },
-];
+/** Pastilla o botón pintado con el color del grupo, sea de la paleta o libre. */
+function tonedProps(color, extraClass = "") {
+  const tone = groupTone(color);
+  return { className: `${extraClass} ${tone.className}`.trim(), style: tone.style };
+}
 
 /** Lo que se prescribe por defecto al agregar un ejercicio. */
 function defaultItemFor(exercise) {
@@ -55,7 +63,7 @@ function defaultItemFor(exercise) {
  * guarda sobre la misma rutina. Es la misma pantalla a propósito, porque editar
  * es agregar, sacar y volver a prescribir, exactamente lo mismo que crear.
  */
-export default function RoutineComposer({ exercises, routine = null }) {
+export default function RoutineComposer({ exercises, routine = null, savedGroups = [] }) {
   const router = useRouter();
   const editing = !!routine;
   const [name, setName] = useState(routine?.name || "");
@@ -280,27 +288,16 @@ export default function RoutineComposer({ exercises, routine = null }) {
         {items.length > 0 && (
           <div className="d2-quick-group-bar">
             <span className="d2-quick-group-label">Agrupar:</span>
-            <button
-              type="button"
-              className="d2-quick-group-btn d2-grp-teal"
-              onClick={() => openGroupModalForQuick("Movilidad", "teal")}
-            >
-              <span className="d2-group-dot" /> Movilidad
-            </button>
-            <button
-              type="button"
-              className="d2-quick-group-btn d2-grp-amber"
-              onClick={() => openGroupModalForQuick("Fuerza", "amber")}
-            >
-              <span className="d2-group-dot" /> Fuerza
-            </button>
-            <button
-              type="button"
-              className="d2-quick-group-btn d2-grp-blue"
-              onClick={() => openGroupModalForQuick("Descanso", "blue")}
-            >
-              <span className="d2-group-dot" /> Descanso
-            </button>
+            {quickGroups(savedGroups).map((group) => (
+              <button
+                key={`${group.name}-${group.color}`}
+                type="button"
+                {...tonedProps(group.color, "d2-quick-group-btn")}
+                onClick={() => openGroupModalForQuick(group.name, group.color)}
+              >
+                <span className="d2-group-dot" /> {group.name}
+              </button>
+            ))}
           </div>
         )}
       </div>
@@ -310,7 +307,8 @@ export default function RoutineComposer({ exercises, routine = null }) {
           {sections.map((section) => (
             <div
               key={section.id}
-              className={`d2-panel ${section.groupName ? `d2-group-panel d2-grp-${section.groupColor || "teal"}` : ""}`}
+              className={`d2-panel ${section.groupName ? `d2-group-panel ${groupTone(section.groupColor).className}` : ""}`}
+              style={section.groupName ? groupTone(section.groupColor).style : undefined}
             >
               {section.groupName && (
                 <div className="d2-group-header">
@@ -406,27 +404,35 @@ export default function RoutineComposer({ exercises, routine = null }) {
               Organizá tu rutina en bloques como Movilidad, Fuerza o Descanso.
             </p>
 
+            {savedGroups.length > 0 && (
+              <>
+                <p className="d2-group-subtitle">Tus grupos</p>
+                <div className="d2-group-presets">
+                  {savedGroups.map((preset) => (
+                    <PresetButton
+                      key={`${preset.name}-${preset.color}`}
+                      preset={preset}
+                      selected={groupModal.groupName === preset.name && groupModal.groupColor === preset.color}
+                      onPick={() =>
+                        setGroupModal((curr) => ({ ...curr, groupName: preset.name, groupColor: preset.color }))
+                      }
+                    />
+                  ))}
+                </div>
+                <p className="d2-group-subtitle">Categorías</p>
+              </>
+            )}
             <div className="d2-group-presets">
-              {PRESET_GROUPS.map((preset) => {
-                const selected = groupModal.groupName === preset.name;
-                return (
-                  <button
-                    key={preset.name}
-                    type="button"
-                    className={`d2-group-preset-btn d2-grp-${preset.color} ${selected ? "d2-group-preset-selected" : ""}`}
-                    onClick={() =>
-                      setGroupModal((curr) => ({
-                        ...curr,
-                        groupName: preset.name,
-                        groupColor: preset.color,
-                      }))
-                    }
-                  >
-                    <span className="d2-group-dot" />
-                    <span>{preset.name}</span>
-                  </button>
-                );
-              })}
+              {PRESET_GROUPS.map((preset) => (
+                <PresetButton
+                  key={preset.name}
+                  preset={preset}
+                  selected={groupModal.groupName === preset.name}
+                  onPick={() =>
+                    setGroupModal((curr) => ({ ...curr, groupName: preset.name, groupColor: preset.color }))
+                  }
+                />
+              ))}
             </div>
 
             <label className="d2-form-field">
@@ -445,24 +451,51 @@ export default function RoutineComposer({ exercises, routine = null }) {
 
             <div>
               <p className="d2-modal-text" style={{ margin: "10px 0 6px" }}>Color del bloque</p>
-              <div className="d2-group-colors">
+              <div className="d2-group-colors" role="radiogroup" aria-label="Color del bloque">
                 {GROUP_COLORS.map((col) => {
                   const selected = groupModal.groupColor === col.id;
                   return (
                     <button
                       key={col.id}
                       type="button"
-                      className={`d2-group-color-dot-btn d2-grp-${col.id} ${selected ? "d2-group-color-dot-selected" : ""}`}
+                      role="radio"
+                      aria-checked={selected}
+                      {...tonedProps(col.id, `d2-group-color-dot-btn ${selected ? "d2-group-color-dot-selected" : ""}`)}
                       title={col.label}
                       aria-label={col.label}
-                      onClick={() =>
-                        setGroupModal((curr) => ({ ...curr, groupColor: col.id }))
-                      }
+                      onClick={() => setGroupModal((curr) => ({ ...curr, groupColor: col.id }))}
                     />
                   );
                 })}
+                {/* Cualquier color, no solo los de la paleta: se guarda como #rrggbb. */}
+                <label
+                  {...tonedProps(
+                    isCustomColor(groupModal.groupColor) ? groupModal.groupColor : DEFAULT_GROUP_COLOR,
+                    `d2-group-color-dot-btn d2-group-color-custom ${
+                      isCustomColor(groupModal.groupColor) ? "d2-group-color-dot-selected" : ""
+                    }`,
+                  )}
+                  title="Elegir otro color"
+                >
+                  <input
+                    type="color"
+                    aria-label="Elegir otro color"
+                    value={groupColorHex(groupModal.groupColor)}
+                    onChange={(e) => setGroupModal((curr) => ({ ...curr, groupColor: e.target.value.toLowerCase() }))}
+                  />
+                </label>
               </div>
             </div>
+
+            {groupModal.groupName.trim() && (
+              <p className="d2-group-preview">
+                <span className="d2-group-preview-label">Así se ve:</span>
+                <span {...tonedProps(groupModal.groupColor, "d2-group-pill d2-group-pill-active")}>
+                  <span className="d2-group-dot" />
+                  <span>{groupModal.groupName.trim()}</span>
+                </span>
+              </p>
+            )}
 
             {groupModal.batchCount > 0 && (
               <label className="d2-group-batch-toggle">
@@ -509,5 +542,19 @@ export default function RoutineComposer({ exercises, routine = null }) {
         />
       )}
     </div>
+  );
+}
+
+/** Un atajo de categoría dentro del diálogo de grupo. */
+function PresetButton({ preset, selected, onPick }) {
+  return (
+    <button
+      type="button"
+      {...tonedProps(preset.color, `d2-group-preset-btn ${selected ? "d2-group-preset-selected" : ""}`)}
+      onClick={onPick}
+    >
+      <span className="d2-group-dot" />
+      <span>{preset.name}</span>
+    </button>
   );
 }

@@ -7,6 +7,7 @@ import { MUSCLE_GROUP_LABELS, EQUIPMENT_LABELS } from "@/lib/exercises/constants
 import { CheckIcon, CloseIcon, SearchIcon, WeightIcon, ChevronDownIcon, InfoIcon, PlusIcon } from "./Icons";
 import CustomExerciseForm from "@/components/routines/CustomExerciseForm";
 import { chosenExercises } from "@/lib/routines/compose";
+import VideoEmbed from "./VideoEmbed";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Equipment Vector Icons
@@ -356,10 +357,14 @@ function DetailModal({ exercise, onClose }) {
         </div>
 
         <div className="d2-sheet-content" style={{ paddingTop: "calc(14 * var(--d2-u))" }}>
-          {exercise.mediaUrl && (
-            <div className="relative aspect-video w-full overflow-hidden rounded-2xl mb-4" style={{ background: "#f2f3f4" }}>
-              <Image src={exercise.mediaUrl} alt="" fill sizes="400px" style={{ objectFit: "contain" }} unoptimized />
-            </div>
+          {exercise.videoUrl ? (
+            <VideoEmbed url={exercise.videoUrl} title={`Video de ${exercise.nameEs}`} className="mb-4" />
+          ) : (
+            exercise.mediaUrl && (
+              <div className="relative aspect-video w-full overflow-hidden rounded-2xl mb-4" style={{ background: "#f2f3f4" }}>
+                <Image src={exercise.mediaUrl} alt="" fill sizes="400px" style={{ objectFit: "contain" }} unoptimized />
+              </div>
+            )
           )}
 
           <div className="flex flex-wrap gap-2 mb-4">

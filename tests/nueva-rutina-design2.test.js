@@ -160,12 +160,12 @@ describe("Prescripción por ejercicio", () => {
 
 describe("Agrupación de ejercicios por colores", () => {
   it("incluye presets rápidos para Movilidad, Fuerza y Descanso", () => {
-    expect(composerSource).toContain('"Movilidad"');
-    expect(composerSource).toContain('"Fuerza"');
-    expect(composerSource).toContain('"Descanso"');
-    expect(composerSource).toContain('color: "teal"');
-    expect(composerSource).toContain('color: "amber"');
-    expect(composerSource).toContain('color: "blue"');
+    // Las categorías viven en lib/routines/groupColors.js y el composer las usa.
+    const presets = readFileSync(new URL("../lib/routines/groupColors.js", import.meta.url), "utf8");
+    expect(composerSource).toContain("PRESET_GROUPS.map");
+    expect(presets).toContain('{ name: "Movilidad", color: "teal" }');
+    expect(presets).toContain('{ name: "Fuerza", color: "amber" }');
+    expect(presets).toContain('{ name: "Descanso", color: "blue" }');
   });
 
   it("permite asignar y editar grupos desde el armador y los items", () => {

@@ -37,7 +37,7 @@ describe("YouTube video utilities for custom exercises", () => {
     const raw = "https://youtu.be/dQw4w9WgXcQ?si=abcdef123456";
     expect(cleanYouTubeUrl(raw)).toBe("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
     expect(getYouTubeThumbnailUrl(raw)).toBe("https://img.youtube.com/vi/dQw4w9WgXcQ/mqdefault.jpg");
-    expect(getYouTubeEmbedUrl(raw)).toBe("https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ");
+    expect(getYouTubeEmbedUrl(raw)).toBe("https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?playsinline=1&rel=0");
   });
 });
 
@@ -62,7 +62,7 @@ describe("ExerciseDetailSheet video rendering", () => {
     };
 
     const html = render(ExerciseDetailSheet, { exercise: exerciseWithVideo, onClose: vi.fn() });
-    expect(html).toContain("https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ");
+    expect(html).toContain("https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?playsinline=1&amp;rel=0");
     expect(html).toContain("Ver en YouTube ↗");
     expect(html).toContain('href="https://www.youtube.com/watch?v=dQw4w9WgXcQ"');
   });

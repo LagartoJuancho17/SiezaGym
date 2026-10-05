@@ -352,12 +352,12 @@
   --d2-text: #f4f5f7;
   --d2-text-2: rgba(244, 245, 247, 0.76);
   --d2-text-3: #858a91;
-  --d2-ink: #ff5733;
+  --d2-ink: #ff3201;
   --d2-on-ink: #0b0c0e;
   --d2-ink-shadow: none;
 
   --d2-ring-track: #63666e;
-  --d2-ring-fill: #ff5733;
+  --d2-ring-fill: #ff3201;
   --d2-ring-core: #1a1d22;
   --d2-ring-core-border: #63666e;
 
@@ -1697,4 +1697,125 @@
 .d2-active-bar-close:hover {
   color: var(--d2-text);
   background: rgba(var(--d2-glass-tint), var(--d2-glass-3));
+}
+
+/* ── Planilla del entrenamiento: botones más grandes ───────────────────────
+   Se toca con las manos cansadas y a veces con tiza: todo lo que se aprieta
+   durante la serie mide al menos 48 px (la guía de Apple pide 44). */
+.d2-log-row { gap: calc(8 * var(--d2-u)); min-height: calc(56 * var(--d2-u)); }
+.d2-log-row input,
+.d2-weight-stepper input { min-height: calc(50 * var(--d2-u)); font-size: max(17px, calc(16 * var(--d2-u))); border-radius: calc(14 * var(--d2-u)); }
+.d2-stepper-btn { width: calc(40 * var(--d2-u)); height: calc(50 * var(--d2-u)); border-radius: calc(12 * var(--d2-u)); font-size: calc(19 * var(--d2-u)); }
+/* Con los botones grandes no entra todo a 375 px: las reps son de 1 a 3
+   dígitos y les alcanza una caja angosta; el resto queda para el peso, que
+   necesita ver "102,5". */
+.d2-log-row > input { flex: 0 0 calc(56 * var(--d2-u)); }
+.d2-weight-stepper input { min-width: calc(58 * var(--d2-u)); }
+.d2-log-check { width: calc(50 * var(--d2-u)); height: calc(50 * var(--d2-u)); }
+.d2-log-check svg { width: calc(19 * var(--d2-u)); height: calc(19 * var(--d2-u)); }
+.d2-log-spacer { width: calc(50 * var(--d2-u)); }
+.d2-log-tools .d2-chip { min-height: calc(44 * var(--d2-u)); padding-inline: calc(16 * var(--d2-u)); }
+.d2-media-btn { min-height: calc(36 * var(--d2-u)); padding-inline: calc(12 * var(--d2-u)); font-size: calc(12 * var(--d2-u)); }
+
+/* El tiempo de una serie de tiempo: un botón que abre el cronómetro. */
+.d2-log-time {
+  display: flex; flex: 1; align-items: center; justify-content: center; gap: calc(8 * var(--d2-u));
+  min-width: 0; min-height: calc(50 * var(--d2-u)); border-radius: calc(14 * var(--d2-u));
+  border: 1px solid var(--d2-border); background: rgba(var(--d2-glass-tint), var(--d2-glass-1));
+  color: var(--d2-text); font-size: max(17px, calc(16 * var(--d2-u))); font-variant-numeric: tabular-nums; cursor: pointer;
+}
+.d2-log-time svg { flex: none; color: var(--d2-ink); }
+.d2-log-row-done .d2-log-time { opacity: 0.55; }
+
+/* ── Notas por ejercicio ─────────────────────────────────────────────────── */
+.d2-ex-notes { display: grid; gap: calc(8 * var(--d2-u)); margin-bottom: calc(12 * var(--d2-u)); }
+.d2-ex-note {
+  margin: 0; padding: calc(10 * var(--d2-u)) calc(12 * var(--d2-u)); border-radius: calc(14 * var(--d2-u));
+  background: rgba(var(--d2-glass-tint), var(--d2-glass-1)); border: 1px solid var(--d2-border);
+  font-size: calc(13 * var(--d2-u)); line-height: 1.45; color: var(--d2-text); overflow-wrap: anywhere; white-space: pre-line;
+}
+.d2-ex-note-tag { display: block; margin-bottom: calc(3 * var(--d2-u)); font-size: calc(10 * var(--d2-u)); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--d2-text-3); }
+.d2-ex-note-plan { border-left: 3px solid var(--d2-ink); }
+.d2-ex-note-plan .d2-ex-note-tag { color: var(--d2-ink); }
+.d2-ex-note-last { border-style: dashed; }
+.d2-session-note { margin-top: calc(10 * var(--d2-u)); }
+.d2-note-add { display: inline-flex; align-items: center; gap: calc(6 * var(--d2-u)); min-height: calc(44 * var(--d2-u)); margin-top: calc(12 * var(--d2-u)); }
+.d2-note-field { display: grid; gap: calc(6 * var(--d2-u)); margin-top: calc(12 * var(--d2-u)); }
+.d2-note-field label { font-size: calc(11 * var(--d2-u)); font-weight: 500; color: var(--d2-text-2); }
+.d2-note-field .d2-textarea { min-height: 72px; font-size: max(16px, calc(14 * var(--d2-u))); }
+.d2-ex-note-preview {
+  display: flex; align-items: center; gap: calc(5 * var(--d2-u)); min-width: 0; margin-top: calc(3 * var(--d2-u));
+  font-size: calc(11 * var(--d2-u)); color: var(--d2-text-3);
+}
+.d2-ex-note-preview > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.d2-ex-note-preview svg { flex: none; }
+.d2-ex-note-input { margin-top: calc(12 * var(--d2-u)); }
+
+/* ── Video dentro de la app ─────────────────────────────────────────────── */
+.d2-video { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border-radius: calc(16 * var(--d2-u)); background: #000; border: 1px solid var(--d2-border); }
+.d2-video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.d2-technique-video { margin-block: calc(10 * var(--d2-u)); }
+.d2-media-modal-body { display: grid; gap: calc(12 * var(--d2-u)); }
+.d2-media-modal-body .d2-media-modal-thumb { margin-bottom: 0; }
+.d2-ex-thumb-play {
+  position: absolute; right: calc(3 * var(--d2-u)); bottom: calc(3 * var(--d2-u));
+  display: flex; align-items: center; justify-content: center; width: calc(20 * var(--d2-u)); height: calc(20 * var(--d2-u));
+  border-radius: 50%; background: var(--d2-ink); color: var(--d2-on-ink); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+/* ── Bloques: categorías, colores propios y vista previa ───────────────── */
+.d2-group-dialog { max-height: calc(100dvh - 36px); overflow-y: auto; }
+.d2-group-subtitle { margin-top: calc(14 * var(--d2-u)); font-size: calc(11 * var(--d2-u)); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--d2-text-3); }
+.d2-group-colors { flex-wrap: wrap; }
+.d2-group-color-custom {
+  position: relative; overflow: hidden;
+  background: conic-gradient(#ef4444, #f59e0b, #facc15, #34d399, #22d3ee, #818cf8, #e879f9, #ef4444);
+}
+.d2-group-color-custom.d2-group-color-dot-selected { background: var(--d2-grp-c); }
+.d2-group-color-custom input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.d2-group-preview { display: flex; align-items: center; gap: calc(8 * var(--d2-u)); margin-top: calc(4 * var(--d2-u)); }
+.d2-group-preview-label { font-size: calc(12 * var(--d2-u)); color: var(--d2-text-2); }
+.d2-group-pill { border-color: var(--d2-grp-bd, var(--d2-border)); background: var(--d2-grp-bg, transparent); }
+
+/* ── Cronómetro estilo iPhone ───────────────────────────────────────────── */
+.d2-sw-backdrop { z-index: 90; background: rgba(0, 0, 0, 0.7); }
+/* Opaco: la planilla de atrás no puede competir con los dígitos. */
+.d2-sw { max-width: calc(380 * var(--d2-u)); max-height: calc(100dvh - 36px); overflow-y: auto; background: #141518; color: #f4f5f7; border-color: rgba(255, 255, 255, 0.1); }
+.d2-sw .d2-sw-sub, .d2-sw .d2-sw-manual { color: rgba(244, 245, 247, 0.7); }
+.d2-sw .d2-sw-digits { color: #f4f5f7; }
+.d2-sw-head { display: flex; align-items: flex-start; justify-content: space-between; gap: calc(12 * var(--d2-u)); }
+.d2-sw-title { font-size: calc(17 * var(--d2-u)); font-weight: 600; letter-spacing: -0.01em; overflow-wrap: anywhere; }
+.d2-sw-sub { margin-top: calc(3 * var(--d2-u)); font-size: calc(12 * var(--d2-u)); color: var(--d2-text-2); font-variant-numeric: tabular-nums; }
+.d2-sw-modes { margin-top: calc(14 * var(--d2-u)); }
+.d2-sw-modes .d2-seg { flex: 1; }
+.d2-sw-face { position: relative; display: grid; place-items: center; margin: calc(18 * var(--d2-u)) auto calc(6 * var(--d2-u)); width: min(100%, calc(230 * var(--d2-u)), 38dvh); aspect-ratio: 1; }
+.d2-sw-ring { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+.d2-sw-ring-track { fill: none; stroke: rgba(var(--d2-glass-tint), var(--d2-glass-3)); stroke-width: 3; }
+.d2-sw-ring-fill { fill: none; stroke: var(--d2-ink); stroke-width: 3; stroke-linecap: round; transition: stroke-dashoffset 0.1s linear; }
+/* Los dígitos del reloj del iPhone: finos, grandes y de ancho fijo para que no bailen. */
+.d2-sw-digits { position: relative; font-size: min(calc(50 * var(--d2-u)), 8.5dvh); font-weight: 200; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; color: var(--d2-text); }
+.d2-sw-done { position: absolute; bottom: 24%; font-size: calc(13 * var(--d2-u)); font-weight: 600; color: var(--d2-ink); }
+.d2-sw-reached .d2-sw-digits { color: var(--d2-ink); }
+.d2-sw-controls { display: flex; justify-content: space-between; margin-top: calc(10 * var(--d2-u)); }
+.d2-sw-round {
+  display: grid; place-items: center; width: calc(82 * var(--d2-u)); height: calc(82 * var(--d2-u)); border-radius: 50%;
+  border: 0; font-size: calc(15 * var(--d2-u)); font-weight: 500; cursor: pointer;
+  box-shadow: 0 0 0 2px var(--d2-modal-bg, #0b0c0e), 0 0 0 4px currentColor;
+  transition: transform 0.12s ease, opacity 0.12s ease;
+}
+.d2-sw-round:active { transform: scale(0.94); }
+.d2-sw-round[disabled] { opacity: 0.4; cursor: default; }
+.d2-sw-round-gray { background: #333336; color: #ffffff; box-shadow: 0 0 0 2px #1c1c1e, 0 0 0 4px #333336; }
+.d2-sw-round-green { background: #0e3a1b; color: #30d158; box-shadow: 0 0 0 2px #1c1c1e, 0 0 0 4px #0e3a1b; }
+.d2-sw-round-red { background: #3a0f0d; color: #ff453a; box-shadow: 0 0 0 2px #1c1c1e, 0 0 0 4px #3a0f0d; }
+.d2-sw-laps { margin-top: calc(16 * var(--d2-u)); padding: 0; list-style: none; border-top: 1px solid var(--d2-border); }
+.d2-sw-laps li { display: flex; justify-content: space-between; padding-block: calc(11 * var(--d2-u)); border-bottom: 1px solid var(--d2-border); font-size: calc(15 * var(--d2-u)); font-variant-numeric: tabular-nums; }
+.d2-sw-lap-fast { color: #30d158; }
+.d2-sw-lap-slow { color: #ff453a; }
+.d2-sw-manual { display: flex; align-items: center; justify-content: space-between; gap: calc(12 * var(--d2-u)); margin-top: calc(16 * var(--d2-u)); font-size: calc(13 * var(--d2-u)); color: var(--d2-text-2); }
+.d2-sw-manual input { width: calc(110 * var(--d2-u)); min-height: calc(46 * var(--d2-u)); border-radius: calc(14 * var(--d2-u)); border: 1px solid var(--d2-border); background: rgba(var(--d2-glass-tint), var(--d2-glass-1)); color: var(--d2-text); text-align: center; font-size: max(16px, calc(16 * var(--d2-u))); font-variant-numeric: tabular-nums; }
+.d2-sw-actions { margin-top: calc(18 * var(--d2-u)); }
+.d2-sw-hint { margin-top: calc(10 * var(--d2-u)); text-align: center; font-size: calc(12 * var(--d2-u)); color: var(--d2-text-3); }
+@media (prefers-reduced-motion: reduce) {
+  .d2-sw-ring-fill, .d2-sw-round { transition: none; }
 }

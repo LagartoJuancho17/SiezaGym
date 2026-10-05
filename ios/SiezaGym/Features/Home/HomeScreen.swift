@@ -18,6 +18,7 @@ struct HomeScreen: View {
                     titular
                     SemanaCard(trainedDayKeys: store.trainedDayKeys, streak: store.streak)
                         .padding(.top, 20)
+                    estaSemana
                     objetivos
                     actividad
                     rutinas
@@ -234,6 +235,52 @@ struct HomeScreen: View {
         .padding(.top, 34)
     }
 
+    // MARK: - Esta semana
+
+    /// "Septiembre · Semana 4": las rutinas que asignaste a la semana en la que
+    /// estás, para no tener que abrir cada una y ver de qué mes es "a ojo".
+    /// No existe en la web: por ahora es sólo del teléfono.
+    private var estaSemana: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            encabezadoSeccion(store.semanaActual.texto)
+
+            if store.rutinasDeEstaSemana.isEmpty {
+                GlassCard(padding: 20) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Todavía no asignaste rutinas a esta semana.")
+                            .font(.system(size: 13))
+                            .foregroundStyle(tema.texto2)
+                        Text("Abrí una rutina y agregala desde ahí.")
+                            .font(.system(size: 11))
+                            .foregroundStyle(tema.texto3)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .padding(.top, 14)
+            } else {
+                VStack(spacing: 0) {
+                    ForEach(Array(store.rutinasDeEstaSemana.enumerated()), id: \.element.id) { indice, rutina in
+                        if indice > 0 {
+                            Rectangle().fill(tema.borde).frame(height: 1)
+                        }
+                        NavigationLink {
+                            RoutineDetailScreen(routine: rutina, store: store) { elegida in
+                                workout = WorkoutTarget(routine: elegida)
+                            }
+                        } label: {
+                            FilaRutina(rutina: rutina, store: store)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .background(tema.vidrio(1), in: .rect(cornerRadius: 24))
+                .overlay { RoundedRectangle(cornerRadius: 24).strokeBorder(tema.borde, lineWidth: 1) }
+                .padding(.top, 14)
+            }
+        }
+        .padding(.top, 17)
+    }
+
     // MARK: - Objetivos
 
     private var objetivos: some View {
@@ -318,11 +365,9 @@ struct HomeScreen: View {
                 .padding(.bottom, 10)
 
             GlassCard(padding: 0) {
-                VStack(spacing: 0) {
-                    FilaAcceso(nombre: "Historial", detalle: "Todo lo que entrenaste")
-                    Rectangle().fill(tema.borde).frame(height: 1)
-                    FilaAcceso(nombre: "Progreso", detalle: "Volumen y marcas")
-                }
+                // El progreso (volumen, músculos, marcas) se mudó a Perfil, que
+                // es donde vive ahora como grilla de accesos.
+                FilaAcceso(nombre: "Historial", detalle: "Todo lo que entrenaste")
             }
         }
     }
@@ -471,3 +516,15 @@ private struct FilaAcceso: View {
         .padding(.vertical, 12)
     }
 }
+
+#if DEBUG
+#Preview("Inicio") {
+    HomeScreen(store: PreviewData.store())
+        .previewSieza()
+}
+
+#Preview("Inicio · sin datos") {
+    HomeScreen(store: PreviewData.storeVacio())
+        .previewSieza()
+}
+#endif

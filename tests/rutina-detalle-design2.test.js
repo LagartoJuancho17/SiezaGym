@@ -124,7 +124,7 @@ describe("Entrenamiento", () => {
 
   it("una serie cuenta recién cuando se la marca", () => {
     // Guardar el plan sin confirmarlo sería inventar un entrenamiento.
-    expect(screenSource).toContain("sessionExercises(routine.exercises, sheet)");
+    expect(screenSource).toContain("sessionExercises(routine.exercises, sheet, notes)");
     expect(screenSource).toContain("Marcá al menos una serie");
   });
 
@@ -179,7 +179,7 @@ describe("Guardado del entrenamiento", () => {
   it("la rutina asignada arma la sesión con lo que quedó registrado", () => {
     // Las series ya se guardaron de a una para que el coach las vea en vivo.
     expect(screenSource).toContain("logExerciseSet(routine.assignmentId, exercise.position, index");
-    expect(actionsSource).toContain("completeAssignmentSessionDb(user.uid, assignmentId, durationSeconds)");
+    expect(actionsSource).toContain("completeAssignmentSessionDb(user.uid, assignmentId, durationSeconds, notes)");
   });
 
   it("no crea dos sesiones por un mismo entrenamiento asignado", () => {
@@ -230,7 +230,7 @@ describe("sessionExercisesFromLogs", () => {
 
 describe("Rutina asignada", () => {
   it("se entrena pero no se edita", () => {
-    expect(pageSource).toContain("readOnly: true, students: []");
+    expect(pageSource).toMatch(/readOnly: true,\s*students: \[\]/);
     expect(screenSource).toContain("const canEdit = !routine.readOnly;");
   });
 

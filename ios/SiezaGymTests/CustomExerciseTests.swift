@@ -69,6 +69,37 @@ struct YouTubeLinkTests {
         #expect(YouTubeLink.miniatura(paraID: "dQw4w9WgXcQ")?.absoluteString
                 == "https://img.youtube.com/vi/dQw4w9WgXcQ/mqdefault.jpg")
     }
+
+    @Test("el embed se reproduce dentro de la app: nocookie, playsinline y origen")
+    func embedURL() throws {
+        let url = try #require(YouTubeLink.embedURL(paraID: "dQw4w9WgXcQ"))
+        #expect(url.host == "www.youtube-nocookie.com")
+        #expect(url.path == "/embed/dQw4w9WgXcQ")
+        let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems ?? []
+        #expect(items.contains(URLQueryItem(name: "playsinline", value: "1")))
+        #expect(items.contains(URLQueryItem(name: "rel", value: "0")))
+        #expect(items.contains(URLQueryItem(name: "origin", value: YouTubeLink.origenReproductor)))
+    }
+
+    @Test("un id que no es de YouTube no llega al HTML", arguments: ["", "corto", "dQw4w9WgXcQ\"><script>", "a b c d e f"])
+    func embedRechazaIDsInvalidos(id: String) {
+        #expect(YouTubeLink.embedURL(paraID: id) == nil)
+        #expect(YouTubeLink.embedHTML(paraID: id) == nil)
+    }
+
+    @Test("el HTML envuelve un solo iframe con el embed y el referrer que pide YouTube")
+    func embedHTML() throws {
+        let html = try #require(YouTubeLink.embedHTML(paraID: "dQw4w9WgXcQ"))
+        let url = try #require(YouTubeLink.embedURL(paraID: "dQw4w9WgXcQ"))
+        #expect(html.contains("src=\"\(url.absoluteString)\""))
+        #expect(html.contains("referrerpolicy=\"strict-origin-when-cross-origin\""))
+        #expect(html.components(separatedBy: "<iframe").count == 2)
+    }
+
+    @Test("el origen del reproductor es https: sin eso YouTube responde Error 153")
+    func origenHTTPS() {
+        #expect(YouTubeLink.origenReproductor.hasPrefix("https://"))
+    }
 }
 
 // MARK: - Ejercicio propio
