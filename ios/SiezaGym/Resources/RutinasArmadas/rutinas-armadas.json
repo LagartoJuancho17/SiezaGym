@@ -1,0 +1,721 @@
+{
+  "version": 1,
+  "rutinas": [
+    {
+      "id": "upper-body",
+      "name": "Upper body",
+      "nivel": "intermedio",
+      "dias": "2 a 4 por semana",
+      "descripcion": "Torso completo: pecho, espalda, hombros y brazos en una sesión.",
+      "exercises": [
+        {
+          "exerciseId": "face-pull-en-polea",
+          "targetSets": 2,
+          "targetReps": 15,
+          "group": "Calentamiento",
+          "groupColor": "teal",
+          "nombre": "Face pull en polea"
+        },
+        {
+          "exerciseId": "press-de-banca-con-barra",
+          "targetSets": 4,
+          "targetReps": 6,
+          "group": "Fuerza",
+          "groupColor": "amber",
+          "targetRIR": 2,
+          "techniqueNote": "Omóplatos atrás y pies firmes.",
+          "nombre": "Press de banca con barra"
+        },
+        {
+          "exerciseId": "remo-con-barra",
+          "targetSets": 4,
+          "targetReps": 8,
+          "group": "Fuerza",
+          "groupColor": "amber",
+          "targetRIR": 2,
+          "nombre": "Remo con barra"
+        },
+        {
+          "exerciseId": "press-de-hombros-con-mancuernas",
+          "targetSets": 3,
+          "targetReps": 10,
+          "group": "Hipertrofia",
+          "groupColor": "indigo",
+          "targetRIR": 2,
+          "nombre": "Press de hombros con mancuernas"
+        },
+        {
+          "exerciseId": "jalon-al-pecho-en-polea",
+          "targetSets": 3,
+          "targetReps": 10,
+          "group": "Hipertrofia",
+          "groupColor": "indigo",
+          "targetRIR": 2,
+          "nombre": "Jalón al pecho en polea"
+        },
+        {
+          "exerciseId": "elevaciones-laterales-con-mancuerna",
+          "targetSets": 3,
+          "targetReps": 15,
+          "group": "Accesorios",
+          "groupColor": "purple",
+          "targetRIR": 1,
+          "nombre": "Elevaciones laterales con mancuerna"
+        },
+        {
+          "exerciseId": "curl-con-barra",
+          "targetSets": 3,
+          "targetReps": 12,
+          "group": "Accesorios",
+          "groupColor": "purple",
+          "targetRIR": 1,
+          "nombre": "Curl con barra"
+        },
+        {
+          "exerciseId": "extension-de-triceps-en-polea",
+          "targetSets": 3,
+          "targetReps": 12,
+          "group": "Accesorios",
+          "groupColor": "purple",
+          "targetRIR": 1,
+          "nombre": "Extensión de tríceps en polea"
+        }
+      ]
+    },
+    {
+      "id": "lower-body",
+      "name": "Lower body",
+      "nivel": "intermedio",
+      "dias": "2 a 4 por semana",
+      "descripcion": "Piernas completas: cuádriceps, femorales, glúteo y gemelo.",
+      "exercises": [
+        {
+          "exerciseId": "puente-de-gluteo",
+          "targetSets": 2,
+          "targetReps": 15,
+          "group": "Calentamiento",
+          "groupColor": "teal",
+          "nombre": "Puente de glúteo"
+        },
+        {
+          "exerciseId": "sentadilla-con-barra",
+          "targetSets": 4,
+          "targetReps": 6,
+          "group": "Fuerza",
+          "groupColor": "amber",
+          "targetRIR": 2,
+          "techniqueNote": "Bajá hasta romper el paralelo si la movilidad lo permite.",
+          "nombre": "Sentadilla con barra"
+        },
+        {
+          "exerciseId": "peso-muerto-rumano-con-barra",
+          "targetSets": 4,
+          "targetReps": 8,
+          "group": "Fuerza",
+          "groupColor": "amber",
+          "targetRIR": 2,
+          "nombre": "Peso muerto rumano con barra"
+        },
+        {
+          "exerciseId": "prensa-de-piernas",
+          "targetSets": 3,
+          "targetReps": 12,
+          "group": "Hipertrofia",
+          "groupColor": "indigo",
+          "targetRIR": 2,
+          "nombre": "Prensa de piernas"
+        },
+        {
+          "exerciseId": "curl-femoral-en-maquina",
+          "targetSets": 3,
+          "targetReps": 12,
+          "group": "Hipertrofia",
+          "groupColor": "indigo",
+          "targetRIR": 1,
+          "nombre": "Curl femoral en máquina"
+        },
+        {
+          "exerciseId": "extension-de-cuadriceps-en-maquina",
+          "targetSets": 3,
+          "targetReps": 15,
+          "group": "Accesorios",
+          "groupColor": "purple",
+          "targetRIR": 1,
+          "nombre": "Extensión de cuádriceps en máquina"
+        },
+        {
+          "exerciseId": "elevacion-de-talones-en-maquina",
+          "targetSets": 4,
+          "targetReps": 15,
+          "group": "Accesorios",
+          "groupColor": "purple",
+          "targetRIR": 1,
+          "nombre": "Elevación de talones en máquina"
+        }
+      ]
+    },
+    {
+      "id": "full-body-a",
+      "name": "Full body A",
+      "nivel": "principiante",
+      "dias": "3 por semana, alternando con la B",
+      "descripcion": "Cuerpo entero con los básicos. Alterná con Full body B.",
+      "exercises": [
+        {
+          "exerciseId": "sentadilla-goblet-con-mancuerna",
+          "targetSets": 2,
+          "targetReps": 12,
+          "group": "Calentamiento",
+          "groupColor": "teal",
+          "nombre": "Sentadilla goblet con mancuerna"
+        },
+        {
+          "exerciseId": "sentadilla-con-barra",
+          "targetSets": 3,
+          "targetReps": 8,
+          "group": "Fuerza",
+          "groupColor": "amber",
+          "targetRIR": 3,
+          "nombre": "Sentadilla con barra"
+        },
+        {
+          "exerciseId": "press-de-banca-con-barra",
+          "targetSets": 3,
+          "targetReps": 8,
+          "group": "Fuerza",
+          "groupColor": "amber",
+          "targetRIR": 3,
+          "nombre": "Press de banca con barra"
+        },
+        {
+          "exerciseId": "remo-con-mancuerna-a-una-mano",
+          "targetSets": 3,
+          "targetReps": 10,
+          "group": "Fuerza",
+          "groupColor": "amber",
+          "targetRIR": 3,
+          "nombre": "Remo con mancuerna a una mano"
+        },
+        {
+          "exerciseId": "press-de-hombros-con-mancuernas",
+          "targetSets": 2,
+          "targetReps": 12,
+          "group": "Accesorios",
+          "groupColor": "purple",
+          "targetRIR": 2,
+          "nombre": "Press de hombros con mancuernas"
+        },
+        {
+          "exerciseId": "plancha-abdominal",
+          "targetSets": 3,
+          "targetReps": 30,
+          "group": "Core",
+          "groupColor": "rose",
+          "nombre": "Plancha abdominal"
+        }
+      ]
+    },
+    {
+      "id": "full-body-b",
+      "name": "Full body B",
+      "nivel": "principiante",
+      "dias": "3 por semana, alternando con la A",
+      "descripcion": "La segunda mitad del full body: bisagra de cadera y tracción vertical.",
+      "exercises": [
+        {
+          "exerciseId": "puente-de-gluteo",
+          "targetSets": 2,
+          "targetReps": 15,
+          "group": "Calentamiento",
+          "groupColor": "teal",
+          "nombre": "Puente de glúteo"
+        },
+        {
+          "exerciseId": "peso-muerto-convencional-con-barra",
+          "targetSets": 3,
+          "targetReps": 5,
+          "group": "Fuerza",
+          "groupColor": "amber",
+          "targetRIR": 3,
+          "techniqueNote": "Barra pegada a las piernas, espalda neutra.",
+          "nombre": "Peso muerto convencional con barra"
+        },
+        {
+          "exerciseId": "press-inclinado-con-mancuernas",
+          "targetSets": 3,
+          "targetReps": 10,
+          "group": "Fuerza",
+          "groupColor": "amber",
+          "targetRIR": 3,
+          "nombre": "Press inclinado con mancuernas"
+        },
+        {
+          "exerciseId": "jalon-al-pecho-en-polea",
+          "targetSets": 3,
+          "targetReps": 10,
+          "group": "Fuerza",
+          "groupColor": "amber",
+          "targetRIR": 3,
+          "nombre": "Jalón al pecho en polea"
+        },
+        {
+          "exerciseId": "zancadas-con-mancuernas",
+          "targetSets": 2,
+          "targetReps": 10,
+          "group": "Accesorios",
+          "groupColor": "purple",
+          "targetRIR": 2,
+          "nombre": "Zancadas con mancuernas"
+        },
+        {
+          "exerciseId": "crunch-en-polea",
+          "targetSets": 3,
+          "targetReps": 12,
+          "group": "Core",
+          "groupColor": "rose",
+          "nombre": "Crunch en polea"
+        }
+      ]
+    },
+    {
+      "id": "push",
+      "name": "Push (empuje)",
+      "nivel": "intermedio",
+      "dias": "1 o 2 por semana, con Pull y Piernas",
+      "descripcion": "Pecho, hombros y tríceps. Parte de la división Push / Pull / Legs.",
+      "exercises": [
+        {
+          "exerciseId": "flexiones-de-brazos",
+          "targetSets": 2,
+          "targetReps": 10,
+          "group": "Calentamiento",
+          "groupColor": "teal",
+          "nombre": "Flexiones de brazos"
+        },
+        {
+          "exerciseId": "press-de-banca-con-barra",
+          "targetSets": 4,
+          "targetReps": 6,
+          "group": "Fuerza",
+          "groupColor": "amber",
+          "targetRIR": 2,
+          "nombre": "Press de banca con barra"
+        },
+        {
+          "exerciseId": "press-militar-con-barra",
+          "targetSets": 3,
+          "targetReps": 8,
+          "group": "Fuerza",
+          "groupColor": "amber",
+          "targetRIR": 2,
+          "nombre": "Press militar con barra"
+        },
+        {
+          "exerciseId": "press-inclinado-con-mancuernas",
+          "targetSets": 3,
+          "targetReps": 10,
+          "group": "Hipertrofia",
+          "groupColor": "indigo",
+          "targetRIR": 2,
+          "nombre": "Press inclinado con mancuernas"
+        },
+        {
+          "exerciseId": "cruce-de-poleas",
+          "targetSets": 3,
+          "targetReps": 15,
+          "group": "Hipertrofia",
+          "groupColor": "indigo",
+          "targetRIR": 1,
+          "nombre": "Cruce de poleas"
+        },
+        {
+          "exerciseId": "elevaciones-laterales-en-polea",
+          "targetSets": 3,
+          "targetReps": 15,
+          "group": "Accesorios",
+          "groupColor": "purple",
+          "targetRIR": 1,
+          "nombre": "Elevaciones laterales en polea"
+        },
+        {
+          "exerciseId": "extension-de-triceps-en-polea",
+          "targetSets": 3,
+          "targetReps": 12,
+          "group": "Accesorios",
+          "groupColor": "purple",
+          "targetRIR": 1,
+          "nombre": "Extensión de tríceps en polea"
+        }
+      ]
+    },
+    {
+      "id": "pull",
+      "name": "Pull (tirón)",
+      "nivel": "intermedio",
+      "dias": "1 o 2 por semana, con Push y Piernas",
+      "descripcion": "Espalda, deltoide posterior y bíceps.",
+      "exercises": [
+        {
+          "exerciseId": "face-pull-en-polea",
+          "targetSets": 2,
+          "targetReps": 15,
+          "group": "Calentamiento",
+          "groupColor": "teal",
+          "nombre": "Face pull en polea"
+        },
+        {
+          "exerciseId": "dominadas",
+          "targetSets": 4,
+          "targetReps": 6,
+          "group": "Fuerza",
+          "groupColor": "amber",
+          "targetRIR": 2,
+          "techniqueNote": "Si no salen, reemplazá por jalón al pecho.",
+          "nombre": "Dominadas"
+        },
+        {
+          "exerciseId": "remo-con-barra",
+          "targetSets": 4,
+          "targetReps": 8,
+          "group": "Fuerza",
+          "groupColor": "amber",
+          "targetRIR": 2,
+          "nombre": "Remo con barra"
+        },
+        {
+          "exerciseId": "remo-sentado-en-polea",
+          "targetSets": 3,
+          "targetReps": 12,
+          "group": "Hipertrofia",
+          "groupColor": "indigo",
+          "targetRIR": 2,
+          "nombre": "Remo sentado en polea"
+        },
+        {
+          "exerciseId": "aperturas-posteriores-con-mancuerna",
+          "targetSets": 3,
+          "targetReps": 15,
+          "group": "Accesorios",
+          "groupColor": "purple",
+          "targetRIR": 1,
+          "nombre": "Aperturas posteriores con mancuerna"
+        },
+        {
+          "exerciseId": "curl-con-barra",
+          "targetSets": 3,
+          "targetReps": 10,
+          "group": "Accesorios",
+          "groupColor": "purple",
+          "targetRIR": 1,
+          "nombre": "Curl con barra"
+        },
+        {
+          "exerciseId": "curl-martillo-con-mancuerna",
+          "targetSets": 3,
+          "targetReps": 12,
+          "group": "Accesorios",
+          "groupColor": "purple",
+          "targetRIR": 1,
+          "nombre": "Curl martillo con mancuerna"
+        }
+      ]
+    },
+    {
+      "id": "piernas",
+      "name": "Piernas (legs)",
+      "nivel": "intermedio",
+      "dias": "1 o 2 por semana, con Push y Pull",
+      "descripcion": "El día de piernas de Push / Pull / Legs, con foco en cuádriceps.",
+      "exercises": [
+        {
+          "exerciseId": "sentadilla-con-peso-corporal",
+          "targetSets": 2,
+          "targetReps": 15,
+          "group": "Calentamiento",
+          "groupColor": "teal",
+          "nombre": "Sentadilla con peso corporal"
+        },
+        {
+          "exerciseId": "sentadilla-con-barra",
+          "targetSets": 4,
+          "targetReps": 6,
+          "group": "Fuerza",
+          "groupColor": "amber",
+          "targetRIR": 2,
+          "nombre": "Sentadilla con barra"
+        },
+        {
+          "exerciseId": "zancada-bulgara-con-mancuernas",
+          "targetSets": 3,
+          "targetReps": 10,
+          "group": "Hipertrofia",
+          "groupColor": "indigo",
+          "targetRIR": 2,
+          "techniqueNote": "10 por pierna.",
+          "nombre": "Zancada búlgara con mancuernas"
+        },
+        {
+          "exerciseId": "prensa-de-piernas",
+          "targetSets": 3,
+          "targetReps": 12,
+          "group": "Hipertrofia",
+          "groupColor": "indigo",
+          "targetRIR": 2,
+          "nombre": "Prensa de piernas"
+        },
+        {
+          "exerciseId": "peso-muerto-rumano-con-mancuernas",
+          "targetSets": 3,
+          "targetReps": 10,
+          "group": "Hipertrofia",
+          "groupColor": "indigo",
+          "targetRIR": 2,
+          "nombre": "Peso muerto rumano con mancuernas"
+        },
+        {
+          "exerciseId": "elevacion-de-talones-con-barra",
+          "targetSets": 4,
+          "targetReps": 12,
+          "group": "Accesorios",
+          "groupColor": "purple",
+          "targetRIR": 1,
+          "nombre": "Elevación de talones con barra"
+        },
+        {
+          "exerciseId": "elevacion-de-piernas-colgado",
+          "targetSets": 3,
+          "targetReps": 12,
+          "group": "Core",
+          "groupColor": "rose",
+          "nombre": "Elevación de piernas colgado"
+        }
+      ]
+    },
+    {
+      "id": "gluteo",
+      "name": "Glúteos y femorales",
+      "nivel": "todos",
+      "dias": "1 o 2 por semana",
+      "descripcion": "Cadena posterior: glúteo, femoral y aductores.",
+      "exercises": [
+        {
+          "exerciseId": "puente-de-gluteo",
+          "targetSets": 2,
+          "targetReps": 20,
+          "group": "Calentamiento",
+          "groupColor": "teal",
+          "nombre": "Puente de glúteo"
+        },
+        {
+          "exerciseId": "hip-thrust-con-barra",
+          "targetSets": 4,
+          "targetReps": 8,
+          "group": "Fuerza",
+          "groupColor": "amber",
+          "targetRIR": 2,
+          "techniqueNote": "Pausa de un segundo arriba.",
+          "nombre": "Hip thrust con barra"
+        },
+        {
+          "exerciseId": "peso-muerto-rumano-con-barra",
+          "targetSets": 3,
+          "targetReps": 10,
+          "group": "Fuerza",
+          "groupColor": "amber",
+          "targetRIR": 2,
+          "nombre": "Peso muerto rumano con barra"
+        },
+        {
+          "exerciseId": "zancada-bulgara-con-mancuernas",
+          "targetSets": 3,
+          "targetReps": 10,
+          "group": "Hipertrofia",
+          "groupColor": "indigo",
+          "targetRIR": 2,
+          "nombre": "Zancada búlgara con mancuernas"
+        },
+        {
+          "exerciseId": "curl-femoral-en-maquina",
+          "targetSets": 3,
+          "targetReps": 12,
+          "group": "Hipertrofia",
+          "groupColor": "indigo",
+          "targetRIR": 1,
+          "nombre": "Curl femoral en máquina"
+        },
+        {
+          "exerciseId": "patada-de-gluteo-en-maquina",
+          "targetSets": 3,
+          "targetReps": 15,
+          "group": "Accesorios",
+          "groupColor": "purple",
+          "targetRIR": 1,
+          "nombre": "Patada de glúteo en máquina"
+        },
+        {
+          "exerciseId": "aductores-en-maquina",
+          "targetSets": 3,
+          "targetReps": 15,
+          "group": "Accesorios",
+          "groupColor": "purple",
+          "targetRIR": 1,
+          "nombre": "Aductores en máquina"
+        }
+      ]
+    },
+    {
+      "id": "brazos-hombros",
+      "name": "Brazos y hombros",
+      "nivel": "todos",
+      "dias": "1 por semana",
+      "descripcion": "Bíceps, tríceps y deltoides, para sumar volumen a una división.",
+      "exercises": [
+        {
+          "exerciseId": "elevacion-lateral-con-banda",
+          "targetSets": 2,
+          "targetReps": 20,
+          "group": "Calentamiento",
+          "groupColor": "teal",
+          "nombre": "Elevación lateral con banda"
+        },
+        {
+          "exerciseId": "press-de-hombros-con-mancuernas",
+          "targetSets": 3,
+          "targetReps": 10,
+          "group": "Fuerza",
+          "groupColor": "amber",
+          "targetRIR": 2,
+          "nombre": "Press de hombros con mancuernas"
+        },
+        {
+          "exerciseId": "press-cerrado-con-barra",
+          "targetSets": 3,
+          "targetReps": 8,
+          "group": "Fuerza",
+          "groupColor": "amber",
+          "targetRIR": 2,
+          "nombre": "Press cerrado con barra"
+        },
+        {
+          "exerciseId": "curl-con-barra",
+          "targetSets": 3,
+          "targetReps": 10,
+          "group": "Hipertrofia",
+          "groupColor": "indigo",
+          "targetRIR": 1,
+          "nombre": "Curl con barra"
+        },
+        {
+          "exerciseId": "press-frances-con-barra",
+          "targetSets": 3,
+          "targetReps": 10,
+          "group": "Hipertrofia",
+          "groupColor": "indigo",
+          "targetRIR": 1,
+          "nombre": "Press francés con barra"
+        },
+        {
+          "exerciseId": "elevaciones-laterales-con-mancuerna",
+          "targetSets": 4,
+          "targetReps": 15,
+          "group": "Accesorios",
+          "groupColor": "purple",
+          "targetRIR": 1,
+          "nombre": "Elevaciones laterales con mancuerna"
+        },
+        {
+          "exerciseId": "curl-predicador",
+          "targetSets": 3,
+          "targetReps": 12,
+          "group": "Accesorios",
+          "groupColor": "purple",
+          "targetRIR": 1,
+          "nombre": "Curl predicador"
+        },
+        {
+          "exerciseId": "aperturas-posteriores-en-polea",
+          "targetSets": 3,
+          "targetReps": 15,
+          "group": "Accesorios",
+          "groupColor": "purple",
+          "targetRIR": 1,
+          "nombre": "Aperturas posteriores en polea"
+        }
+      ]
+    },
+    {
+      "id": "en-casa",
+      "name": "En casa (peso corporal)",
+      "nivel": "principiante",
+      "dias": "3 por semana",
+      "descripcion": "Sin equipo: un circuito de cuerpo entero para hacer en casa.",
+      "exercises": [
+        {
+          "exerciseId": "sentadilla-con-peso-corporal",
+          "targetSets": 3,
+          "targetReps": 15,
+          "group": "Circuito",
+          "groupColor": "emerald",
+          "nombre": "Sentadilla con peso corporal"
+        },
+        {
+          "exerciseId": "flexiones-de-brazos",
+          "targetSets": 3,
+          "targetReps": 10,
+          "group": "Circuito",
+          "groupColor": "emerald",
+          "nombre": "Flexiones de brazos"
+        },
+        {
+          "exerciseId": "zancadas-con-peso-corporal",
+          "targetSets": 3,
+          "targetReps": 12,
+          "group": "Circuito",
+          "groupColor": "emerald",
+          "nombre": "Zancadas con peso corporal"
+        },
+        {
+          "exerciseId": "remo-invertido",
+          "targetSets": 3,
+          "targetReps": 10,
+          "group": "Circuito",
+          "groupColor": "emerald",
+          "techniqueNote": "Con una mesa firme o barra baja.",
+          "nombre": "Remo invertido"
+        },
+        {
+          "exerciseId": "puente-de-gluteo",
+          "targetSets": 3,
+          "targetReps": 15,
+          "group": "Circuito",
+          "groupColor": "emerald",
+          "nombre": "Puente de glúteo"
+        },
+        {
+          "exerciseId": "fondos-en-banco",
+          "targetSets": 3,
+          "targetReps": 10,
+          "group": "Circuito",
+          "groupColor": "emerald",
+          "nombre": "Fondos en banco"
+        },
+        {
+          "exerciseId": "plancha-abdominal",
+          "targetSets": 3,
+          "targetReps": 40,
+          "group": "Core",
+          "groupColor": "rose",
+          "nombre": "Plancha abdominal"
+        },
+        {
+          "exerciseId": "crunch-abdominal",
+          "targetSets": 3,
+          "targetReps": 15,
+          "group": "Core",
+          "groupColor": "rose",
+          "nombre": "Crunch abdominal"
+        }
+      ]
+    }
+  ]
+}

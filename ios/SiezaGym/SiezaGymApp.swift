@@ -54,7 +54,12 @@ struct SiezaGymApp: App {
                 #endif
             }
             // Google vuelve del navegador por el esquema de URL de la app.
-            .onOpenURL { GIDSignIn.sharedInstance.handle($0) }
+            // y los links de rutinas compartidas (siezagym://r/<id>).
+            .onOpenURL { url in
+                if !EnlacesEntrantes.compartido.abrir(url) {
+                    GIDSignIn.sharedInstance.handle(url)
+                }
+            }
             // Todos los temas disponibles son oscuros: no hay modo claro.
             .preferredColorScheme(.dark)
             .tint(Theme.porDefecto.solido)

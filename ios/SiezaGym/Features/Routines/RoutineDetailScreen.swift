@@ -14,6 +14,9 @@ struct RoutineDetailScreen: View {
     @State private var cambiandoSemana = false
     /// El ejercicio cuya técnica (GIF o video) está abierta.
     @State private var tecnica: Exercise?
+    @State private var compartiendo = false
+    @State private var link: LinkCompartido?
+    @State private var errorCompartir: String?
 
     /// La versión viva de la rutina. La que llegó por navegación es una copia
     /// del momento en que se tocó la fila: después de editar quedó vieja.
@@ -48,6 +51,24 @@ struct RoutineDetailScreen: View {
                 rotulo: actual.isAssigned ? "Rutina del coach" : nil,
                 volver: true
             ) {
+                // Cualquier rutina se comparte, también las del coach.
+                Button { Task { await compartir() } } label: {
+                    Group {
+                        if compartiendo {
+                            ProgressView().tint(tema.texto)
+                        } else {
+                            Image(systemName: "square.and.arrow.up")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundStyle(tema.texto)
+                        }
+                    }
+                    .frame(width: 44, height: 44)
+                    .background(tema.vidrio(1), in: .circle)
+                    .overlay { Circle().strokeBorder(tema.borde, lineWidth: 1) }
+                }
+                .disabled(compartiendo)
+                .accessibilityLabel("Compartir la rutina con un link")
+
                 if sePuedeEditar {
                     Button { editando = true } label: {
                         Image(systemName: "pencil")
@@ -152,6 +173,18 @@ struct RoutineDetailScreen: View {
         .fullScreenCover(isPresented: $editando) {
             RoutineComposerScreen(store: store, routine: actual)
         }
+        .sheet(item: $link) { link in
+            HojaCompartir(elementos: ["\(link.nombre) en SiezaGym", link.url])
+                .presentationDetents([.medium, .large])
+        }
+        .alert(
+            "No se pudo compartir",
+            isPresented: Binding(get: { errorCompartir != nil }, set: { if !$0 { errorCompartir = nil } })
+        ) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(errorCompartir ?? "")
+        }
         .sheet(item: $tecnica) { ejercicio in
             TecnicaSheet(
                 nombre: ejercicio.nameEs,
@@ -168,6 +201,18 @@ struct RoutineDetailScreen: View {
 
     /// Sumarla o sacarla de "Septiembre · Semana 4" en la Home. Sólo para las
     /// propias: las del coach se organizan solas por cuándo te las asignaron.
+    /// Pide el link a la web y abre la hoja de compartir.
+    private func compartir() async {
+        compartiendo = true
+        defer { compartiendo = false }
+        do {
+            let url = try await WebAPI().compartir(actual, catalogo: store.catalog)
+            link = LinkCompartido(url: url, nombre: actual.name)
+        } catch {
+            errorCompartir = error.localizedDescription
+        }
+    }
+
     private var botonSemana: some View {
         Button {
             Task {

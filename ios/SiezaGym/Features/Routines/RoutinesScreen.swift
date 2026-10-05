@@ -46,6 +46,19 @@ struct RoutinesScreen: View {
             } contenido: {
                 buscador
 
+                // Diez rutinas listas para copiar (upper, lower, full body...).
+                NavigationLink { RutinasArmadasScreen(store: store) } label: {
+                    PanelLista {
+                        FilaLista(
+                            nombre: "Rutinas armadas",
+                            detalle: "Upper, lower, full body, push, pull y más",
+                            etiqueta: "\(RutinasArmadas.cargar().count) listas"
+                        )
+                    }
+                }
+                .buttonStyle(.plain)
+                .padding(.top, 14)
+
                 if store.routines.isEmpty {
                     Vacio(texto: "Todavía no tenés rutinas.",
                           accion: ("Crear la primera", { creando = true }))

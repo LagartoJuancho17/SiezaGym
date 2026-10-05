@@ -65,6 +65,8 @@ nonisolated struct UserProfile: Identifiable, Sendable, Hashable {
     let displayName: String?
     let photoURL: URL?
     let isCoach: Bool
+    /// Admin del proyecto: ve el panel de entrenador sin haber generado un código.
+    var isAdmin = false
     let sex: Sex?
     let bodyWeightKg: Double?
     let heightCm: Double?
@@ -86,6 +88,7 @@ nonisolated extension UserProfile {
         displayName = data["displayName"] as? String
         photoURL = (data["photoURL"] as? String).flatMap(URL.init(string:))
         isCoach = FirestoreValue.bool(data["isCoach"]) ?? false
+        isAdmin = FirestoreValue.bool(data["isAdmin"]) ?? false
         sex = (data["sex"] as? String).flatMap(Sex.init(rawValue:))
         bodyWeightKg = FirestoreValue.double(data["bodyWeightKg"])
         heightCm = FirestoreValue.double(data["heightCm"])

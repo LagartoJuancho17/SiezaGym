@@ -32,6 +32,16 @@
 				<string>com.googleusercontent.apps.172935039970-q91msrp5od5vkgd5mohj9bo5fcg8e59v</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>CFBundleURLName</key>
+			<string>com.siezagym.app.rutinas</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>siezagym</string>
+			</array>
+		</dict>
 	</array>
 	<key>CFBundleVersion</key>
 	<string>1</string>

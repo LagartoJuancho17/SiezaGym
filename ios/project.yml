@@ -69,6 +69,12 @@ targets:
           - CFBundleTypeRole: Editor
             CFBundleURLSchemes:
               - com.googleusercontent.apps.172935039970-q91msrp5od5vkgd5mohj9bo5fcg8e59v
+          # Los links compartidos de rutinas: siezagym://r/<id> (la página
+          # /r/<id> de la web tiene el botón "Abrir en la app").
+          - CFBundleTypeRole: Viewer
+            CFBundleURLName: com.siezagym.app.rutinas
+            CFBundleURLSchemes:
+              - siezagym
         NSHealthShareUsageDescription: "SiezaGym usa tus datos de Salud para mostrar las calorías activas, los pasos y la distancia del día."
     dependencies:
       - target: SiezaGymWidgets
