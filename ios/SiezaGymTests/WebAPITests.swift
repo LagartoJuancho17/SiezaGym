@@ -73,6 +73,9 @@ struct WebAPITests {
     func errores() async {
         ServidorFalso.respuesta = (403, #"{"error":"no-es-coach","mensaje":"Tu cuenta no tiene el panel de entrenador."}"#)
         await #expect(throws: WebAPI.Falla.servidor("Tu cuenta no tiene el panel de entrenador.")) { try await api().panelCoach() }
+        // Ruta que todavía no existe en la web publicada.
+        ServidorFalso.respuesta = (404, "<html>404</html>")
+        await #expect(throws: WebAPI.Falla.servidor(WebAPI.sinPublicar)) { try await api().panelCoach() }
         ServidorFalso.respuesta = (401, "{}")
         await #expect(throws: WebAPI.Falla.sinSesion) { try await api().panelCoach() }
     }

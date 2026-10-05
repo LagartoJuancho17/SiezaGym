@@ -59,12 +59,18 @@ nonisolated struct WebAPI: Sendable {
         guard (200..<300).contains(estado) else {
             if estado == 401 { throw Falla.sinSesion }
             let mensaje = (try? JSONDecoder().decode(ErrorServidor.self, from: datos))?.mensaje
-            throw Falla.servidor(mensaje ?? "Algo salió mal (\(estado)).")
+            if let mensaje { throw Falla.servidor(mensaje) }
+            // Un 404 sin mensaje nuestro es la web sin esta ruta todavía (la
+            // app salió antes que el deploy), no un error de tus datos.
+            if estado == 404 { throw Falla.servidor(Self.sinPublicar) }
+            throw Falla.servidor("Algo salió mal (\(estado)).")
         }
         return try JSONDecoder.api.decode(R.self, from: datos)
     }
 
     private struct ErrorServidor: Decodable { let mensaje: String? }
+
+    static let sinPublicar = "Esta función todavía no está publicada en el servidor. Va a andar cuando se actualice la web."
 }
 
 nonisolated extension JSONDecoder {
