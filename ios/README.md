@@ -145,7 +145,8 @@ y se avisa cuántos.
 
 Rutinas → **Rutinas armadas**: diez listas para copiar (Upper body, Lower
 body, Full body A y B, Push, Pull, Piernas, Glúteos y femorales, Brazos y
-hombros, En casa). Viven en `Resources/RutinasArmadas/rutinas-armadas.json`
+hombros, En casa). Viven en `contracts/rutinas-armadas.json`, la misma lista que
+usa la web en `/rutinas/armadas`,
 con bloques (Calentamiento, Fuerza, Hipertrofia, Accesorios, Core) y la misma
 forma que una rutina de Firestore. `tests/routine-templates.test.js` comprueba
 que cada ejercicio exista en el catálogo semilla, con su nombre, y que los
@@ -157,6 +158,22 @@ Abajo del entrenamiento, **Agregar ejercicio** abre el mismo selector que el
 armador. Lo elegido se suma al final con 3 series para cargar (30 s si es de
 tiempo), sin cambiar la rutina guardada: solo queda en la sesión de hoy si
 marcás series (`WorkoutDraft.agregarEjercicios`).
+
+## Lo mismo en la web
+
+- **Compartir:** en el detalle de una rutina, menú ⋯ → "Compartir link"
+  (`shareRoutineLink` en `app/(app)/rutinas/[id]/actions.js`). Mismo link y
+  misma copia congelada que la app; abre la hoja de compartir del sistema o
+  copia el link.
+- **Rutinas armadas:** `/rutinas/armadas`, enlazada desde Rutinas. Lee
+  `contracts/rutinas-armadas.json` con `lib/routines/templates.js`.
+- **Agregar ejercicio entrenando:** botón al final de la planilla
+  (`lib/routines/liveExercise.js`). El catálogo se pide recién al tocarlo
+  (`pickerExercises`). Lo agregado queda en el entrenamiento en curso
+  (localStorage) y en una rutina asignada llega al servidor al cerrar
+  (`completeAssignmentSession(..., liveExercises)`), sin tocar la asignación.
+- Vistas previas sin cuenta (con `D2_PREVIEW=true` en desarrollo):
+  `/design-preview/rutina` y `/design-preview/armadas`.
 
 ## Tema SIEZA
 

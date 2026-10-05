@@ -31,7 +31,7 @@ describe("Evaluación: coach, compartir, rutinas armadas y agregar ejercicio (iO
 
   it("10 rutinas armadas a un toque desde Rutinas", () => {
     expect(read("ios/SiezaGym/Features/Routines/RoutinesScreen.swift")).toContain("RutinasArmadasScreen(store: store)");
-    const data = JSON.parse(read("ios/SiezaGym/Resources/RutinasArmadas/rutinas-armadas.json"));
+    const data = JSON.parse(read("contracts/rutinas-armadas.json"));
     expect(data.rutinas).toHaveLength(10);
   });
 
@@ -39,5 +39,27 @@ describe("Evaluación: coach, compartir, rutinas armadas y agregar ejercicio (iO
     const view = read("ios/SiezaGym/Features/Workout/WorkoutView.swift");
     expect(view).toContain('Label("Agregar ejercicio", systemImage: "plus")');
     expect(view).toContain("draft.agregarEjercicios(elegidos)");
+  });
+});
+
+describe("Evaluación: lo mismo en la web", () => {
+  it("compartir desde el detalle de la rutina, con el mismo link que la app", () => {
+    const screen = read("components/design2/RoutineScreen.js");
+    expect(screen).toContain("Compartir link");
+    expect(screen).toContain("shareRoutineLink({ routineId: routine.id, isAssigned: routine.isAssigned })");
+    expect(read("app/(app)/rutinas/[id]/actions.js")).toContain("shareRoutine(");
+  });
+
+  it("rutinas armadas desde Rutinas, de la misma lista que la app", () => {
+    expect(read("app/(app)/rutinas/page.js")).toContain('href="/rutinas/armadas"');
+    expect(read("lib/routines/templates.js")).toContain('@/contracts/rutinas-armadas.json');
+    expect(read("ios/project.yml")).toContain("../contracts/rutinas-armadas.json");
+  });
+
+  it("agregar ejercicio en la planilla, que llega a la sesión también en rutinas asignadas", () => {
+    const screen = read("components/design2/RoutineScreen.js");
+    expect(screen).toContain("Agregar ejercicio");
+    expect(screen).toContain("liveExercises: liveSessionExercises(extra, sheet, notes)");
+    expect(read("lib/assignments/assignments.js")).toContain("cleanLiveExercises(liveExercises");
   });
 });

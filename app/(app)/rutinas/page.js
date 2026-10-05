@@ -12,7 +12,7 @@ import ThemeRoot from "@/components/design2/ThemeRoot";
 import Backdrop from "@/components/design2/Backdrop";
 import RoutineList from "@/components/design2/RoutineList";
 import TabBar from "@/components/design2/TabBar";
-import { PlusIcon } from "@/components/design2/Icons";
+import { PlusIcon, ChevronRightIcon } from "@/components/design2/Icons";
 
 export const dynamic = "force-dynamic";
 
@@ -89,6 +89,18 @@ export default async function RutinasPage() {
             <PlusIcon size={24} width={1.8} />
           </Link>
         </header>
+
+        {/* Diez rutinas listas para copiar, las mismas que en la app. */}
+        <Link href="/rutinas/armadas" className="d2-panel d2-template-link">
+          <span className="d2-routine-body">
+            <span className="d2-routine-name">
+              <span>Rutinas armadas</span>
+              <span className="d2-routine-tag">10 listas</span>
+            </span>
+            <span className="d2-routine-meta">Upper, lower, full body, push, pull y más</span>
+          </span>
+          <ChevronRightIcon size={16} width={1.6} className="d2-routine-go" />
+        </Link>
 
         <RoutineList items={allItems} months={months} undated={undated} />
       </div>

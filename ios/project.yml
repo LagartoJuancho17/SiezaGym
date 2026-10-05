@@ -39,6 +39,9 @@ targets:
     sources:
       - path: SiezaGym
       - path: SiezaGymCompartido
+      # Las rutinas armadas son una sola lista para la web y la app.
+      - path: ../contracts/rutinas-armadas.json
+        buildPhase: resources
     entitlements:
       path: SiezaGym/SiezaGym.entitlements
       properties:

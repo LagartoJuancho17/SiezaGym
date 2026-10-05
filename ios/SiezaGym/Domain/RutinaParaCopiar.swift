@@ -43,7 +43,8 @@ nonisolated struct RutinaParaCopiar: Identifiable, Sendable, Hashable {
 }
 
 /// Las diez rutinas armadas que trae la app (upper, lower, full body, push,
-/// pull...). Viven en `Resources/RutinasArmadas/rutinas-armadas.json`;
+/// pull...). Viven en `contracts/rutinas-armadas.json` (la misma lista que usa
+/// la web en /rutinas/armadas);
 /// `tests/routine-templates.test.js` comprueba que cada ejercicio exista en el
 /// catálogo.
 nonisolated enum RutinasArmadas {

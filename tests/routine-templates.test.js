@@ -7,7 +7,7 @@ import { slugify } from "../lib/text/normalize.js";
 // catálogo, la rutina se copia sin ese ejercicio y nadie se entera: lo frena
 // esta prueba.
 const data = JSON.parse(
-  readFileSync(new URL("../ios/SiezaGym/Resources/RutinasArmadas/rutinas-armadas.json", import.meta.url), "utf8"),
+  readFileSync(new URL("../contracts/rutinas-armadas.json", import.meta.url), "utf8"),
 );
 const catalog = new Map(EXERCISES.map((exercise) => [slugify(exercise.nameEs), exercise]));
 // Los siete colores que iOS conoce por nombre (GroupColor); los demás caen en teal.

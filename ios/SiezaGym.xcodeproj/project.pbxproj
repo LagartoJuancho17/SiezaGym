@@ -17,7 +17,6 @@
 		141E59BD76A212C36DA62C60 /* CaloriasWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44F62EBD544DB33AEA955089 /* CaloriasWidget.swift */; };
 		1467DB9BF571D0A493C06833 /* CustomExerciseSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 629768D30B5607A1DC2F3DD6 /* CustomExerciseSheet.swift */; };
 		15FF05EC6BB0399FC15ECBF0 /* BodyMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4A27BD74C0AEECA1F3DF543 /* BodyMetrics.swift */; };
-		1608B1230958961065691B26 /* rutinas-armadas.json in Resources */ = {isa = PBXBuildFile; fileRef = 0FE9A0D32325FD7DC80FAB9D /* rutinas-armadas.json */; };
 		1737C20D1CB5EB84138DDBB0 /* WorkoutControlsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D052F9BB534B8DE7EA4D9450 /* WorkoutControlsTests.swift */; };
 		17C1840289B6881288F34DAA /* ProgressMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65D3FDABC0463D11B668747F /* ProgressMetrics.swift */; };
 		19B8BDA9D3195F6A407AC092 /* HealthMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFBC030844B41AC2CA85228E /* HealthMetrics.swift */; };
@@ -94,6 +93,7 @@
 		B0EA2CE5E685D1FC164705BC /* HomeMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = D23EED55AC67DF9CAA4DB093 /* HomeMetrics.swift */; };
 		B1ABFDF8307CFC51EDB49E6E /* MFAService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F12C80688EA983C4A2C8D0F7 /* MFAService.swift */; };
 		B1B3AA68F97836D037C4F264 /* TrainingCalendarTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00CB416B92890D19B623F38A /* TrainingCalendarTests.swift */; };
+		B51EFB47B4CA74F69F2CABAE /* rutinas-armadas.json in Resources */ = {isa = PBXBuildFile; fileRef = 58920FCF835232AACC945ACF /* rutinas-armadas.json */; };
 		BEA06009214DEAE119B35BB8 /* WidgetSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D1501279ED31259AE8A634B /* WidgetSnapshot.swift */; };
 		C0283CF3A0439D767EF2D6CD /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = F83202DC4E3A3E212094214A /* FirebaseAuth */; };
 		C287FE9BAF2970770A93748F /* WorkoutSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3EA1A8C682800BC7D50005F /* WorkoutSession.swift */; };
@@ -160,7 +160,6 @@
 		036156D2BCC64D37D027155D /* TemasScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemasScreen.swift; sourceTree = "<group>"; };
 		0DDA47487C90F2CFC08882C9 /* SiezaGymApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SiezaGymApp.swift; sourceTree = "<group>"; };
 		0EEF694EDDA74368E4606969 /* SiezaGymWidgets.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SiezaGymWidgets.entitlements; sourceTree = "<group>"; };
-		0FE9A0D32325FD7DC80FAB9D /* rutinas-armadas.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "rutinas-armadas.json"; sourceTree = "<group>"; };
 		11AF2E7FBBDB372A8A95CFE5 /* EntrenamientoActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EntrenamientoActivity.swift; sourceTree = "<group>"; };
 		11F33B84461900E4F5834752 /* TonoMarca.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TonoMarca.swift; sourceTree = "<group>"; };
 		1701F084780BFE7958223925 /* WorkoutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutView.swift; sourceTree = "<group>"; };
@@ -187,6 +186,7 @@
 		4DCBEC43F3E4CA9983F44570 /* AuthForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthForm.swift; sourceTree = "<group>"; };
 		4E0E8867D3639ECF302359A1 /* DatosScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatosScreen.swift; sourceTree = "<group>"; };
 		4FBBBF16C769FE74AD92CB30 /* VinculoCoachScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VinculoCoachScreen.swift; sourceTree = "<group>"; };
+		58920FCF835232AACC945ACF /* rutinas-armadas.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "rutinas-armadas.json"; sourceTree = "<group>"; };
 		6050D5EE6B1267B77E113FA9 /* Routine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Routine.swift; sourceTree = "<group>"; };
 		61A8217EE572685B2AF5F08A /* AuthMessageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthMessageTests.swift; sourceTree = "<group>"; };
 		621B7F67FB19EB5BA54204AA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -263,7 +263,7 @@
 		F9F497722DB4661FFF746FD1 /* TrainingCalendar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainingCalendar.swift; sourceTree = "<group>"; };
 		F9F6A2EBFC13CEDC7984B640 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		FD8ADFF2CAA687963AB3D3AA /* Piezas.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Piezas.swift; sourceTree = "<group>"; };
-		"TEMP_BC3C98B6-F4CB-4C2C-BE4B-9E65BAF3D606" /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
+		"TEMP_E7D9DC41-C380-47B4-A212-824323E83567" /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -281,14 +281,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		2FF0DE020FD3E9C4CD244021 /* RutinasArmadas */ = {
-			isa = PBXGroup;
-			children = (
-				0FE9A0D32325FD7DC80FAB9D /* rutinas-armadas.json */,
-			);
-			path = RutinasArmadas;
-			sourceTree = "<group>";
-		};
 		379FCB97390D30EBDC4ACFE3 /* DesignSystem */ = {
 			isa = PBXGroup;
 			children = (
@@ -367,11 +359,29 @@
 			isa = PBXGroup;
 			children = (
 				C3F0463828C12475FCA92D2E /* SiezaGym */,
+				7FA4DDA7880ADF813E42C8F4 /* SiezaGym-ios */,
 				551FD2AF46D7AAF2FD052DF0 /* SiezaGymCompartido */,
 				E8CFB2971497B4CB3F568CB4 /* SiezaGymTests */,
 				D13B9CF1953793E580F5C181 /* SiezaGymWidgets */,
 				53A94C3F8F42DC761303E246 /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		7FA4DDA7880ADF813E42C8F4 /* SiezaGym-ios */ = {
+			isa = PBXGroup;
+			children = (
+				910C4A204A30C01871F62591 /* contracts */,
+			);
+			name = "SiezaGym-ios";
+			path = ..;
+			sourceTree = "<group>";
+		};
+		910C4A204A30C01871F62591 /* contracts */ = {
+			isa = PBXGroup;
+			children = (
+				58920FCF835232AACC945ACF /* rutinas-armadas.json */,
+			);
+			path = contracts;
 			sourceTree = "<group>";
 		};
 		9AEE51E15CA81CDB8574508F /* Shared */ = {
@@ -402,7 +412,6 @@
 			children = (
 				3BF9C538E6A757304EFC3144 /* Assets.xcassets */,
 				B25E860F7C4AE7A29211C87F /* GoogleService-Info.plist */,
-				2FF0DE020FD3E9C4CD244021 /* RutinasArmadas */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -572,10 +581,10 @@
 			path = Auth;
 			sourceTree = "<group>";
 		};
-		"TEMP_8BDF6DE9-19B9-4BE9-A462-F81C629FDED9" /* ios */ = {
+		"TEMP_330D0B7F-3832-4C00-96D8-B5987AE153E5" /* ios */ = {
 			isa = PBXGroup;
 			children = (
-				"TEMP_BC3C98B6-F4CB-4C2C-BE4B-9E65BAF3D606" /* Signing.xcconfig */,
+				"TEMP_E7D9DC41-C380-47B4-A212-824323E83567" /* Signing.xcconfig */,
 			);
 			path = ios;
 			sourceTree = "<group>";
@@ -698,7 +707,7 @@
 			files = (
 				106C3B5F379773A98FB4C5C5 /* Assets.xcassets in Resources */,
 				71B55B68CDDE96E4D0457893 /* GoogleService-Info.plist in Resources */,
-				1608B1230958961065691B26 /* rutinas-armadas.json in Resources */,
+				B51EFB47B4CA74F69F2CABAE /* rutinas-armadas.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -869,7 +878,7 @@
 		};
 		04764DE4336904985F4049C2 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_BC3C98B6-F4CB-4C2C-BE4B-9E65BAF3D606" /* Signing.xcconfig */;
+			baseConfigurationReference = "TEMP_E7D9DC41-C380-47B4-A212-824323E83567" /* Signing.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -1028,7 +1037,7 @@
 		};
 		FC6682134BF5D75535C2BAE4 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = "TEMP_BC3C98B6-F4CB-4C2C-BE4B-9E65BAF3D606" /* Signing.xcconfig */;
+			baseConfigurationReference = "TEMP_E7D9DC41-C380-47B4-A212-824323E83567" /* Signing.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
