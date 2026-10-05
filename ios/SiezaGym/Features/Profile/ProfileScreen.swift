@@ -156,21 +156,61 @@ struct ProfileScreen: View {
 
                 Rectangle().fill(tema.borde).frame(height: 1)
 
-                // Armada a mano y no con `FilaLista`: ese componente trae su
-                // propio padding horizontal y encima del de esta tarjeta
-                // quedaba corrido respecto a la fila de arriba.
-                HStack {
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text("Entrenador").font(.system(size: 14, weight: .medium)).foregroundStyle(tema.texto)
-                        Text("Quien te asigna rutinas").font(.system(size: 11)).foregroundStyle(tema.texto2)
+                // El panel de entrenador, si la cuenta lo tiene.
+                if store.profile?.isCoach == true || store.profile?.isAdmin == true {
+                    NavigationLink { CoachPanelScreen(store: store) } label: {
+                        filaConfiguracion(
+                            icono: "person.2.fill",
+                            titulo: "Panel del entrenador",
+                            detalle: "Tus alumnos, el código y las rutinas asignadas"
+                        )
                     }
-                    Spacer(minLength: 12)
-                    Text(store.profile?.isCoach == true ? "Sos entrenador" : "Sin vincular")
-                        .font(.system(size: 12))
-                        .foregroundStyle(tema.texto2)
+                    .buttonStyle(.plain)
+
+                    Rectangle().fill(tema.borde).frame(height: 1)
                 }
+
+                NavigationLink { VinculoCoachScreen(store: store) } label: {
+                    filaConfiguracion(
+                        icono: "figure.strengthtraining.functional",
+                        titulo: "Entrenador",
+                        detalle: "Vincularte con tu entrenador o serlo vos"
+                    )
+                }
+                .buttonStyle(.plain)
             }
         }
+    }
+}
+
+/// Una fila de Configuración que abre otra pantalla.
+@MainActor private func filaConfiguracion(icono: String, titulo: String, detalle: String) -> some View {
+    FilaConfiguracion(icono: icono, titulo: titulo, detalle: detalle)
+}
+
+private struct FilaConfiguracion: View {
+    @Environment(\.tema) private var tema
+    let icono: String
+    let titulo: String
+    let detalle: String
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: icono)
+                .font(.system(size: 15, weight: .medium))
+                .foregroundStyle(tema.solido)
+                .frame(width: 34, height: 34)
+                .background(tema.vidrio(2), in: .rect(cornerRadius: 10))
+            VStack(alignment: .leading, spacing: 3) {
+                Text(titulo).font(.system(size: 14, weight: .medium)).foregroundStyle(tema.texto)
+                Text(detalle).font(.system(size: 11)).foregroundStyle(tema.texto2)
+            }
+            Spacer(minLength: 12)
+            Image(systemName: "chevron.right")
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(tema.texto3)
+        }
+        .contentShape(.rect)
     }
 }
 

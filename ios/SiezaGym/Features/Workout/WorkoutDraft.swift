@@ -39,6 +39,9 @@ final class WorkoutDraft {
     let routine: Routine?
     let startedAt = Date()
     var exercises: [ExerciseDraft]
+    /// Cuántos ejercicios se sumaron entrenando: arma ids que no chocan con
+    /// los de la rutina ("orden-ejercicio") aunque se agregue dos veces el mismo.
+    private var agregadosEnVivo = 0
 
     init(routine: Routine?, catalog: [String: Exercise]) {
         self.routine = routine
@@ -118,6 +121,34 @@ final class WorkoutDraft {
         exercises[index].sets.append(
             SetDraft(weight: previous?.weight ?? 0, reps: previous?.reps ?? 10, rir: previous?.rir)
         )
+    }
+
+    /// Suma ejercicios en medio del entrenamiento ("hoy la máquina estaba
+    /// libre"). Van al final, sin grupo, con 3 series vacías para cargar: no
+    /// cambian la rutina guardada, solo lo que se registra hoy. Devuelve los
+    /// ids nuevos, para abrir el primero.
+    @discardableResult
+    func agregarEjercicios(_ nuevos: [Exercise]) -> [String] {
+        nuevos.map { exercise in
+            agregadosEnVivo += 1
+            let id = "vivo-\(agregadosEnVivo)-\(exercise.id)"
+            let tiempo = exercise.registrationType.isTimeBased
+            exercises.append(
+                ExerciseDraft(
+                    id: id,
+                    exerciseID: exercise.id,
+                    name: exercise.nameEs,
+                    isTimeBased: tiempo,
+                    mediaURL: exercise.mediaURL,
+                    videoURL: exercise.videoURL,
+                    description: exercise.descriptionEs.isEmpty ? nil : exercise.descriptionEs,
+                    group: "",
+                    groupColor: "",
+                    sets: (0..<3).map { _ in SetDraft(weight: 0, reps: tiempo ? 30 : 10, rir: nil) }
+                )
+            )
+            return id
+        }
     }
 
     func removeSet(from exerciseID: String, at offsets: IndexSet) {

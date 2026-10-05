@@ -1819,3 +1819,17 @@
 @media (prefers-reduced-motion: reduce) {
   .d2-sw-ring-fill, .d2-sw-round { transition: none; }
 }
+
+/* ── Rutinas armadas ─────────────────────────────────────────────────────── */
+.d2-template-link { display: flex; align-items: center; gap: calc(12 * var(--d2-u)); margin-bottom: calc(18 * var(--d2-u)); padding: calc(14 * var(--d2-u)) calc(18 * var(--d2-u)); color: var(--d2-text); text-decoration: none; }
+.d2-templates { display: grid; gap: calc(12 * var(--d2-u)); margin-top: calc(16 * var(--d2-u)); padding-bottom: calc(110 * var(--d2-u)); }
+.d2-template > * + * { border-top: 0; }
+.d2-template-head { display: flex; align-items: center; gap: calc(12 * var(--d2-u)); padding: calc(14 * var(--d2-u)) calc(18 * var(--d2-u)); cursor: pointer; list-style: none; }
+.d2-template-head::-webkit-details-marker { display: none; }
+.d2-template[open] .d2-template-head { border-bottom: 1px solid var(--d2-border); }
+.d2-template-desc { padding: calc(12 * var(--d2-u)) calc(18 * var(--d2-u)) 0; font-size: calc(13 * var(--d2-u)); line-height: 1.5; color: var(--d2-text-2); }
+.d2-template-list { margin: 0; padding: calc(6 * var(--d2-u)) 0; list-style: none; }
+.d2-template-row { display: flex; align-items: center; gap: calc(12 * var(--d2-u)); padding: calc(8 * var(--d2-u)) calc(18 * var(--d2-u)); }
+.d2-template-add { padding: calc(6 * var(--d2-u)) calc(18 * var(--d2-u)) calc(18 * var(--d2-u)); }
+.d2-share-link { margin-top: calc(14 * var(--d2-u)); font-size: max(16px, calc(13 * var(--d2-u))); font-variant-numeric: tabular-nums; }
+.d2-add-live { width: 100%; justify-content: center; min-height: calc(50 * var(--d2-u)); margin-top: calc(12 * var(--d2-u)); border-style: dashed; }

@@ -97,6 +97,84 @@ una cuenta: `xcrun simctl launch booted com.siezagym.app -sieza-preview -sieza-c
 Pruebas: `ios/SiezaGymTests/ConocerteTests.swift` (meta, cuándo se muestra,
 pasos, campos que guarda) y `tests/ios-conocerte.eval.test.js`.
 
+## Panel del entrenador
+
+Perfil → Configuración tiene **Entrenador** para todos y **Panel del
+entrenador** si la cuenta es coach (o admin). Las colecciones del coach
+(`coachStudents`, `invitationCodes`, `assignments`) las maneja la web con el
+Admin SDK, así que la app no las lee de Firestore: usa la API de la web
+(`Services/WebAPI.swift` + `CoachAPI.swift`), mandando el ID token de Firebase
+en `Authorization: Bearer`. El servidor lo verifica (`lib/api/auth.js`) y
+saca el uid de ahí.
+
+| Endpoint | Qué hace |
+| --- | --- |
+| `GET /api/coach` | alumnos, resumen, actividad reciente y el código vigente |
+| `POST`/`DELETE /api/coach/codigo` | generar (te vuelve coach) o anular el código |
+| `GET`/`DELETE /api/coach/alumnos/<id>` | detalle del alumno / desvincularlo |
+| `POST /api/coach/asignaciones`, `DELETE …/<id>` | asignar una rutina propia / sacarla |
+| `GET`/`POST`/`DELETE /api/coach/vinculo` | del lado del alumno: ver, cargar el código, desvincularse |
+
+Pantallas: `Features/Coach/CoachPanelScreen.swift` (código para compartir,
+resumen, alumnos, actividad), `CoachAlumnoScreen.swift` (objetivo, días y
+peso del alumno, rutinas asignadas, últimos entrenamientos; asignar con semana
+y nota) y `VinculoCoachScreen.swift` (alumno: cargar el código o
+desvincularse; o activar el panel generando un código).
+
+Para probar contra `npm run dev` desde el simulador (mismo ajuste que el
+segundo factor):
+`xcrun simctl spawn booted defaults write com.siezagym.app mfa-base -string http://localhost:3000`.
+**Estos endpoints tienen que estar publicados en Vercel** para que la app los
+use en producción.
+
+## Compartir rutinas por link
+
+El botón de compartir del detalle de una rutina (propia o del coach) pide el
+link a `POST /api/rutinas/compartir`: la web guarda una copia congelada en
+`sharedRoutines/<id>` (`lib/sharing/sharedRoutines.js`) y devuelve
+`https://sieza-gym.vercel.app/r/<id>`. Compartir de nuevo la misma rutina
+actualiza la copia y conserva el link. La página `/r/<id>` es pública: muestra
+la rutina, "Abrir en la app" (`siezagym://r/<id>`, esquema registrado en
+`project.yml`) y "Agregar a mis rutinas" en la web. En la app, `onOpenURL`
+deja el link en `EnlacesEntrantes` y `MainTabView` abre la hoja para copiarla
+(si llega en el login, espera a que haya sesión). Al copiar se dejan afuera
+los ejercicios propios de quien la compartió y los que no están en tu catálogo,
+y se avisa cuántos.
+
+## Rutinas armadas
+
+Rutinas → **Rutinas armadas**: diez listas para copiar (Upper body, Lower
+body, Full body A y B, Push, Pull, Piernas, Glúteos y femorales, Brazos y
+hombros, En casa). Viven en `contracts/rutinas-armadas.json`, la misma lista que
+usa la web en `/rutinas/armadas`,
+con bloques (Calentamiento, Fuerza, Hipertrofia, Accesorios, Core) y la misma
+forma que una rutina de Firestore. `tests/routine-templates.test.js` comprueba
+que cada ejercicio exista en el catálogo semilla, con su nombre, y que los
+colores sean de los que iOS conoce.
+
+## Agregar un ejercicio entrenando
+
+Abajo del entrenamiento, **Agregar ejercicio** abre el mismo selector que el
+armador. Lo elegido se suma al final con 3 series para cargar (30 s si es de
+tiempo), sin cambiar la rutina guardada: solo queda en la sesión de hoy si
+marcás series (`WorkoutDraft.agregarEjercicios`).
+
+## Lo mismo en la web
+
+- **Compartir:** en el detalle de una rutina, menú ⋯ → "Compartir link"
+  (`shareRoutineLink` en `app/(app)/rutinas/[id]/actions.js`). Mismo link y
+  misma copia congelada que la app; abre la hoja de compartir del sistema o
+  copia el link.
+- **Rutinas armadas:** `/rutinas/armadas`, enlazada desde Rutinas. Lee
+  `contracts/rutinas-armadas.json` con `lib/routines/templates.js`.
+- **Agregar ejercicio entrenando:** botón al final de la planilla
+  (`lib/routines/liveExercise.js`). El catálogo se pide recién al tocarlo
+  (`pickerExercises`). Lo agregado queda en el entrenamiento en curso
+  (localStorage) y en una rutina asignada llega al servidor al cerrar
+  (`completeAssignmentSession(..., liveExercises)`), sin tocar la asignación.
+- Vistas previas sin cuenta (con `D2_PREVIEW=true` en desarrollo):
+  `/design-preview/rutina` y `/design-preview/armadas`.
+
 ## Tema SIEZA
 
 En instalaciones nuevas, la app abre con **SIEZA**: una interfaz oscura y

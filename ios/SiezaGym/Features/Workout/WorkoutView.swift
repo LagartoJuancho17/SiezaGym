@@ -19,6 +19,7 @@ struct WorkoutView: View {
     @State private var previewExercise: WorkoutDraft.ExerciseDraft? = nil
     /// Qué ejercicio está desplegado. Arranca en el que estás haciendo.
     @State private var abierto: String?
+    @State private var agregando = false
     @Environment(\.dismiss) private var dismiss
 
     private let secondTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
@@ -71,6 +72,17 @@ struct WorkoutView: View {
                         }
                     }
 
+                    // Sumar un ejercicio que no estaba en la rutina, sin
+                    // salir del entrenamiento.
+                    Button {
+                        agregando = true
+                    } label: {
+                        Label("Agregar ejercicio", systemImage: "plus")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(GhostButtonStyle())
+                    .accessibilityHint("Suma un ejercicio al entrenamiento de hoy, sin cambiar la rutina")
+
                     if let saveError {
                         Text(saveError)
                             .font(.system(size: 13))
@@ -109,6 +121,15 @@ struct WorkoutView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .terminarSerieDesdeWidget)) { _ in
             completeNextSet()
+        }
+        .sheet(isPresented: $agregando) {
+            ExercisePickerSheet(store: store, yaAgregados: Set(draft.exercises.map(\.exerciseID))) { elegidos in
+                let nuevos = draft.agregarEjercicios(elegidos)
+                agregando = false
+                if let primero = nuevos.first {
+                    withAnimation(.snappy(duration: 0.22)) { abierto = primero }
+                }
+            }
         }
         .sheet(item: $previewExercise) { exercise in
             TecnicaSheet(

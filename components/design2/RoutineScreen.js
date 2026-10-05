@@ -28,8 +28,12 @@ import {
   finishAssignmentWorkout,
   finishRoutineWorkout,
   logExerciseSet,
+  shareRoutineLink,
+  pickerExercises,
 } from "@/app/(app)/rutinas/[id]/actions";
 import RoutineExercise from "./RoutineExercise";
+import ExercisePicker from "./ExercisePicker";
+import { appendLive, liveRows, liveSessionExercises } from "@/lib/routines/liveExercise";
 import TabBar from "./TabBar";
 import {
   ArrowLeftIcon,
@@ -66,7 +70,7 @@ import { groupTone } from "@/lib/routines/groupColors";
  * de la rutina; el tiempo es una estimación y está rotulado como tal; el
  * volumen sale de las series que se marcaron como hechas.
  */
-export default function RoutineScreen({ routine }) {
+export default function RoutineScreen({ routine, loadExercises = pickerExercises }) {
   const router = useRouter();
 
   const [openId, setOpenId] = useState(() => {
@@ -77,6 +81,15 @@ export default function RoutineScreen({ routine }) {
     return null;
   });
   const [menuOpen, setMenuOpen] = useState(false);
+  // Ejercicios sumados entrenando: van al final y no cambian la rutina.
+  const [extra, setExtra] = useState(() => {
+    const active = getActiveWorkout();
+    if (active && active.routineId === routine.id && Array.isArray(active.extra)) return active.extra;
+    return [];
+  });
+  const [picking, setPicking] = useState(false);
+  const [pickerList, setPickerList] = useState(null);
+  const exercises = useMemo(() => [...routine.exercises, ...extra], [routine.exercises, extra]);
 
   const sections = useMemo(() => {
     if (!routine?.exercises?.length) return [];
@@ -98,7 +111,9 @@ export default function RoutineScreen({ routine }) {
     });
     return result;
   }, [routine?.exercises]);
-  const [modal, setModal] = useState(null); // "delete" | "discard" | "assign" | "done"
+  const [modal, setModal] = useState(null); // "delete" | "discard" | "assign" | "done" | "share"
+  const [shareLink, setShareLink] = useState(null);
+  const [copied, setCopied] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [showOnHome, setShowOnHome] = useState(routine.showOnHome);
@@ -132,6 +147,10 @@ export default function RoutineScreen({ routine }) {
   // Cronómetro de descanso (segundos restantes).
   const [restSecondsLeft, setRestSecondsLeft] = useState(null);
 
+  const shownSections =
+    running && extra.length > 0
+      ? [...sections, { id: "agregados", groupName: "Agregados hoy", groupColor: "slate", exercises: extra }]
+      : sections;
   const seconds = elapsedSeconds({ ...clock, now });
   const paused = clock.pausedAt != null;
   const done = doneCount(sheet);
@@ -148,11 +167,12 @@ export default function RoutineScreen({ routine }) {
       clock,
       openId,
       notes,
+      extra,
       isAssigned: routine.isAssigned,
       assignmentId: routine.assignmentId,
-      totalExercises: routine.exercises.length,
+      totalExercises: exercises.length,
     });
-  }, [running, sheet, clock, openId, notes, routine]);
+  }, [running, sheet, clock, openId, notes, extra, exercises.length, routine]);
 
   // El cronómetro se lee del reloj del sistema en cada tick. Un contador que se
   // incrementa se atrasa y se frena con la pestaña en segundo plano, y el
@@ -202,9 +222,9 @@ export default function RoutineScreen({ routine }) {
     }
 
     const currentEx =
-      routine.exercises.find((e) => e.position === openId) ||
-      routine.exercises.find((e) => !isExerciseDone(sheet, e.position)) ||
-      routine.exercises[0];
+      exercises.find((e) => e.position === openId) ||
+      exercises.find((e) => !isExerciseDone(sheet, e.position)) ||
+      exercises[0];
 
     const currentRows = (currentEx && sheet[currentEx.position]) || [];
     const firstIncompleteIdx = currentRows.findIndex((r) => !r.done);
@@ -226,7 +246,7 @@ export default function RoutineScreen({ routine }) {
           toggleDoneRef.current(currentEx, nextIdx);
         } else {
           // Si el ejercicio actual ya terminó, pasar al siguiente incompleto
-          const nextEx = routine.exercises.find((e) => !isExerciseDone(sheet, e.position));
+          const nextEx = exercises.find((e) => !isExerciseDone(sheet, e.position));
           if (nextEx) {
             setOpenId(nextEx.position);
             const nextRows = sheet[nextEx.position] || [];
@@ -244,11 +264,12 @@ export default function RoutineScreen({ routine }) {
     return () => {
       // Cleanup on unmount handled gracefully
     };
-  }, [running, openId, sheet, seconds, routine]);
+  }, [running, openId, sheet, seconds, routine, exercises]);
 
   function start() {
     setSheet(startSheet(routine.exercises));
     setNotes({});
+    setExtra([]);
     setClock({ startedAt: Date.now(), pausedMs: 0, pausedAt: null });
     setNow(Date.now());
     setRunning(true);
@@ -278,6 +299,7 @@ export default function RoutineScreen({ routine }) {
     setRunning(false);
     setSheet({});
     setNotes({});
+    setExtra([]);
     setClock({ startedAt: null, pausedMs: 0, pausedAt: null });
     setRestSecondsLeft(null);
     setModal(null);
@@ -315,7 +337,8 @@ export default function RoutineScreen({ routine }) {
       setRestSecondsLeft(90);
     }
 
-    if (!next || !routine.isAssigned) return;
+    // Lo agregado entrenando no existe en la asignación: llega al cerrar.
+    if (!next || !routine.isAssigned || exercise.live) return;
 
     setSavingSet(`${exercise.position}-${index}`);
     try {
@@ -333,8 +356,8 @@ export default function RoutineScreen({ routine }) {
   toggleDoneRef.current = toggleDone;
 
   async function finish() {
-    const exercises = sessionExercises(routine.exercises, sheet, notes);
-    if (exercises.length === 0) {
+    const logged = sessionExercises(exercises, sheet, notes);
+    if (logged.length === 0) {
       setError("Marcá al menos una serie con el tilde para guardar el entrenamiento.");
       return;
     }
@@ -350,12 +373,17 @@ export default function RoutineScreen({ routine }) {
       // En una asignación las series ya están guardadas de a una: la acción
       // arma la sesión con eso y no con lo que manda el navegador.
       const result = routine.isAssigned
-        ? await finishAssignmentWorkout({ assignmentId: routine.assignmentId, durationSeconds, notes })
+        ? await finishAssignmentWorkout({
+            assignmentId: routine.assignmentId,
+            durationSeconds,
+            notes,
+            liveExercises: liveSessionExercises(extra, sheet, notes),
+          })
         : await finishRoutineWorkout({
             routineId: routine.id,
             routineName: routine.name,
             durationSeconds,
-            exercises,
+            exercises: logged,
           });
 
       clearActiveWorkout();
@@ -384,10 +412,74 @@ export default function RoutineScreen({ routine }) {
     setSummary(null);
     setSheet({});
     setNotes({});
+    setExtra([]);
     setClock({ startedAt: null, pausedMs: 0, pausedAt: null });
     setRestSecondsLeft(null);
     setOpenId(null);
     router.refresh();
+  }
+
+  /**
+   * Pide el link y abre la hoja de compartir del sistema si hay (celular); si
+   * no, muestra el link con un botón de copiar.
+   */
+  async function share() {
+    setMenuOpen(false);
+    setBusy(true);
+    setError("");
+    try {
+      const url = await shareRoutineLink({ routineId: routine.id, isAssigned: routine.isAssigned });
+      setShareLink(url);
+      setCopied(false);
+      setModal("share");
+    } catch (err) {
+      setError(err.message || "No se pudo crear el link.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function sendLink() {
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: routine.name, text: `${routine.name} en SiezaGym`, url: shareLink });
+        return;
+      } catch {
+        // Cancelado o no permitido: queda el botón de copiar.
+      }
+    }
+    await copyLink();
+  }
+
+  async function copyLink() {
+    try {
+      await navigator.clipboard.writeText(shareLink);
+      setCopied(true);
+    } catch {
+      setCopied(false);
+    }
+  }
+
+  /** El catálogo se pide recién acá: el detalle no lo carga de entrada. */
+  async function openPicker() {
+    setPicking(true);
+    if (pickerList) return;
+    try {
+      setPickerList(await loadExercises());
+    } catch (err) {
+      setPicking(false);
+      setError(err.message || "No se pudieron cargar los ejercicios.");
+    }
+  }
+
+  function addLive(chosen) {
+    setPicking(false);
+    if (!chosen?.length) return;
+    const next = appendLive(extra, chosen, routine.exercises.length);
+    const added = next.slice(extra.length);
+    setExtra(next);
+    setSheet((current) => ({ ...current, ...liveRows(added) }));
+    setOpenId(added[0].position);
   }
 
   async function toggleShowOnHome() {
@@ -456,9 +548,10 @@ export default function RoutineScreen({ routine }) {
                   clock,
                   openId,
                   notes,
+                  extra,
                   isAssigned: routine.isAssigned,
                   assignmentId: routine.assignmentId,
-                  totalExercises: routine.exercises.length,
+                  totalExercises: exercises.length,
                 });
                 router.push("/rutinas");
               }}
@@ -496,7 +589,7 @@ export default function RoutineScreen({ routine }) {
               </button>
             </div>
           ) : (
-            (canEdit || routine.students.length > 0) && (
+            (
               <div className="d2-menu-wrap">
                 <button
                   type="button"
@@ -516,6 +609,9 @@ export default function RoutineScreen({ routine }) {
                       aria-hidden
                     />
                     <div className="d2-glass-strong d2-menu">
+                      <button type="button" onClick={share} disabled={busy} className="d2-menu-item">
+                        Compartir link
+                      </button>
                       {canEdit && (
                         <Link href={`/rutinas/${routine.id}/editar`} className="d2-menu-item">
                           Editar
@@ -601,7 +697,7 @@ export default function RoutineScreen({ routine }) {
             {routine.exercises.length === 0 ? (
               <p className="d2-glass d2-empty">Esta rutina no tiene ejercicios.</p>
             ) : (
-              sections.map((section) => (
+              shownSections.map((section) => (
                 <div
                   key={section.id}
                   className={`d2-panel ${section.groupName ? `d2-group-panel ${groupTone(section.groupColor).className}` : ""}`}
@@ -657,6 +753,12 @@ export default function RoutineScreen({ routine }) {
                   ))}
                 </div>
               ))
+            )}
+
+            {running && (
+              <button type="button" onClick={openPicker} className="d2-ghost d2-add-live">
+                <span aria-hidden>＋</span> Agregar ejercicio
+              </button>
             )}
           </div>
 
@@ -781,6 +883,40 @@ export default function RoutineScreen({ routine }) {
       {/* Entrenando no hay barra de pestañas: un toque al azar no puede
           hacer perder lo cargado. */}
       {!running && <TabBar />}
+
+      {picking && (
+        pickerList ? (
+          <ExercisePicker
+            exercises={pickerList}
+            alreadyAdded={new Set(exercises.map((e) => e.exerciseId))}
+            onCancel={() => setPicking(false)}
+            onConfirm={addLive}
+            onCreated={(exercise) => setPickerList((current) => [...(current || []), exercise])}
+          />
+        ) : (
+          <div className="d2-modal"><p className="d2-modal-text">Cargando ejercicios…</p></div>
+        )
+      )}
+
+      {modal === "share" && shareLink && (
+        <div className="d2-modal" onClick={() => setModal(null)}>
+          <div className="d2-glass-strong d2-modal-card" onClick={(event) => event.stopPropagation()}>
+            <h2 className="d2-modal-title">Compartir {routine.name}</h2>
+            <p className="d2-modal-text">
+              Quien lo abra ve la rutina y la puede copiar a las suyas, en la web o en la app.
+            </p>
+            <input readOnly value={shareLink} className="d2-input d2-share-link" onFocus={(e) => e.target.select()} aria-label="Link de la rutina" />
+            <div className="d2-modal-actions">
+              <button type="button" className="d2-modal-primary" onClick={sendLink}>
+                {copied ? "Link copiado" : "Compartir"}
+              </button>
+              <button type="button" className="d2-modal-secondary" onClick={copyLink}>
+                Copiar link
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {modal === "discard" && (
         <div className="d2-modal">

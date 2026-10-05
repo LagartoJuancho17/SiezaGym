@@ -43,6 +43,7 @@ struct MainTabView: View {
     @State private var tab: AppTab = .home
     @State private var resumingWorkout = false
     @State private var conocerte = false
+    @State private var enlaces = EnlacesEntrantes.compartido
 
     init(store: GymStore) {
         _store = State(initialValue: store)
@@ -65,6 +66,10 @@ struct MainTabView: View {
             ProfileScreen(store: store)
                 .tag(AppTab.profile)
                 .toolbar(.hidden, for: .tabBar)
+        }
+        // Un link de rutina compartida (siezagym://r/<id>).
+        .sheet(item: $enlaces.rutina) { pendiente in
+            RutinaCompartidaSheet(id: pendiente.id, store: store)
         }
         // "Conocerte": una vez por cuenta, si al perfil le falta objetivo y peso.
         .fullScreenCover(isPresented: $conocerte) {
