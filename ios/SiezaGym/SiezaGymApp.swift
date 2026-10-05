@@ -38,7 +38,12 @@ struct SiezaGymApp: App {
         WindowGroup {
             Group {
                 #if DEBUG
-                if Self.usaDatosDePrueba {
+                if Self.usaDatosDePrueba && ProcessInfo.processInfo.arguments.contains("-sieza-alumno-demo") {
+                    NavigationStack {
+                        CoachAlumnoScreen(store: PreviewData.store(), alumno: AlumnoDemo.alumno, detalle: AlumnoDemo.detalle)
+                    }
+                    .previewSieza()
+                } else if Self.usaDatosDePrueba {
                     MainTabView(store: PreviewData.store()).previewSieza()
                 } else if let auth {
                     RootView().environment(auth)

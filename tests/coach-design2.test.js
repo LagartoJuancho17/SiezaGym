@@ -114,6 +114,7 @@ vi.mock("@/lib/sessions/sessions", () => ({ listUserSessions: security.listUserS
 vi.mock("@/lib/exercises/exercises", () => ({ listExercises: security.listExercises }));
 vi.mock("@/lib/assignments/assignments", () => ({ listStudentAssignments: security.listStudentAssignments }));
 vi.mock("@/lib/routines/routines", () => ({ listUserRoutines: security.listUserRoutines }));
+vi.mock("@/lib/customExercises/customExercises", () => ({ listCustomExercises: vi.fn(async () => []) }));
 import StudentDetailPage from "@/app/dashboard/coach/alumnos/[studentId]/page";
 
 describe("Student detail authorization survives redesign", () => {
@@ -142,6 +143,8 @@ describe("Student detail authorization survives redesign", () => {
     const element = await StudentDetailPage({ params: Promise.resolve({ studentId: "student-1" }) });
     expect(element.type).toBe(StudentDetailView);
     expect(element.props.studentProfile).toEqual(student);
-    expect(security.listUserSessions).toHaveBeenLastCalledWith("student-1", { limitCount: 100 });
+    // 150 para que los récords y los PR miren toda la historia reciente.
+    expect(security.listUserSessions).toHaveBeenLastCalledWith("student-1", { limitCount: 150 });
+    expect(element.props.records).toEqual([]);
   });
 });

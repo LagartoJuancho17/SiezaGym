@@ -7,6 +7,8 @@ import { listUserSessions } from "@/lib/sessions/sessions";
 import { listExercises } from "@/lib/exercises/exercises";
 import { listStudentAssignments } from "@/lib/assignments/assignments";
 import { listUserRoutines } from "@/lib/routines/routines";
+import { listCustomExercises } from "@/lib/customExercises/customExercises";
+import { markRecordSets, personalRecords } from "@/lib/progress/records";
 
 export const dynamic = "force-dynamic";
 
@@ -21,15 +23,22 @@ export default async function StudentDetailPage({ params }) {
   const linked = await isLinkedToCoach(studentId, user.uid);
   if (!linked) notFound();
 
-  const [studentProfile, sessions, catalogExercises, assignments, coachRoutines] = await Promise.all([
+  const [studentProfile, history, catalogExercises, customExercises, assignments, coachRoutines] = await Promise.all([
     getUserProfile(studentId),
-    listUserSessions(studentId, { limitCount: 100 }),
+    listUserSessions(studentId, { limitCount: 150 }),
     listExercises(),
+    listCustomExercises(studentId),
     listStudentAssignments(studentId),
     listUserRoutines(user.uid),
   ]);
 
   if (!studentProfile) notFound();
+
+  // Cada serie sabe si batió el mejor 1RM que el ejercicio tenía antes, y
+  // los récords salen de toda la historia (lib/progress/records.js, igual que
+  // el panel de la app).
+  const sessions = markRecordSets(history).slice(0, 100);
+  const records = personalRecords(history);
 
   const coachAssignments = (assignments || []).filter((a) => a.coachId === user.uid);
 
@@ -40,7 +49,8 @@ export default async function StudentDetailPage({ params }) {
         studentId: studentProfile.studentId || studentId,
       }}
       sessions={sessions}
-      catalogExercises={catalogExercises}
+      catalogExercises={[...catalogExercises, ...customExercises]}
+      records={records}
       assignments={coachAssignments}
       coachRoutines={coachRoutines || []}
     />

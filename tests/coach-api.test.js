@@ -23,6 +23,8 @@ vi.mock("@/lib/assignments/assignments", () => ({
 }));
 vi.mock("@/lib/routines/routines", () => ({ getUserRoutine: vi.fn() }));
 vi.mock("@/lib/sessions/sessions", () => ({ listUserSessions: vi.fn() }));
+vi.mock("@/lib/exercises/exercises", () => ({ listExercises: vi.fn(async () => [{ id: "e", nameEs: "Press de banca" }]) }));
+vi.mock("@/lib/customExercises/customExercises", () => ({ listCustomExercises: vi.fn(async () => []) }));
 
 import { getAdminAuth } from "@/lib/firebase/admin";
 import { getUserProfile } from "@/lib/users/users";
@@ -90,7 +92,10 @@ describe("/api/coach", () => {
   it("el detalle muestra solo las asignaciones de este coach", async () => {
     isLinkedToCoach.mockResolvedValue(true);
     getUserProfile.mockImplementation(async (uid) => (uid === "coach1" ? { isCoach: true } : { displayName: "Ana" }));
-    listUserSessions.mockResolvedValue([{ id: "x", routineName: "Upper", exercises: [{ exerciseId: "e", sets: [{ reps: 8 }] }] }]);
+    listUserSessions.mockResolvedValue([
+      { id: "nueva", routineName: "Upper", finishedAt: "2026-10-03T10:00:00Z", exercises: [{ exerciseId: "e", sets: [{ reps: 8, weight: 80 }] }] },
+      { id: "vieja", routineName: "Upper", finishedAt: "2026-09-28T10:00:00Z", exercises: [{ exerciseId: "e", sets: [{ reps: 8, weight: 70 }] }] },
+    ]);
     listStudentAssignments.mockResolvedValue([
       { id: "a1", coachId: "coach1", routineName: "Upper", exercises: [1, 2] },
       { id: "a2", coachId: "otro", routineName: "De otro", exercises: [] },
@@ -98,7 +103,11 @@ describe("/api/coach", () => {
     const body = await (await alumno(req(), params("s1"))).json();
     expect(body.student.displayName).toBe("Ana");
     expect(body.assignments.map((a) => a.id)).toEqual(["a1"]);
-    expect(body.sessions[0].exercises[0].sets).toEqual([{ reps: 8 }]);
+    // Peso, reps y si batió el récord anterior (80 × 8 > 70 × 8).
+    expect(body.sessions[0].exercises[0].sets).toEqual([{ weight: 80, reps: 8, failed: false, pr: true }]);
+    expect(body.sessions[1].exercises[0].sets[0].pr).toBe(false);
+    expect(body.records[0]).toMatchObject({ exerciseId: "e", bestSet: { weight: 80, reps: 8 }, maxWeightKg: 80 });
+    expect(body.exerciseNames).toEqual({ e: "Press de banca" });
   });
 
   it("asignar exige que la rutina sea del coach y el alumno esté vinculado", async () => {
