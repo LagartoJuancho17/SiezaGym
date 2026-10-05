@@ -55,9 +55,32 @@ nonisolated struct DetalleAlumno: Decodable, Sendable, Equatable {
     struct Sesion: Decodable, Sendable, Equatable, Identifiable {
         struct Ejercicio: Decodable, Sendable, Equatable {
             struct Serie: Decodable, Sendable, Equatable {
-                let reps: Int?
-                let weight: Double?
+                let weight: Double
+                let reps: Int
+                let failed: Bool
+                /// Batió el mejor 1RM estimado que tenía ese ejercicio antes.
+                let pr: Bool
+
+                init(weight: Double, reps: Int, failed: Bool = false, pr: Bool = false) {
+                    self.weight = weight; self.reps = reps; self.failed = failed; self.pr = pr
+                }
+
+                init(from decoder: Decoder) throws {
+                    let c = try decoder.container(keyedBy: CodingKeys.self)
+                    weight = try c.decodeIfPresent(Double.self, forKey: .weight) ?? 0
+                    reps = try c.decodeIfPresent(Int.self, forKey: .reps) ?? 0
+                    failed = try c.decodeIfPresent(Bool.self, forKey: .failed) ?? false
+                    pr = try c.decodeIfPresent(Bool.self, forKey: .pr) ?? false
+                }
+
+                private enum CodingKeys: String, CodingKey { case weight, reps, failed, pr }
+
+                /// "80 kg × 8", o "12 reps" si no lleva peso.
+                var texto: String {
+                    weight > 0 ? "\(BodyMetrics.numero(weight)) kg × \(reps)" : "\(reps) reps"
+                }
             }
+            var hayPR: Bool { sets.contains(where: \.pr) }
             let exerciseId: String
             let sets: [Serie]
             let note: String?
@@ -82,9 +105,55 @@ nonisolated struct DetalleAlumno: Decodable, Sendable, Equatable {
         let exercises: Int
     }
 
+    /// El mejor de cada ejercicio (ver lib/progress/records.js).
+    struct Record: Decodable, Sendable, Equatable, Identifiable {
+        struct Serie: Decodable, Sendable, Equatable { let weight: Double; let reps: Int }
+        let exerciseId: String
+        let bestOneRepMax: Double
+        let bestSet: Serie?
+        let bestAt: Date?
+        let maxWeightKg: Double
+        let maxReps: Int
+        let sessions: Int
+        var id: String { exerciseId }
+
+        /// Lo grande de la fila: el 1RM estimado, o las reps si es sin peso.
+        var valor: (numero: String, unidad: String) {
+            bestOneRepMax > 0
+                ? ("\(BodyMetrics.numero(bestOneRepMax)) kg", "1RM est.")
+                : ("\(maxReps)", "reps máx.")
+        }
+
+        /// "Mejor serie: 80 kg × 8 · máx. 85 kg"
+        var detalle: String {
+            guard let bestSet, bestOneRepMax > 0 else {
+                return "\(sessions) \(sessions == 1 ? "entrenamiento" : "entrenamientos")"
+            }
+            var texto = "Mejor serie: \(BodyMetrics.numero(bestSet.weight)) kg × \(bestSet.reps)"
+            if maxWeightKg > bestSet.weight { texto += " · máx. \(BodyMetrics.numero(maxWeightKg)) kg" }
+            return texto
+        }
+    }
+
     let student: Perfil
     let sessions: [Sesion]
     let assignments: [Asignacion]
+    let records: [Record]
+    let exerciseNames: [String: String]
+
+    func nombre(_ exerciseID: String) -> String { exerciseNames[exerciseID] ?? exerciseID }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        student = try c.decode(Perfil.self, forKey: .student)
+        sessions = try c.decode([Sesion].self, forKey: .sessions)
+        assignments = try c.decode([Asignacion].self, forKey: .assignments)
+        // Una web sin esta versión no los manda: la pantalla sigue andando.
+        records = try c.decodeIfPresent([Record].self, forKey: .records) ?? []
+        exerciseNames = try c.decodeIfPresent([String: String].self, forKey: .exerciseNames) ?? [:]
+    }
+
+    private enum CodingKeys: String, CodingKey { case student, sessions, assignments, records, exerciseNames }
 }
 
 nonisolated struct EntrenadorVinculado: Decodable, Sendable, Equatable {

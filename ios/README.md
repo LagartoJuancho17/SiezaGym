@@ -127,6 +127,19 @@ segundo factor):
 **Estos endpoints tienen que estar publicados en Vercel** para que la app los
 use en producción.
 
+### Pesos y récords del alumno
+
+En el detalle de cada alumno (app y web) el coach ve sus **récords**: por
+ejercicio, el mejor 1RM estimado (Epley) con la serie que lo dio y el peso
+máximo, o las reps máximas si es sin peso. Tocando un entrenamiento
+(`CoachSesionScreen`) ve cada serie con **peso × reps**, las falladas
+tachadas y los **PR** con un trofeo. Un PR es una serie que supera el mejor
+1RM que ese ejercicio tenía antes: la primera vez que se hace un ejercicio no
+cuenta. El cálculo vive en `lib/progress/records.js` (`markRecordSets`,
+`personalRecords`) y se hace sobre las últimas 150 sesiones, aunque se
+muestren 30. Para verlo sin cuenta: `xcrun simctl launch booted
+com.siezagym.app -sieza-preview -sieza-alumno-demo`.
+
 ## Compartir rutinas por link
 
 El botón de compartir del detalle de una rutina (propia o del coach) pide el

@@ -11,7 +11,7 @@ struct CoachAlumnoScreen: View {
     /// Para que el panel recargue los totales después de un cambio.
     var alCambiar: () -> Void = {}
 
-    @State private var detalle: DetalleAlumno?
+    @State var detalle: DetalleAlumno?
     @State private var error: String?
     @State private var asignando = false
     @State private var confirmandoQuitar = false
@@ -21,6 +21,21 @@ struct CoachAlumnoScreen: View {
         Pantalla(titulo: alumno.displayName, rotulo: "Alumno", volver: true) {
             if let detalle {
                 datos(detalle.student).padding(.top, 16)
+
+                if !detalle.records.isEmpty {
+                    HStack {
+                        SectionLabel("Récords")
+                        Spacer()
+                        if detalle.records.count > 6 {
+                            NavigationLink("Ver todos") { CoachRecordsScreen(detalle: detalle) }
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(tema.solido)
+                        }
+                    }
+                    .padding(.top, 24)
+                    .padding(.bottom, 10)
+                    ListaRecords(records: Array(detalle.records.prefix(6)), detalle: detalle)
+                }
 
                 HStack {
                     SectionLabel("Rutinas asignadas")
@@ -66,13 +81,18 @@ struct CoachAlumnoScreen: View {
                     PanelLista {
                         ForEach(Array(detalle.sessions.prefix(15).enumerated()), id: \.element.id) { indice, sesion in
                             if indice > 0 { Rectangle().fill(tema.borde).frame(height: 1) }
-                            FilaLista(
-                                nombre: sesion.routineName ?? "Entrenamiento libre",
-                                detalle: sesion.finishedAt?.formatted(date: .abbreviated, time: .shortened) ?? "",
-                                valor: ProgressMetrics.formatKg(sesion.totalVolumeKg),
-                                unidad: "\(sesion.totalSetsCompleted) series",
-                                chevron: false
-                            )
+                            NavigationLink {
+                                CoachSesionScreen(sesion: sesion, nombres: detalle.exerciseNames)
+                            } label: {
+                                FilaLista(
+                                    nombre: sesion.routineName ?? "Entrenamiento libre",
+                                    detalle: resumen(de: sesion),
+                                    etiqueta: sesion.exercises.contains(where: \.hayPR) ? "🏆 PR" : nil,
+                                    valor: ProgressMetrics.formatKg(sesion.totalVolumeKg),
+                                    unidad: "\(sesion.totalSetsCompleted) series"
+                                )
+                            }
+                            .buttonStyle(.plain)
                         }
                     }
                 }
@@ -128,6 +148,16 @@ struct CoachAlumnoScreen: View {
             (perfil.trainingDaysPerWeek.map { "\($0)" } ?? "—", "días por semana"),
             (perfil.bodyWeightKg.map { "\(BodyMetrics.numero($0)) kg" } ?? nivel ?? "—", perfil.bodyWeightKg != nil ? "peso" : "experiencia"),
         ])
+    }
+
+    /// "3 oct · Press de banca 80 kg × 8, Remo…": la fecha y la mejor serie
+    /// del primer ejercicio, para ver de un vistazo cuánto levantó.
+    private func resumen(de sesion: DetalleAlumno.Sesion) -> String {
+        let fecha = sesion.finishedAt?.formatted(.dateTime.day().month(.abbreviated)) ?? ""
+        guard let primero = sesion.exercises.first,
+              let mejor = primero.sets.filter({ !$0.failed }).max(by: { $0.weight < $1.weight }) else { return fecha }
+        let mas = sesion.exercises.count > 1 ? " +\(sesion.exercises.count - 1)" : ""
+        return "\(fecha) · \(detalle?.nombre(primero.exerciseId) ?? primero.exerciseId) \(mejor.texto)\(mas)"
     }
 
     private func estado(de asignacion: DetalleAlumno.Asignacion) -> String {

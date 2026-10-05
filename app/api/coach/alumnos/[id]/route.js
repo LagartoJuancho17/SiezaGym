@@ -4,18 +4,37 @@ import { getUserProfile } from "@/lib/users/users";
 import { isLinkedToCoach, removeStudent } from "@/lib/coach/students";
 import { listUserSessions } from "@/lib/sessions/sessions";
 import { listStudentAssignments } from "@/lib/assignments/assignments";
+import { listExercises } from "@/lib/exercises/exercises";
+import { listCustomExercises } from "@/lib/customExercises/customExercises";
+import { markRecordSets, personalRecords } from "@/lib/progress/records";
 
-/** El detalle de un alumno: datos, últimos entrenamientos y lo que le asignaste. */
+/** Entrenamientos que se muestran; los récords miran más atrás. */
+const SHOWN_SESSIONS = 30;
+const HISTORY_SESSIONS = 150;
+
+/**
+ * El detalle de un alumno: datos, récords por ejercicio, últimos
+ * entrenamientos serie por serie (peso, reps y si fue PR) y lo que le
+ * asignaste.
+ */
 export async function GET(request, { params }) {
   const { id } = await params;
   return withCoach(request, async (uid) => {
     if (!(await isLinkedToCoach(id, uid))) return apiError(404, "no-vinculado", "Ese alumno no está vinculado a tu cuenta.");
-    const [profile, sessions, assignments] = await Promise.all([
+    const [profile, history, assignments, catalog, custom] = await Promise.all([
       getUserProfile(id),
-      listUserSessions(id, { limitCount: 30 }),
+      listUserSessions(id, { limitCount: HISTORY_SESSIONS }),
       listStudentAssignments(id),
+      listExercises(),
+      listCustomExercises(id),
     ]);
     if (!profile) return apiError(404, "no-existe", "No se encontró el alumno.");
+
+    // Los PR se marcan sobre toda la historia, no solo sobre lo que se muestra:
+    // si no, el primer entrenamiento visible parecería el punto de partida.
+    const sessions = markRecordSets(history).slice(0, SHOWN_SESSIONS);
+    const names = new Map([...catalog, ...custom].map((exercise) => [exercise.id, exercise.nameEs]));
+    const usedIds = new Set(history.flatMap((s) => (s.exercises || []).map((e) => e.exerciseId)));
     return NextResponse.json({
       student: {
         studentId: id,
@@ -34,8 +53,19 @@ export async function GET(request, { params }) {
         durationSeconds: s.durationSeconds,
         totalVolumeKg: s.totalVolumeKg,
         totalSetsCompleted: s.totalSetsCompleted,
-        exercises: (s.exercises || []).map((e) => ({ exerciseId: e.exerciseId, sets: e.sets || [], note: e.note || null })),
+        exercises: (s.exercises || []).map((e) => ({
+          exerciseId: e.exerciseId,
+          note: e.note || null,
+          sets: (e.sets || []).map((set) => ({
+            weight: Number(set.weight) || 0,
+            reps: Number(set.reps) || 0,
+            failed: !!set.failed,
+            pr: !!set.pr,
+          })),
+        })),
       })),
+      records: personalRecords(history),
+      exerciseNames: Object.fromEntries([...usedIds].map((exerciseId) => [exerciseId, names.get(exerciseId) || exerciseId])),
       assignments: assignments
         .filter((a) => a.coachId === uid)
         .map((a) => ({

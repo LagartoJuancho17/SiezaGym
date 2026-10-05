@@ -68,6 +68,7 @@ export default function StudentDetailView({
   catalogExercises = [],
   assignments = [],
   coachRoutines = [],
+  records = [],
 }) {
   const router = useRouter();
   const [assignModalOpen, setAssignModalOpen] = useState(false);
@@ -348,6 +349,37 @@ export default function StudentDetailView({
           )}
         </section>
 
+        {/* Récords por ejercicio: el mejor 1RM estimado y su serie, o las
+            reps máximas en los de peso corporal. */}
+        {records.length > 0 && (
+          <section>
+            <div className="mb-2">
+              <p className="d2-coach-section-title mb-0">Récords</p>
+              <p className="d2-coach-muted">La mejor marca de cada ejercicio, de toda su historia</p>
+            </div>
+            <div className="d2-coach-records">
+              {records.map((record) => {
+                const name = exerciseLookup.get(record.exerciseId)?.nameEs || record.exerciseId;
+                const withWeight = record.bestOneRepMax > 0 && record.bestSet;
+                return (
+                  <div key={record.exerciseId} className="d2-coach-record">
+                    <span className="d2-coach-record-name">{name}</span>
+                    <span className="d2-coach-record-value font-mono-digit">
+                      {withWeight ? `${String(record.bestOneRepMax).replace(".", ",")} kg` : `${record.maxReps} reps`}
+                      <span className="d2-coach-record-unit">{withWeight ? "1RM est." : "máx."}</span>
+                    </span>
+                    <span className="d2-coach-muted d2-coach-record-detail">
+                      {withWeight
+                        ? `Mejor serie ${record.bestSet.weight} kg × ${record.bestSet.reps}${record.bestAt ? ` · ${formatShortDate(record.bestAt)}` : ""}`
+                        : `${record.sessions} ${record.sessions === 1 ? "entrenamiento" : "entrenamientos"}`}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
         {/* Sección de Analíticas y Gráficos */}
         <section>
           <div className="mb-2">
@@ -609,10 +641,17 @@ export default function StudentDetailView({
                                               ~{Math.round(e1rm)}kg
                                             </span>
                                           )}
-                                          {isBest && !s.failed && (
-                                            <span className="d2-history-star" title="Mejor marca">
-                                              ★
+                                          {s.pr && !s.failed ? (
+                                            <span className="d2-history-pr" title="Récord personal: superó su mejor marca anterior">
+                                              🏆 PR
                                             </span>
+                                          ) : (
+                                            isBest &&
+                                            !s.failed && (
+                                              <span className="d2-history-star" title="Mejor serie del día">
+                                                ★
+                                              </span>
+                                            )
                                           )}
                                           {s.failed && (
                                             <span
