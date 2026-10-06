@@ -45,6 +45,36 @@ class ProgressMetricsTest {
 
     private fun lunesDe(ahora: ZonedDateTime) = ahora.minusDays(TrainingCalendar.weekdayIndex(ahora).toLong())
 
+    @Test
+    fun rollingVolumeIncludesMondayOnSaturdayAndDropsOlderDays() {
+        val now = ZonedDateTime.parse("2026-10-10T18:00:00-03:00[America/Argentina/Buenos_Aires]")
+        val bars = ProgressMetrics.volumeByLastSevenDays(listOf(
+            sesion("old", now.minusDays(7), 9000.0),
+            sesion("first", now.minusDays(6).withHour(0), 100.0),
+            sesion("monday", now.minusDays(5), 400.0),
+            sesion("monday2", now.minusDays(5).plusHours(1), 200.0),
+            sesion("today", now, 300.0),
+            sesion("future", now.plusHours(1), 5000.0),
+            sesion("unfinished", null, 8000.0),
+        ), now)
+        assertEquals(listOf("DOM", "LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB"), bars.map { it.label })
+        assertEquals(listOf(100.0, 600.0, 0.0, 0.0, 0.0, 0.0, 300.0), bars.map { it.kg })
+        assertEquals(1.0, bars[1].pct, 0.001)
+        val next = ProgressMetrics.volumeByLastSevenDays(emptyList(), now.plusDays(1))
+        assertEquals("2026-10-05", next.first().dayKey)
+        assertEquals("2026-10-11", next.last().dayKey)
+        assertTrue(next.all { it.pct == 0.0 })
+    }
+
+    @Test
+    fun rollingVolumeUsesArgentineDateForUtcSessions() {
+        val now = ZonedDateTime.parse("2026-10-06T23:00:00-03:00[America/Argentina/Buenos_Aires]")
+        val bars = ProgressMetrics.volumeByLastSevenDays(
+            listOf(sesion("utc", ZonedDateTime.parse("2026-10-07T01:00:00Z"), 100.0)), now)
+        assertEquals("2026-10-06", bars.last().dayKey)
+        assertEquals(100.0, bars.last().kg, 0.001)
+    }
+
     // MARK: - Volumen por semana
 
     @Test

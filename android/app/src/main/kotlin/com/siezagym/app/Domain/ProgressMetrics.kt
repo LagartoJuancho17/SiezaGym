@@ -47,6 +47,31 @@ object ProgressMetrics {
         }
     }
 
+    data class DayVolume(val dayKey: String, val label: String, val kg: Double, val pct: Double)
+
+    /** Siete días calendario en Argentina, desde hace seis días hasta hoy inclusive. */
+    fun volumeByLastSevenDays(
+        sessions: List<WorkoutSession>,
+        now: ZonedDateTime = ZonedDateTime.now(TrainingCalendar.zone),
+    ): List<DayVolume> {
+        val today = now.withZoneSameInstant(TrainingCalendar.zone).toLocalDate()
+        val dates = (6 downTo 0).map { today.minusDays(it.toLong()) }
+        val totals = HashMap<String, Double>()
+        for (session in sessions) {
+            val finished = session.finishedAt ?: continue
+            if (finished.isAfter(now)) continue
+            val key = TrainingCalendar.dayKey(finished)
+            totals[key] = (totals[key] ?: 0.0) + session.totalVolumeKg
+        }
+        val max = dates.maxOf { totals[TrainingCalendar.dayKey(it)] ?: 0.0 }
+        return dates.map { date ->
+            val key = TrainingCalendar.dayKey(date)
+            val kg = totals[key] ?: 0.0
+            DayVolume(key, TrainingCalendar.dayLabels[TrainingCalendar.weekdayIndex(date)],
+                kg, if (max > 0) kg / max else 0.0)
+        }
+    }
+
     // MARK: - Días entrenados
 
     data class GridDay(val key: String, val trained: Boolean, val isFuture: Boolean)

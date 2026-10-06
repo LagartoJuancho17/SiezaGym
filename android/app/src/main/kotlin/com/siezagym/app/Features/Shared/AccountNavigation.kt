@@ -4,6 +4,11 @@ import android.net.Uri
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
+import com.siezagym.app.DesignSystem.tema
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraphBuilder
@@ -45,12 +50,25 @@ internal fun NavGraphBuilder.accountDestinations(
         }
     }
 
-    // Progreso ya no es una pestaña: son cinco pantallas dentro de
-    // Perfil, con su propio título y vuelta atrás.
+    // Perfil muestra el progreso y mantiene edición, temas y ejercicios en rutas propias.
     navigation(startDestination = "profile", route = AppTab.PROFILE.name) {
         composable("profile") {
-            Pantalla(titulo = "Perfil") {
-                ProfileScreen(data, onSaveProfile, onSignOut) { destino -> nav.navigate(destino) }
+            Pantalla(titulo = "Perfil", accion = {
+                IconButton(onClick = { nav.navigate("perfil/configuracion") }) {
+                    Icon(Icons.Filled.Settings, "Configuración", tint = tema.texto)
+                }
+            }) {
+                ProfileScreen(data, onSignOut) { destino -> nav.navigate(destino) }
+            }
+        }
+        composable("perfil/editar") {
+            Pantalla(titulo = "Editar perfil", volver = true, onVolver = { nav.popBackStack() }) {
+                ProfileEditScreen(data, onSaveProfile)
+            }
+        }
+        composable("perfil/configuracion") {
+            Pantalla(titulo = "Configuración", volver = true, onVolver = { nav.popBackStack() }) {
+                ProfileSettingsScreen()
             }
         }
         composable("progreso/volume") {

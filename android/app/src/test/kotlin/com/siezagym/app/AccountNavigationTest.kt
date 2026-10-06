@@ -72,10 +72,12 @@ class AccountNavigationTest {
             hasLoaded = true,
         )
 
-    private fun show(data: GymData = this.data) {
+    private fun show(data: GymData = this.data, onTheme: (String) -> Unit = {}, onSave: suspend (Map<String, Any?>) -> Unit = {}) {
         compose.setContent {
             val themes = rememberThemeStore()
             SiezaTheme(themes) {
+                val activeTheme = tema
+                SideEffect { onTheme(activeTheme.id) }
                 Backdrop {
                     val nav = rememberNavController()
                     val entry by nav.currentBackStackEntryAsState()
@@ -85,7 +87,7 @@ class AccountNavigationTest {
                         } ?: AppTab.HOME
                     NavHost(nav, startDestination = "start") {
                         composable("start") { Text("Inicio de prueba") }
-                        accountDestinations(nav, data, {}, {}, {})
+                        accountDestinations(nav, data, {}, onSave, {})
                     }
                     BottomNav(
                         active,
@@ -125,18 +127,38 @@ class AccountNavigationTest {
     }
 
     @Test
-    fun everyProgressCardHasAWorkingDestinationAndBack() {
+    fun progressIsInlineInOrderAndExercisesOpenSeparately() {
         show()
         compose.onNodeWithContentDescription("Perfil").performClick()
-        listOf("Volumen", "Días entrenados", "Músculos", "Empuje y tracción", "Por ejercicio")
-            .forEach { label ->
-                compose.onNodeWithText(label).performScrollTo().performClick()
-                compose.onNodeWithContentDescription("Volver").assertIsDisplayed()
-                if (label == "Por ejercicio")
-                    compose.onNodeWithText("Press de banca").assertIsDisplayed()
-                compose.onNodeWithContentDescription("Volver").performClick()
-                compose.onNodeWithText(label).assertExists()
-            }
+        val labels = listOf("Días entrenados", "Volumen por día de la semana", "Volumen por semana",
+            "Volumen por músculo", "Empuje y tracción", "Por ejercicio")
+        val positions = labels.map { label ->
+            compose.onNodeWithText(label).fetchSemanticsNode().positionInRoot.y
+        }
+        assertTrue(positions.zipWithNext().all { (a, b) -> a < b })
+        labels.forEach { compose.onNodeWithText(it).performScrollTo().assertIsDisplayed() }
+        compose.onNodeWithContentDescription("Volver").assertDoesNotExist()
+        compose.onNodeWithText("Ver progreso por ejercicio").assertDoesNotExist()
+        compose.onNodeWithText("Por ejercicio").performClick()
+        compose.onNodeWithText("Press de banca").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Configuración").assertDoesNotExist()
+        compose.onNodeWithContentDescription("Volver").performClick()
+        compose.onNodeWithText("Por ejercicio").performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
+    fun profileEditingOpensFromIdentityAndSaves() {
+        var saved: Map<String, Any?>? = null
+        show(onSave = { saved = it })
+        compose.onNodeWithContentDescription("Perfil").performClick()
+        compose.onNodeWithText("Peso (kg)").assertDoesNotExist()
+        compose.onNodeWithText("Editar perfil").performClick()
+        compose.onNodeWithText("Peso (kg)").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Configuración").assertDoesNotExist()
+        compose.onNodeWithText("Guardar").performScrollTo().performClick()
+        compose.runOnIdle { assertNotNull(saved) }
+        compose.onNodeWithContentDescription("Volver").performClick()
+        compose.onNodeWithText("Atleta de prueba").assertIsDisplayed()
     }
 
     @Test
@@ -150,23 +172,19 @@ class AccountNavigationTest {
     }
 
     @Test
-    fun selectingThemeInProfileUpdatesTheRootImmediately() {
+    fun selectingThemeInSettingsUpdatesTheRootImmediately() {
         var current = ""
-        compose.setContent {
-            val themes = rememberThemeStore()
-            SiezaTheme(themes) {
-                val activeTheme = tema
-                SideEffect { current = activeTheme.id }
-                Backdrop {
-                    Pantalla("Perfil") {
-                        com.siezagym.app.Features.Profile.ProfileScreen(data, {}, {}) {}
-                    }
-                }
-            }
-        }
+        show(onTheme = { current = it })
+        compose.onNodeWithContentDescription("Perfil").performClick()
+        compose.onNodeWithText("Plata").assertDoesNotExist()
+        compose.onNodeWithContentDescription("Configuración").performClick()
         compose.onNodeWithText("Plata").performScrollTo().performClick()
         compose.runOnIdle { assertEquals("plata", current) }
+        compose.onNodeWithContentDescription("Volver").performClick()
+        compose.onNodeWithText("Atleta de prueba").assertIsDisplayed()
         capture("profile-plata")
+        compose.onNodeWithContentDescription("Historial").performClick()
+        compose.onNodeWithContentDescription("Configuración").assertDoesNotExist()
     }
 
     @Test

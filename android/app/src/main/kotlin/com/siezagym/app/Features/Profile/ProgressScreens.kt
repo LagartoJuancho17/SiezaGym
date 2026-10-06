@@ -23,51 +23,16 @@ import com.siezagym.app.Domain.HomeMetrics
 import com.siezagym.app.Domain.ProgressMetrics
 import com.siezagym.app.Services.GymData
 
-/** El volumen en tres vistas: semana a semana, por día de la semana y las últimas sesiones. */
+/** Volumen de los últimos siete días, por semana y, opcionalmente, últimas sesiones. */
 @Composable
-fun VolumeScreen(data: GymData) {
+fun VolumeScreen(data: GymData, showSessionTrend: Boolean = true) {
     val barras = ProgressMetrics.volumeByWeek(data.sessions, weeks = 12)
-    val porDia = data.weekdayVolume
+    val porDia = ProgressMetrics.volumeByLastSevenDays(data.sessions)
     val tendencia = data.volumeTrend
 
     Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
-        SectionLabel("Por semana")
-        GlassCard {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Row(
-                    Modifier.fillMaxWidth().height(96.dp),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.Bottom,
-                ) {
-                    barras.forEach { barra ->
-                        Box(
-                            Modifier.weight(1f)
-                                .height(maxOf(4.dp, (96 * barra.height).dp))
-                                .clip(RoundedCornerShape(4.dp))
-                                .background(
-                                    if (barra.isEmpty) tema.texto3.copy(alpha = .35f)
-                                    else tema.solido
-                                )
-                        )
-                    }
-                }
-                Row(Modifier.fillMaxWidth()) {
-                    Nota("hace ${barras.size} semanas", Modifier.weight(1f))
-                    val mejor = barras.maxOfOrNull { it.kg } ?: 0.0
-                    Nota(
-                        if (mejor > 0) "mejor ${ProgressMetrics.formatKg(mejor)}"
-                        else "sin volumen todavía",
-                        Modifier.weight(1f),
-                        centrado = true,
-                        atenuado = true,
-                    )
-                    Nota("esta semana", Modifier.weight(1f), derecha = true)
-                }
-            }
-        }
-
         Column {
-            SectionLabel("Por día de la semana")
+            SectionLabel("Volumen por día de la semana")
             Spacer(Modifier.height(10.dp))
             GlassCard {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -100,6 +65,7 @@ fun VolumeScreen(data: GymData) {
                             }
                         }
                     }
+                    Text("Últimos 7 días · hoy al final", color = tema.texto3, fontSize = 10.sp)
                     porDia
                         .maxByOrNull { it.kg }
                         ?.takeIf { it.kg > 0 }
@@ -114,7 +80,45 @@ fun VolumeScreen(data: GymData) {
             }
         }
 
-        if (tendencia.hasData) {
+        Column {
+            SectionLabel("Volumen por semana")
+            Spacer(Modifier.height(10.dp))
+            GlassCard {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Row(
+                        Modifier.fillMaxWidth().height(96.dp),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.Bottom,
+                    ) {
+                        barras.forEach { barra ->
+                            Box(
+                                Modifier.weight(1f)
+                                    .height(maxOf(4.dp, (96 * barra.height).dp))
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .background(
+                                        if (barra.isEmpty) tema.texto3.copy(alpha = .35f)
+                                        else tema.solido
+                                    )
+                            )
+                        }
+                    }
+                    Row(Modifier.fillMaxWidth()) {
+                        Nota("hace ${barras.size} semanas", Modifier.weight(1f))
+                        val mejor = barras.maxOfOrNull { it.kg } ?: 0.0
+                        Nota(
+                            if (mejor > 0) "mejor ${ProgressMetrics.formatKg(mejor)}"
+                            else "sin volumen todavía",
+                            Modifier.weight(1f),
+                            centrado = true,
+                            atenuado = true,
+                        )
+                        Nota("esta semana", Modifier.weight(1f), derecha = true)
+                    }
+                }
+            }
+        }
+
+        if (showSessionTrend && tendencia.hasData) {
             Column {
                 SectionLabel("Últimas sesiones")
                 Spacer(Modifier.height(10.dp))
